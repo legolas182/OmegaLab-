@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detalle del Producto - PROSIME ERP</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#067ff9",
+              "background-light": "#f5f7f8",
+              "background-dark": "#0f1923",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 md:p-10" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<!-- Main Modal/Card Container -->
+<div class="layout-content-container flex w-full max-w-4xl flex-col rounded-xl border border-white/10 bg-[#101a23] shadow-2xl">
+<!-- PageHeading Component -->
+<div class="flex flex-col flex-wrap justify-between gap-4 border-b border-white/10 p-6 sm:flex-row sm:items-center">
+<div class="flex min-w-72 flex-col gap-1">
+<p class="text-2xl font-black leading-tight tracking-[-0.033em] text-white">Tornillo de Acero Inoxidable A4</p>
+<p class="text-sm font-normal leading-normal text-[#8eadcc]">SKU: TA-INOX-A4-50MM</p>
+</div>
+<button class="flex h-10 w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#21364a] px-4 text-sm font-bold leading-normal tracking-[0.015em] text-white transition-colors hover:bg-[#2f4d6a] sm:w-auto">
+<span class="material-symbols-outlined">close</span>
+<span class="truncate">Cerrar</span>
+</button>
+</div>
+<div class="flex flex-col gap-6 p-6">
+<!-- Stats Component -->
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+<div class="flex flex-1 flex-col gap-2 rounded-lg bg-[#21364a] p-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#8eadcc]">inventory_2</span>
+<p class="text-base font-medium leading-normal text-white">Cantidad Total</p>
+</div>
+<p class="text-3xl font-bold leading-tight tracking-tight text-white">1,500 Unidades</p>
+</div>
+<div class="flex flex-1 flex-col gap-2 rounded-lg bg-[#21364a] p-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#8eadcc]">warehouse</span>
+<p class="text-base font-medium leading-normal text-white">Ubicación Principal</p>
+</div>
+<p class="text-3xl font-bold leading-tight tracking-tight text-white">Almacén A-3</p>
+</div>
+</div>
+<!-- SectionHeader Component -->
+<div>
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em] text-white">Detalle por Lote</h3>
+</div>
+<!-- Table Component -->
+<div class="@container">
+<div class="flex overflow-hidden rounded-lg border border-[#2f4d6a] bg-[#101a23]">
+<table class="w-full text-left">
+<thead class="bg-[#182635]">
+<tr>
+<th class="table-col-lote px-4 py-3 text-sm font-medium leading-normal text-white">Lote</th>
+<th class="table-col-cantidad hidden px-4 py-3 text-sm font-medium leading-normal text-white sm:table-cell">Cantidad</th>
+<th class="table-col-ubicacion hidden px-4 py-3 text-sm font-medium leading-normal text-white md:table-cell">Ubicación</th>
+<th class="table-col-caducidad hidden px-4 py-3 text-sm font-medium leading-normal text-white lg:table-cell">Caducidad</th>
+<th class="table-col-estado px-4 py-3 text-sm font-medium leading-normal text-white">Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-t-[#2f4d6a]">
+<td class="table-col-lote h-[72px] px-4 py-2 text-sm font-normal leading-normal text-white">LOTE-2024-001</td>
+<td class="table-col-cantidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] sm:table-cell">500</td>
+<td class="table-col-ubicacion hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] md:table-cell">Estante A-3-1</td>
+<td class="table-col-caducidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] lg:table-cell">31/12/2025</td>
+<td class="table-col-estado h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center justify-center rounded-full bg-green-500/20 px-3 py-1 text-xs font-medium text-green-300">En Stock</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#2f4d6a]">
+<td class="table-col-lote h-[72px] px-4 py-2 text-sm font-normal leading-normal text-white">LOTE-2024-002</td>
+<td class="table-col-cantidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] sm:table-cell">750</td>
+<td class="table-col-ubicacion hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] md:table-cell">Estante A-3-2</td>
+<td class="table-col-caducidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] lg:table-cell">31/12/2025</td>
+<td class="table-col-estado h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center justify-center rounded-full bg-green-500/20 px-3 py-1 text-xs font-medium text-green-300">En Stock</div>
+</td>
+</tr>
+<tr class="border-t border-t-[#2f4d6a]">
+<td class="table-col-lote h-[72px] px-4 py-2 text-sm font-normal leading-normal text-white">LOTE-2023-089</td>
+<td class="table-col-cantidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] sm:table-cell">250</td>
+<td class="table-col-ubicacion hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] md:table-cell">Estante B-1-4</td>
+<td class="table-col-caducidad hidden h-[72px] px-4 py-2 text-sm font-normal leading-normal text-[#8eadcc] lg:table-cell">01/08/2024</td>
+<td class="table-col-estado h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center justify-center rounded-full bg-yellow-500/20 px-3 py-1 text-xs font-medium text-yellow-300">Próximo a Vencer</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ButtonGroup Component (Action Bar) -->
+<div class="flex flex-col flex-wrap justify-start gap-3 border-t border-white/10 p-6 sm:flex-row">
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-green-600 px-5 text-base font-bold leading-normal tracking-[0.015em] text-white transition-colors hover:bg-green-700">
+<span class="material-symbols-outlined">add</span>
+<span class="truncate">Registrar Entrada</span>
+</button>
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-red-600 px-5 text-base font-bold leading-normal tracking-[0.015em] text-white transition-colors hover:bg-red-700">
+<span class="material-symbols-outlined">remove</span>
+<span class="truncate">Registrar Salida</span>
+</button>
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-white transition-colors hover:bg-primary/90">
+<span class="material-symbols-outlined">edit</span>
+<span class="truncate">Realizar Ajuste</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

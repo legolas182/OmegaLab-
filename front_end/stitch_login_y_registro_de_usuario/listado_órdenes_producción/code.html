@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROSIME ERP - Órdenes de Producción</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0056B3",
+                        "background-light": "#f5f5f8",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="flex w-64 flex-col bg-[#1E1E1E] p-4 text-white">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="PROSIME ERP Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAXq4KUlEMUp4CB_H5DoVOXIvypVK2LKbV1sFEUfnkMF77vekcBkljqFEu4B80B3YFPmiCEkl1klhZhuRBtOAKxedxGDWxniJCCeJ_kvwEVFApGaN4i1hJt0F0By-H1TKVUh6kLy9Ng2So_4ef6OQkFLDvjoQ_CJfNaafWx6La2oKVsz1QCuoniI-obPwD-A8hckS2kCTHR9k2GpAtEVGdOCjV61TgcqK0k161QKn2I2BIxQPmWLkryfwGcW6JJKoZDosGBkvMv6n7r");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-medium leading-normal font-display">PROSIME ERP</h1>
+<p class="text-[#A0A0A0] text-sm font-normal leading-normal font-display">Gestión Empresarial</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">dashboard</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/30 text-white" href="#">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Manufactura</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">warehouse</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Inventario</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">sell</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Ventas</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">shopping_cart</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Compras</p>
+</a>
+</nav>
+</div>
+<div class="mt-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">settings</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Ajustes</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-white">help</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Ayuda</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col p-6 overflow-y-auto">
+<!-- PageHeading -->
+<header class="flex flex-wrap items-center justify-between gap-4 mb-4">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em] font-display min-w-72">Órdenes de Producción</h1>
+<div class="flex items-center gap-2">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#2A2A2A] text-white text-sm font-bold leading-normal tracking-[0.015em] font-display hover:bg-white/20 transition-colors">
+<span class="truncate">Importar</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] font-display hover:bg-blue-800 transition-colors">
+<span class="truncate">Crear Nueva MO</span>
+</button>
+</div>
+</header>
+<!-- Search and Filter Bar -->
+<div class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+<!-- SearchBar -->
+<div class="flex-grow">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#A0A0A0] flex bg-[#2A2A2A] items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-white focus:outline-0 focus:ring-0 border-none bg-[#2A2A2A] h-full placeholder:text-[#A0A0A0] px-4 pl-2 text-base font-normal leading-normal font-display" placeholder="Buscar órdenes de producción..." value=""/>
+</div>
+</label>
+</div>
+<!-- Filters and View Toggles -->
+<div class="flex items-center gap-2">
+<!-- Chips -->
+<button class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#2A2A2A] px-4">
+<span class="material-symbols-outlined text-[#A0A0A0]">filter_list</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Filtros</p>
+</button>
+<button class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#2A2A2A] px-4">
+<span class="material-symbols-outlined text-[#A0A0A0]">view_week</span>
+<p class="text-white text-sm font-medium leading-normal font-display">Agrupar por</p>
+</button>
+<!-- View Selector -->
+<div class="flex items-center bg-[#2A2A2A] rounded-lg p-1 ml-2">
+<button class="p-2 rounded-md bg-primary text-white">
+<span class="material-symbols-outlined">list</span>
+</button>
+<button class="p-2 text-[#A0A0A0] hover:text-white transition-colors">
+<span class="material-symbols-outlined">view_kanban</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="flex-1 overflow-x-auto bg-[#1E1E1E] rounded-xl">
+<table class="w-full text-left font-display">
+<thead class="border-b border-white/10">
+<tr>
+<th class="p-4 w-12"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider">Nº MO</th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider">Producto</th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider text-right">Cantidad</th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider">Estado</th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider">Fecha Programada</th>
+<th class="p-4 text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider">Centro de Trabajo</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/10">
+<tr class="hover:bg-white/5 cursor-pointer">
+<td class="p-4"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-4 text-sm font-medium text-primary">MO-00057</td>
+<td class="p-4 text-sm font-medium text-[#E0E0E0]">Proteína Whey CHOC 1 kg</td>
+<td class="p-4 text-sm text-[#E0E0E0] text-right">500 unidades</td>
+<td class="p-4 text-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#28A745]/20 text-[#28A745]">Listo</span>
+</td>
+<td class="p-4 text-sm text-[#E0E0E0]">2025-11-15</td>
+<td class="p-4 text-sm text-[#E0E0E0]">Línea A1</td>
+</tr>
+<tr class="hover:bg-white/5 cursor-pointer">
+<td class="p-4"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-4 text-sm font-medium text-primary">MO-00058</td>
+<td class="p-4 text-sm font-medium text-[#E0E0E0]">Creatina Monohidratada 500g</td>
+<td class="p-4 text-sm text-[#E0E0E0] text-right">1200 unidades</td>
+<td class="p-4 text-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFA500]/20 text-[#FFA500]">En Proceso</span>
+</td>
+<td class="p-4 text-sm text-[#E0E0E0]">2025-11-18</td>
+<td class="p-4 text-sm text-[#E0E0E0]">Línea B2</td>
+</tr>
+<tr class="hover:bg-white/5 cursor-pointer">
+<td class="p-4"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-4 text-sm font-medium text-primary">MO-00059</td>
+<td class="p-4 text-sm font-medium text-[#E0E0E0]">Pre-entreno FRUIT PUNCH 300g</td>
+<td class="p-4 text-sm text-[#E0E0E0] text-right">750 unidades</td>
+<td class="p-4 text-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#6C757D]/20 text-[#6C757D]">Borrador</span>
+</td>
+<td class="p-4 text-sm text-[#E0E0E0]">2025-11-20</td>
+<td class="p-4 text-sm text-[#E0E0E0]">Línea A1</td>
+</tr>
+<tr class="hover:bg-white/5 cursor-pointer">
+<td class="p-4"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-4 text-sm font-medium text-primary">MO-00060</td>
+<td class="p-4 text-sm font-medium text-[#E0E0E0]">Barrita Proteica COOKIES 60g</td>
+<td class="p-4 text-sm text-[#E0E0E0] text-right">10000 unidades</td>
+<td class="p-4 text-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#28A745]/20 text-[#28A745]">Listo</span>
+</td>
+<td class="p-4 text-sm text-[#E0E0E0]">2025-11-14</td>
+<td class="p-4 text-sm text-[#E0E0E0]">Línea C1</td>
+</tr>
+<tr class="hover:bg-white/5 cursor-pointer">
+<td class="p-4"><input class="form-checkbox bg-[#2A2A2A] border-[#A0A0A0] rounded text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-4 text-sm font-medium text-primary">MO-00061</td>
+<td class="p-4 text-sm font-medium text-[#E0E0E0]">Aminoácidos BCAA LIME 400g</td>
+<td class="p-4 text-sm text-[#E0E0E0] text-right">300 unidades</td>
+<td class="p-4 text-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#DC3545]/20 text-[#DC3545]">Cancelado</span>
+</td>
+<td class="p-4 text-sm text-[#E0E0E0]">2025-11-22</td>
+<td class="p-4 text-sm text-[#E0E0E0]">Línea B1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<footer class="flex items-center justify-between mt-4 text-[#A0A0A0] text-sm font-display">
+<p>Mostrando 1-5 de 234 resultados</p>
+<div class="flex items-center gap-2">
+<button class="flex items-center justify-center p-2 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-base">chevron_left</span>
+</button>
+<button class="flex items-center justify-center size-8 rounded-lg bg-primary text-white">1</button>
+<button class="flex items-center justify-center size-8 rounded-lg hover:bg-white/10 transition-colors">2</button>
+<button class="flex items-center justify-center size-8 rounded-lg hover:bg-white/10 transition-colors">3</button>
+<span>...</span>
+<button class="flex items-center justify-center size-8 rounded-lg hover:bg-white/10 transition-colors">47</button>
+<button class="flex items-center justify-center p-2 rounded-lg hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

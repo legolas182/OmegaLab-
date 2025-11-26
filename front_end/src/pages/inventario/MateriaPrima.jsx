@@ -1,0 +1,334 @@
+import { useState, useEffect } from 'react'
+import materialService from '../../services/materialService'
+<<<<<<< HEAD
+import ConfirmDialog from '../../components/ConfirmDialog'
+=======
+>>>>>>> origin/main
+
+const MateriaPrima = () => {
+  const [materials, setMaterials] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterTipo, setFilterTipo] = useState('')
+<<<<<<< HEAD
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'danger'
+  })
+=======
+>>>>>>> origin/main
+
+  const [newMaterial, setNewMaterial] = useState({
+    codigo: '',
+    nombre: '',
+    descripcion: '',
+    categoria: '',
+    tipo: 'MATERIA_PRIMA',
+    unidadMedida: 'kg'
+  })
+
+  useEffect(() => {
+    loadMaterials()
+  }, [searchTerm, filterTipo])
+
+  const loadMaterials = async () => {
+    try {
+      setLoading(true)
+      const filters = {}
+      if (searchTerm) filters.search = searchTerm
+      if (filterTipo) filters.tipo = filterTipo
+      const data = await materialService.getMaterials(filters)
+      setMaterials(data)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreateMaterial = async (e) => {
+    e.preventDefault()
+    try {
+      setLoading(true)
+      setError('')
+      await materialService.createMaterial(newMaterial)
+      await loadMaterials()
+      setShowCreateModal(false)
+      setNewMaterial({
+        codigo: '',
+        nombre: '',
+        descripcion: '',
+        categoria: '',
+        tipo: 'MATERIA_PRIMA',
+        unidadMedida: 'kg'
+      })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+<<<<<<< HEAD
+  const handleDeleteMaterial = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Material',
+      message: '¿Estás seguro de eliminar este material? Esta acción no se puede deshacer.',
+      onConfirm: async () => {
+        try {
+          setLoading(true)
+          await materialService.deleteMaterial(id)
+          await loadMaterials()
+        } catch (err) {
+          setError(err.message)
+        } finally {
+          setLoading(false)
+        }
+      },
+      type: 'danger'
+    })
+=======
+  const handleDeleteMaterial = async (id) => {
+    if (!confirm('¿Estás seguro de eliminar este material?')) return
+    try {
+      setLoading(true)
+      await materialService.deleteMaterial(id)
+      await loadMaterials()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+>>>>>>> origin/main
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Buscar materiales..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+        <div>
+          <select
+            value={filterTipo}
+            onChange={(e) => setFilterTipo(e.target.value)}
+            className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="MATERIA_PRIMA">Materia Prima</option>
+            <option value="COMPONENTE">Componente</option>
+          </select>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined">add</span>
+          Nuevo Material
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+          <span className="material-symbols-outlined text-danger">error</span>
+          <p className="text-danger text-sm">{error}</p>
+        </div>
+      )}
+
+      {loading && !materials.length ? (
+        <div className="text-center py-12 text-text-muted">Cargando...</div>
+      ) : (
+        <div className="rounded-lg bg-card-dark border border-border-dark overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border-dark">
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Código</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Nombre</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Categoría</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Unidad</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
+                  <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {materials.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="p-8 text-center text-text-muted">
+                      No hay materiales registrados
+                    </td>
+                  </tr>
+                ) : (
+                  materials.map((material) => (
+                    <tr key={material.id} className="border-b border-border-dark hover:bg-border-dark/30">
+                      <td className="p-4 text-text-light font-medium">{material.codigo}</td>
+                      <td className="p-4 text-text-light">{material.nombre}</td>
+                      <td className="p-4">
+                        <span className="px-2 py-1 rounded text-xs bg-primary/20 text-primary">
+                          {material.tipo}
+                        </span>
+                      </td>
+                      <td className="p-4 text-text-muted">{material.categoria || 'Sin categoría'}</td>
+                      <td className="p-4 text-text-muted">{material.unidadMedida}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          material.estado === 'ACTIVO' 
+                            ? 'bg-success/20 text-success' 
+                            : 'bg-text-muted/20 text-text-muted'
+                        }`}>
+                          {material.estado}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDeleteMaterial(material.id)}
+                          className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card-dark rounded-lg border border-border-dark max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-dark flex items-center justify-between">
+              <h2 className="text-text-light text-xl font-semibold">Nuevo Material</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-text-muted hover:text-text-light"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleCreateMaterial} className="p-6 space-y-4">
+              <div>
+                <label className="block text-text-light text-sm font-medium mb-2">Código *</label>
+                <input
+                  type="text"
+                  required
+                  value={newMaterial.codigo}
+                  onChange={(e) => setNewMaterial({ ...newMaterial, codigo: e.target.value })}
+                  className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                  placeholder="Ej: MP-001"
+                />
+              </div>
+              <div>
+                <label className="block text-text-light text-sm font-medium mb-2">Nombre *</label>
+                <input
+                  type="text"
+                  required
+                  value={newMaterial.nombre}
+                  onChange={(e) => setNewMaterial({ ...newMaterial, nombre: e.target.value })}
+                  className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                  placeholder="Nombre del material"
+                />
+              </div>
+              <div>
+                <label className="block text-text-light text-sm font-medium mb-2">Descripción</label>
+                <textarea
+                  rows={3}
+                  value={newMaterial.descripcion}
+                  onChange={(e) => setNewMaterial({ ...newMaterial, descripcion: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                  placeholder="Descripción del material"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-text-light text-sm font-medium mb-2">Tipo *</label>
+                  <select
+                    required
+                    value={newMaterial.tipo}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, tipo: e.target.value })}
+                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="MATERIA_PRIMA">Materia Prima</option>
+                    <option value="COMPONENTE">Componente</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-text-light text-sm font-medium mb-2">Categoría</label>
+                  <input
+                    type="text"
+                    value={newMaterial.categoria}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, categoria: e.target.value })}
+                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    placeholder="Categoría"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-text-light text-sm font-medium mb-2">Unidad de Medida</label>
+                <select
+                  value={newMaterial.unidadMedida}
+                  onChange={(e) => setNewMaterial({ ...newMaterial, unidadMedida: e.target.value })}
+                  className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="kg">Kilogramo (kg)</option>
+                  <option value="g">Gramo (g)</option>
+                  <option value="mg">Miligramo (mg)</option>
+                  <option value="L">Litro (L)</option>
+                  <option value="mL">Mililitro (mL)</option>
+                  <option value="un">Unidad (un)</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-3 rounded-lg bg-input-dark text-text-light font-medium hover:bg-border-dark"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {loading ? 'Creando...' : 'Crear Material'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+<<<<<<< HEAD
+
+      {/* Dialog de confirmación */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm || (() => {})}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+      />
+=======
+>>>>>>> origin/main
+    </div>
+  )
+}
+
+export default MateriaPrima
+

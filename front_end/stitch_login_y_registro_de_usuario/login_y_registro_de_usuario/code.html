@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROSIME ERP - Iniciar Sesión</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#007fff",
+              "background-light": "#f5f7f8",
+              "background-dark": "#0f1923",
+              "card-dark": "#16222e",
+              "input-dark": "#20364b",
+              "text-light": "#EAEAEA",
+              "text-muted": "#8dadce"
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden" style='background-image: linear-gradient(rgba(15, 25, 35, 0.9), rgba(15, 25, 35, 0.9)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuDaKoNmIFRnUbQzWB-w2KgKsksi8Hj84kyV7gOlR3IcMCEvCAMl33JRtvqVR_TwfHJp64wfgaXat5VPbTCwem4RniLNVuGE2HcbH8Li8N-_1DSMFFki_dUcNBQURFQghu-UjbdDO9h3UMsjk4PnU9PDz-jqp4QZa8TD9xYFyy9zXOPIdBrqGZ2rTHVrLCt1oUy_XUmirwEs7ZF9VfpDEQb-0S1JeXpdm92WRLk_nobPT7IWb3UTcLgRVhJUjLEhahNC8IaPywhooNJH"); background-size: cover; background-position: center;'>
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1 items-center justify-center p-4 sm:p-6 md:p-8">
+<div class="flex w-full max-w-md flex-col items-center gap-6 rounded-xl bg-card-dark p-6 shadow-2xl md:p-10">
+<div class="flex flex-col items-center gap-2 text-center">
+<svg class="h-10 w-auto text-primary" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM11.9999 12.88L5.5 9.43999L6.49997 8.86001L11.9999 12.01L17.5 8.86001L18.5 9.43999L11.9999 12.88ZM12 4.33L19.5 8.5L12 12.67L4.5 8.5L12 4.33ZM4 15.67V9.6L11.5 13.83V19.89L4 15.67ZM13.5 19.89V13.83L21 9.6V15.67L13.5 19.89Z"></path>
+</svg>
+<h1 class="text-3xl font-bold tracking-tight text-text-light">Bienvenido a PROSIME</h1>
+<p class="text-base text-text-muted">Accede a tu espacio de trabajo ERP</p>
+</div>
+<div class="w-full space-y-4">
+<label class="flex flex-col">
+<p class="pb-2 text-sm font-medium text-text-light">Email o Usuario</p>
+<input class="form-input h-12 w-full flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-dark p-4 text-base font-normal leading-normal text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50" placeholder="Introduce tu email o usuario" value=""/>
+</label>
+<label class="flex flex-col">
+<div class="flex items-baseline justify-between pb-2">
+<p class="text-sm font-medium text-text-light">Contraseña</p>
+<a class="text-sm text-primary hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative flex w-full items-stretch">
+<input class="form-input h-12 w-full flex-1 resize-none overflow-hidden rounded-lg border-none bg-input-dark p-4 pr-12 text-base font-normal leading-normal text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50" placeholder="Introduce tu contraseña" type="password" value=""/>
+<button class="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-text-muted hover:text-primary">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</label>
+</div>
+<div class="flex w-full flex-col gap-3 pt-2">
+<button class="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-card-dark">
+                            Iniciar Sesión
+                        </button>
+<button class="flex h-12 w-full items-center justify-center rounded-lg border border-primary/40 bg-transparent px-6 text-base font-semibold text-primary transition-colors hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-card-dark">
+                            Crear Cuenta
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

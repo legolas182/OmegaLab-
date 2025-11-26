@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROSIME ERP - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#3A76F7",
+              "background-light": "#f5f7f8",
+              "background-dark": "#121212",
+              "card-dark": "#1E1E24",
+              "border-dark": "#2A2A30",
+              "text-primary-dark": "#EAEAEA",
+              "text-secondary-dark": "#A0A0A5",
+              "success": "#0bda5b",
+              "danger": "#fa6238"
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.5rem", 
+                "lg": "0.75rem", 
+                "xl": "1rem", 
+                "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="flex min-h-screen w-full">
+<!-- SideNavBar -->
+<aside class="flex w-64 flex-col bg-background-light dark:bg-card-dark p-4 border-r border-transparent dark:border-border-dark">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3 px-2 py-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="PROSIME ERP logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCW8vrhsfJ-szRg7H3N4mEKuoAFdl_6ggbsoTcrSuoTM6N8_vV1Dy196-pdRCZB4hjk-zSneDHx4qSnecneYiHdvrDKYXePZoPcGFBEdj2PIJvhyVIARqqeCdj43dfAtnhIe5narzkH6nvXSGsesgDK0KUALRfVf1F-pdsJ6grBG-UHO_61pZFTuqIMvjCgRgbHMEQoWruyJV_loDVk-h4a-Q7xGESONn0YMQM_JnzhupXZ7RD6-bS0zrEeQIVoDyStlXrkdQPlINXm");'></div>
+<div class="flex flex-col">
+<h1 class="text-gray-800 dark:text-text-primary-dark text-base font-bold leading-normal">PROSIME ERP</h1>
+<p class="text-gray-500 dark:text-text-secondary-dark text-sm font-normal leading-normal">Gestión Empresarial</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 dark:bg-primary/20 text-primary dark:text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-semibold leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<p class="text-sm font-medium leading-normal">Producción</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<p class="text-sm font-medium leading-normal">Inventario</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<p class="text-sm font-medium leading-normal">Ventas</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<p class="text-sm font-medium leading-normal">Compras</p>
+</a>
+</nav>
+</div>
+<div class="mt-auto flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium leading-normal">Configuración</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-border-dark" href="#">
+<span class="material-symbols-outlined">logout</span>
+<p class="text-sm font-medium leading-normal">Cerrar Sesión</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-6 lg:p-8">
+<div class="mx-auto max-w-7xl">
+<!-- PageHeading -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+<h1 class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold tracking-tight">Dashboard General</h1>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-gray-100 dark:bg-card-dark border border-gray-200 dark:border-border-dark text-gray-800 dark:text-text-primary-dark text-sm font-medium leading-normal tracking-wide hover:bg-gray-200 dark:hover:bg-border-dark">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span class="truncate">Este Mes</span>
+<span class="material-symbols-outlined text-base">expand_more</span>
+</button>
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDEjOniXHn_f6ZCyWbNICIRcQERDReSZcGqEZ-DGt_8imrQM9nNdMqsaD8a6MdVFZT12l_10qdTDquZJKRvIcXy9Lpl1XQ_fNiAw7GZE1qXwQtqSpCj6cGOZLaxDEnSuut8QJrCrplATZUm-BHduox15M1OiaEfQGuW_MKR42t73ZiNiUubP29LEt0OWYTzBej2OIFEsG4-tpv0U1FXKsWiTQBz_6tSL7MhmfRkqW1MU-QIWzWsMvHFPOYSFD873nw_qB0dWPwtEpY')"></div>
+</div>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-600 dark:text-text-secondary-dark text-sm font-medium">Producción Diaria</p>
+<p class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold tracking-tight">1,250 <span class="text-base font-medium text-gray-500 dark:text-text-secondary-dark">Uds.</span></p>
+<p class="text-success text-sm font-medium">+5.2% vs ayer</p>
+</div>
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-600 dark:text-text-secondary-dark text-sm font-medium">Nivel de Stock</p>
+<p class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold tracking-tight">8,420 <span class="text-base font-medium text-gray-500 dark:text-text-secondary-dark">Uds.</span></p>
+<p class="text-danger text-sm font-medium">-1.8% vs ayer</p>
+</div>
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-600 dark:text-text-secondary-dark text-sm font-medium">Órdenes Abiertas</p>
+<p class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold tracking-tight">32</p>
+<p class="text-success text-sm font-medium">+2 nuevas hoy</p>
+</div>
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-600 dark:text-text-secondary-dark text-sm font-medium">Ventas del Mes</p>
+<p class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold tracking-tight">$152,800</p>
+<p class="text-success text-sm font-medium">+12.5% vs mes anterior</p>
+</div>
+</div>
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+<div class="lg:col-span-2 flex flex-col gap-4 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-900 dark:text-text-primary-dark text-base font-semibold">Producción por Línea</p>
+<div class="grid min-h-[240px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3 pt-4">
+<div class="bg-primary/20 dark:bg-primary/30 w-full rounded-t" style="height: 80%;"></div>
+<p class="text-gray-500 dark:text-text-secondary-dark text-xs font-medium">Línea A</p>
+<div class="bg-primary/20 dark:bg-primary/30 w-full rounded-t" style="height: 90%;"></div>
+<p class="text-gray-500 dark:text-text-secondary-dark text-xs font-medium">Línea B</p>
+<div class="bg-primary/20 dark:bg-primary/30 w-full rounded-t" style="height: 70%;"></div>
+<p class="text-gray-500 dark:text-text-secondary-dark text-xs font-medium">Línea C</p>
+<div class="bg-primary w-full rounded-t" style="height: 100%;"></div>
+<p class="text-gray-500 dark:text-text-secondary-dark text-xs font-medium">Línea D</p>
+<div class="bg-primary/20 dark:bg-primary/30 w-full rounded-t" style="height: 60%;"></div>
+<p class="text-gray-500 dark:text-text-secondary-dark text-xs font-medium">Línea E</p>
+</div>
+</div>
+<div class="flex flex-col gap-4 rounded-lg p-6 bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<p class="text-gray-900 dark:text-text-primary-dark text-base font-semibold">Inventario por Tipo</p>
+<div class="relative flex items-center justify-center min-h-[240px]">
+<svg class="size-full absolute" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#60A5FA" stroke-dasharray="60, 100" stroke-width="3.5"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3B82F6" stroke-dasharray="25, 100" stroke-dashoffset="-60" stroke-width="3.5"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#9333EA" stroke-dasharray="15, 100" stroke-dashoffset="-85" stroke-width="3.5"></path>
+</svg>
+<div class="text-center">
+<p class="text-gray-600 dark:text-text-secondary-dark text-sm">Total Items</p>
+<p class="text-gray-900 dark:text-text-primary-dark text-3xl font-bold">8,420</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 text-sm">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-blue-300"></div>
+<p class="text-gray-600 dark:text-text-secondary-dark">Materia Prima</p>
+</div>
+<p class="font-medium text-gray-800 dark:text-text-primary-dark">60%</p>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-primary"></div>
+<p class="text-gray-600 dark:text-text-secondary-dark">Producto Terminado</p>
+</div>
+<p class="font-medium text-gray-800 dark:text-text-primary-dark">25%</p>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-purple-500"></div>
+<p class="text-gray-600 dark:text-text-secondary-dark">Producto en Proceso</p>
+</div>
+<p class="font-medium text-gray-800 dark:text-text-primary-dark">15%</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Tables -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+<div class="rounded-lg bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<h2 class="text-gray-900 dark:text-text-primary-dark text-base font-semibold p-6 border-b border-gray-200 dark:border-border-dark">Últimas Órdenes de Venta</h2>
+<div class="divide-y divide-gray-200 dark:divide-border-dark">
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Cliente Inc.</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center"><span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/50 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400">Completado</span></p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">$12,500.00</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Soluciones Tech</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center"><span class="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/50 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-400">En Proceso</span></p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">$8,200.00</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Corporación Global</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center"><span class="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/50 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-400">En Proceso</span></p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">$25,000.00</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Manufacturas ABC</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center"><span class="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/50 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400">Pendiente</span></p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">$4,850.00</p>
+</div>
+</div>
+<div class="p-6 border-t border-gray-200 dark:border-border-dark">
+<a class="text-sm font-medium text-primary hover:underline" href="#">Ver todas las órdenes</a>
+</div>
+</div>
+<div class="rounded-lg bg-gray-50 dark:bg-card-dark border border-gray-200 dark:border-border-dark">
+<h2 class="text-gray-900 dark:text-text-primary-dark text-base font-semibold p-6 border-b border-gray-200 dark:border-border-dark">Compras Pendientes de Recepción</h2>
+<div class="divide-y divide-gray-200 dark:divide-border-dark">
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Proveedor Alfa</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center">En tránsito</p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">Llega Mañana</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Suministros Beta</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center">Retrasado</p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right text-danger">Ayer</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Materiales Gama</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center">Enviado</p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">25 Dic, 2023</p>
+</div>
+<div class="grid grid-cols-3 gap-4 px-6 py-4 text-sm">
+<p class="text-gray-800 dark:text-text-primary-dark">Componentes Delta</p>
+<p class="text-gray-600 dark:text-text-secondary-dark text-center">Confirmado</p>
+<p class="text-gray-800 dark:text-text-primary-dark font-medium text-right">28 Dic, 2023</p>
+</div>
+</div>
+<div class="p-6 border-t border-gray-200 dark:border-border-dark">
+<a class="text-sm font-medium text-primary hover:underline" href="#">Ver todas las compras</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

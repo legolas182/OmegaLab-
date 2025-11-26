@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROSIME ERP - Configuración de Ruta/BOM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0056b2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            @apply font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200;
+        }
+        .form-input {
+            @apply w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-0 border border-[#2e4b6b] bg-[#172636] focus:border-primary h-12 p-[15px] text-base font-normal leading-normal placeholder:text-[#8dacce];
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display">
+<div class="flex h-screen">
+<!-- SideNavBar -->
+<aside class="flex w-64 flex-col bg-[#0f1924] p-4 font-display">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="PROSIME ERP Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuApW-XVz9saCinehEB3FEtFv2gNuhEhAs_7r5dDzNlh6rrNNDWZ6joX80woOgJyO1ftRUDHG5GfMzI-tOAjqsaUZvIE1v2WsigvM3zPlKnqUh04rP2YYWWk3wVQhi3ZK-8-eogEK7rWw6D4lbZttmdINDc7DkV3zzpg0s47eTFnVi1rDsX232gjgKUcld-v-Gj7ko66eUDqCo9JNSBt7zPaI9xbJfVy8sg_ny08-bgbCUjPZN-6L-6147pC6kCoQK4WXKLsve6jBh-6");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-medium leading-normal">PROSIME ERP</h1>
+<p class="text-[#8dacce] text-sm font-normal leading-normal">Enterprise Resource Planning</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#20354b] text-white" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<p class="text-sm font-medium leading-normal">Manufactura</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<p class="text-sm font-medium leading-normal">Inventario</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<p class="text-sm font-medium leading-normal">Ventas</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<p class="text-sm font-medium leading-normal">Compras</p>
+</a>
+</nav>
+</div>
+<div class="mt-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium leading-normal">Ajustes</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-[#20354b]" href="#">
+<span class="material-symbols-outlined">help</span>
+<p class="text-sm font-medium leading-normal">Ayuda</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto">
+<div class="p-8">
+<!-- Header -->
+<header class="mb-6">
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 mb-4">
+<a class="text-[#8dacce] text-base font-medium leading-normal" href="#">Manufactura</a>
+<span class="text-[#8dacce] text-base font-medium leading-normal">/</span>
+<a class="text-[#8dacce] text-base font-medium leading-normal" href="#">Rutas/BOM</a>
+<span class="text-[#8dacce] text-base font-medium leading-normal">/</span>
+<span class="text-white text-base font-medium leading-normal">Nuevo</span>
+</div>
+<!-- Page Heading and Actions -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex min-w-72 flex-col">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Nueva Ruta/BOM</h1>
+<p class="text-[#8dacce] text-base font-normal leading-normal">Configuración de Ruta/BOM</p>
+</div>
+<div class="flex flex-1 gap-3 flex-wrap justify-end">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#20354b] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-opacity-80">
+<span class="truncate">Descartar</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#0056B3] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90">
+<span class="truncate">Guardar</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Form Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column -->
+<div class="lg:col-span-1 flex flex-col gap-6">
+<div class="flex flex-col">
+<label class="text-white text-base font-medium leading-normal pb-2" for="product">Producto</label>
+<input class="form-input" id="product" placeholder="Ej: Proteína Whey CHOC 1 kg" type="text" value="Proteína Whey CHOC 1 kg"/>
+</div>
+<div class="flex flex-col">
+<label class="text-white text-base font-medium leading-normal pb-2" for="quantity">Cantidad</label>
+<div class="flex items-center">
+<input class="form-input rounded-r-none" id="quantity" placeholder="1.00" type="text" value="1.00"/>
+<span class="inline-flex items-center px-3 h-12 text-sm text-white bg-[#2e4b6b] border border-l-0 border-[#2e4b6b] rounded-r-lg">
+                                  kg
+                                </span>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="text-white text-base font-medium leading-normal pb-2" for="reference">Referencia</label>
+<input class="form-input" id="reference" placeholder="Ej: BOM-PW-001" type="text"/>
+</div>
+<div class="flex flex-col">
+<label class="text-white text-base font-medium leading-normal pb-2" for="bom-type">Tipo de BOM</label>
+<select class="form-input" id="bom-type">
+<option selected="" value="manufactura">Manufacturar este producto</option>
+<option value="kit">Kit</option>
+<option value="subcontratacion">Subcontratación</option>
+</select>
+</div>
+</div>
+<!-- Right Column -->
+<div class="lg:col-span-2 flex flex-col bg-[#172636] rounded-xl p-6 shadow-lg">
+<!-- Tabs -->
+<div class="border-b border-[#2e4b6b] mb-6">
+<nav aria-label="Tabs" class="flex -mb-px">
+<a class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-primary border-primary" href="#">
+                                    Materiales
+                                </a>
+<a class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-[#8dacce] border-transparent hover:text-white hover:border-gray-500" href="#">
+                                    Operaciones
+                                </a>
+</nav>
+</div>
+<!-- Materials Table -->
+<div class="flex-1">
+<div class="overflow-x-auto">
+<table class="min-w-full text-sm text-left text-[#8dacce]">
+<thead class="text-xs text-white uppercase bg-transparent">
+<tr>
+<th class="px-4 py-3" scope="col">Producto</th>
+<th class="px-4 py-3" scope="col">Cantidad</th>
+<th class="px-4 py-3" scope="col">Unidad de Medida</th>
+<th class="px-4 py-3" scope="col"><span class="sr-only">Acciones</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-[#2e4b6b]">
+<td class="px-4 py-4 font-medium text-white whitespace-nowrap">Suero de Leche Concentrado</td>
+<td class="px-4 py-4">0.800</td>
+<td class="px-4 py-4">kg</td>
+<td class="px-4 py-4 text-right">
+<button class="text-[#8dacce] hover:text-white"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-[#2e4b6b]">
+<td class="px-4 py-4 font-medium text-white whitespace-nowrap">Saborizante Chocolate Belga</td>
+<td class="px-4 py-4">0.150</td>
+<td class="px-4 py-4">kg</td>
+<td class="px-4 py-4 text-right">
+<button class="text-[#8dacce] hover:text-white"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-[#2e4b6b]">
+<td class="px-4 py-4 font-medium text-white whitespace-nowrap">Envase Doypack 1 kg</td>
+<td class="px-4 py-4">1.000</td>
+<td class="px-4 py-4">Unidad(es)</td>
+<td class="px-4 py-4 text-right">
+<button class="text-[#8dacce] hover:text-white"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-4">
+<button class="text-sm font-medium text-primary hover:underline">
+                                    + Agregar una línea
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

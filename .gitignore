@@ -1,0 +1,7 @@
+# Application properties with secrets (local configuration)
+backend_java/plm/src/main/resources/application-local.properties
+backend_java/plm/src/main/resources/application-secrets.properties
+
+# Application properties (contains API keys - DO NOT COMMIT)
+backend_java/plm/src/main/resources/application.properties
+
