@@ -243,5 +243,206 @@ public class OpenAIService {
 
         return inventarioInfo.toString();
     }
+
+    /**
+     * Generar fórmula experimental desde materias primas seleccionadas (sin producto base)
+     */
+    public String generateFormulaFromMaterials(
+            String objetivo,
+            List<Integer> materialIds,
+            List<Material> materialesDisponibles,
+            List<com.plm.plm.Models.ChemicalCompound> compoundsFromDB) {
+        
+        System.out.println("==========================================");
+        System.out.println("LLAMANDO A API DE OPENAI - DESDE MATERIAS PRIMAS");
+        System.out.println("==========================================");
+        System.out.println("Objetivo: " + objetivo);
+        System.out.println("Materiales seleccionados: " + (materialIds != null ? materialIds.size() : 0));
+        System.out.println("Materiales disponibles en inventario: " + (materialesDisponibles != null ? materialesDisponibles.size() : 0));
+        System.out.println("Compuestos de BD químicas: " + (compoundsFromDB != null ? compoundsFromDB.size() : 0));
+        
+        try {
+            String materialesSeleccionadosInfo = buildMaterialesSeleccionadosInfo(materialIds, materialesDisponibles);
+            String inventarioInfo = buildInventarioInfo(materialesDisponibles);
+            String compoundsInfo = buildCompoundsInfo(compoundsFromDB);
+            
+            StringBuilder promptBuilder = new StringBuilder();
+            promptBuilder.append("Eres un experto químico formulador de productos nutracéuticos y suplementos deportivos.\n\n");
+            promptBuilder.append("OBJETIVO DE LA FÓRMULA:\n");
+            promptBuilder.append(objetivo).append("\n\n");
+            
+            if (materialesSeleccionadosInfo != null && !materialesSeleccionadosInfo.isEmpty()) {
+                promptBuilder.append("MATERIAS PRIMAS SELECCIONADAS:\n");
+                promptBuilder.append(materialesSeleccionadosInfo).append("\n\n");
+            }
+            
+            promptBuilder.append(inventarioInfo).append("\n\n");
+            
+            if (compoundsInfo != null && !compoundsInfo.isEmpty()) {
+                promptBuilder.append("COMPUESTOS QUÍMICOS DE BASES DE DATOS:\n");
+                promptBuilder.append(compoundsInfo).append("\n\n");
+            }
+            
+            promptBuilder.append("INSTRUCCIONES:\n");
+            promptBuilder.append("Crea una fórmula experimental completa desde cero usando las materias primas seleccionadas y el inventario disponible.\n");
+            promptBuilder.append("La fórmula debe cumplir con el objetivo especificado.\n\n");
+            
+            promptBuilder.append("REQUISITOS DE LA FÓRMULA:\n");
+            promptBuilder.append("1. La suma de todos los porcentajes debe ser exactamente 100%\n");
+            promptBuilder.append("2. Usa principalmente las materias primas seleccionadas\n");
+            promptBuilder.append("3. Puedes agregar excipientes, saborizantes, endulzantes del inventario si es necesario\n");
+            promptBuilder.append("4. Calcula las cantidades en gramos para un rendimiento de 100g\n");
+            promptBuilder.append("5. Especifica la función de cada ingrediente (proteína base, excipiente, saborizante, etc.)\n\n");
+            
+            promptBuilder.append("PREDICCIÓN DE PARÁMETROS FISICOQUÍMICOS:\n");
+            promptBuilder.append("Para la fórmula completa, predice:\n");
+            promptBuilder.append("- Solubilidad: Predicción de solubilidad de la fórmula completa\n");
+            promptBuilder.append("- LogP promedio: Coeficiente de partición promedio\n");
+            promptBuilder.append("- pH estimado: pH esperado de la mezcla\n");
+            promptBuilder.append("- Estabilidad: Estabilidad bajo diferentes condiciones\n");
+            promptBuilder.append("- Compatibilidad: Compatibilidad entre ingredientes\n");
+            promptBuilder.append("- Biodisponibilidad: Predicción de biodisponibilidad oral\n\n");
+            
+            promptBuilder.append("IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido con las siguientes claves:\n");
+            promptBuilder.append("{\n");
+            promptBuilder.append("  \"titulo\": \"Título descriptivo de la fórmula\",\n");
+            promptBuilder.append("  \"descripcion\": \"Descripción detallada de la fórmula experimental\",\n");
+            promptBuilder.append("  \"ingredientes\": [\n");
+            promptBuilder.append("    {\"nombre\": \"Nombre del ingrediente\", \"cantidad\": X.XX, \"unidad\": \"g\", \"porcentaje\": X.XX, \"funcion\": \"Función del ingrediente\", \"materialId\": ID o null}\n");
+            promptBuilder.append("  ],\n");
+            promptBuilder.append("  \"parametrosFisicoquimicos\": {\n");
+            promptBuilder.append("    \"solubilidad\": \"Predicción de solubilidad\",\n");
+            promptBuilder.append("    \"logP\": \"LogP promedio predicho\",\n");
+            promptBuilder.append("    \"pH\": \"pH estimado\",\n");
+            promptBuilder.append("    \"estabilidad\": \"Predicción de estabilidad\",\n");
+            promptBuilder.append("    \"compatibilidad\": \"Análisis de compatibilidad\",\n");
+            promptBuilder.append("    \"biodisponibilidad\": \"Predicción de biodisponibilidad\"\n");
+            promptBuilder.append("  },\n");
+            promptBuilder.append("  \"escenariosPositivos\": [\"Escenario positivo 1\", \"Escenario positivo 2\"],\n");
+            promptBuilder.append("  \"escenariosNegativos\": [\"Escenario negativo 1\", \"Escenario negativo 2\"],\n");
+            promptBuilder.append("  \"justificacion\": \"Justificación técnica de la fórmula\",\n");
+            promptBuilder.append("  \"pruebasRequeridas\": \"Lista de pruebas de laboratorio requeridas. Formato: cada prueba en una línea nueva con guión, incluyendo parámetro y especificación. Ejemplo:\\n- pH (especificación: 6.5 - 7.5)\\n- Humedad (especificación: ≤ 5%%)\\n- Proteína (especificación: ≥ 80%%)\"\n");
+            promptBuilder.append("}\n\n");
+            promptBuilder.append("Asegúrate de que el JSON sea válido y que la suma de porcentajes sea exactamente 100%%.");
+            
+            String prompt = promptBuilder.toString();
+            System.out.println("Prompt construido. Longitud: " + prompt.length() + " caracteres");
+
+            // Preparar la solicitud a OpenAI
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "gpt-4o-mini");
+            
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", prompt);
+            
+            requestBody.put("messages", List.of(message));
+            requestBody.put("temperature", 0.7);
+            requestBody.put("max_tokens", 4000);
+
+            // Headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+            
+            if (apiKey == null || apiKey.isEmpty()) {
+                throw new RuntimeException("API Key de OpenAI no configurada");
+            }
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            // Llamar a la API
+            ResponseEntity<Map> response = restTemplate.exchange(
+                OPENAI_API_URL,
+                HttpMethod.POST,
+                request,
+                Map.class
+            );
+
+            // Extraer la respuesta
+            Map<String, Object> responseBody = response.getBody();
+            
+            if (responseBody != null && responseBody.containsKey("choices")) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> firstChoice = choices.get(0);
+                    Map<String, Object> messageResponse = (Map<String, Object>) firstChoice.get("message");
+                    String content = (String) messageResponse.get("content");
+                    System.out.println("Respuesta recibida de OpenAI (desde materias primas)");
+                    return content;
+                }
+            }
+
+            throw new RuntimeException("No se recibió respuesta válida de OpenAI");
+
+        } catch (Exception e) {
+            System.err.println("Error al generar fórmula desde materias primas: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error al generar fórmula con IA: " + e.getMessage(), e);
+        }
+    }
+
+    private String buildMaterialesSeleccionadosInfo(List<Integer> materialIds, List<Material> materialesDisponibles) {
+        if (materialIds == null || materialIds.isEmpty() || materialesDisponibles == null) {
+            return null;
+        }
+
+        StringBuilder info = new StringBuilder();
+        info.append("El químico ha seleccionado las siguientes materias primas para usar en la fórmula:\n\n");
+
+        for (Integer materialId : materialIds) {
+            Material material = materialesDisponibles.stream()
+                .filter(m -> m.getId().equals(materialId))
+                .findFirst()
+                .orElse(null);
+            
+            if (material != null) {
+                info.append(String.format(
+                    "- %s (%s): %s [Unidad: %s]\n",
+                    material.getNombre(),
+                    material.getCodigo(),
+                    material.getDescripcion() != null ? material.getDescripcion() : "Sin descripción",
+                    material.getUnidadMedida()
+                ));
+            }
+        }
+
+        info.append("\nEstas materias primas DEBEN estar incluidas en la fórmula propuesta.\n");
+        info.append("Puedes sugerir las proporciones adecuadas para cada una.\n");
+
+        return info.toString();
+    }
+
+    private String buildCompoundsInfo(List<com.plm.plm.Models.ChemicalCompound> compounds) {
+        if (compounds == null || compounds.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder info = new StringBuilder();
+        info.append("El químico también ha consultado las siguientes bases de datos químicas:\n\n");
+
+        for (com.plm.plm.Models.ChemicalCompound compound : compounds) {
+            info.append(String.format(
+                "- %s (Fuente: %s)\n",
+                compound.getName(),
+                compound.getSource()
+            ));
+            if (compound.getFormula() != null) {
+                info.append("  Fórmula: ").append(compound.getFormula()).append("\n");
+            }
+            if (compound.getMolecularWeight() != null) {
+                info.append("  Peso Molecular: ").append(compound.getMolecularWeight()).append(" g/mol\n");
+            }
+            if (compound.getLogP() != null) {
+                info.append("  LogP: ").append(compound.getLogP()).append("\n");
+            }
+            if (compound.getSolubility() != null) {
+                info.append("  Solubilidad: ").append(compound.getSolubility()).append("\n");
+            }
+            info.append("\n");
+        }
+
+        return info.toString();
+    }
 }
 

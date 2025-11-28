@@ -42,20 +42,12 @@ CREATE TABLE IF NOT EXISTS productos (
     nombre VARCHAR(255) NOT NULL,
     descripcion TEXT,
     categoria_id INT,
-<<<<<<< HEAD
-=======
-    categoria VARCHAR(100),
->>>>>>> origin/main
     unidad_medida VARCHAR(50) NOT NULL DEFAULT 'un',
     estado ENUM('activo', 'inactivo') DEFAULT 'activo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_codigo (codigo),
     INDEX idx_categoria_id (categoria_id),
-<<<<<<< HEAD
-=======
-    INDEX idx_categoria (categoria),
->>>>>>> origin/main
     INDEX idx_estado (estado),
     UNIQUE KEY uk_codigo (codigo),
     CONSTRAINT fk_producto_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL
@@ -68,20 +60,12 @@ CREATE TABLE IF NOT EXISTS materiales (
     nombre VARCHAR(255) NOT NULL,
     descripcion TEXT,
     categoria_id INT,
-<<<<<<< HEAD
-=======
-    categoria VARCHAR(100),
->>>>>>> origin/main
     unidad_medida VARCHAR(50) NOT NULL DEFAULT 'kg',
     estado ENUM('activo', 'inactivo') DEFAULT 'activo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_codigo (codigo),
     INDEX idx_categoria_id (categoria_id),
-<<<<<<< HEAD
-=======
-    INDEX idx_categoria (categoria),
->>>>>>> origin/main
     INDEX idx_estado (estado),
     UNIQUE KEY uk_codigo (codigo),
     CONSTRAINT fk_material_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL
@@ -125,7 +109,6 @@ CREATE TABLE IF NOT EXISTS bom_items (
     CONSTRAINT fk_bom_item_material FOREIGN KEY (material_id) REFERENCES materiales(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-<<<<<<< HEAD
 -- Tabla de ideas
 CREATE TABLE IF NOT EXISTS ideas (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -197,6 +180,3 @@ CREATE TABLE IF NOT EXISTS resultados_prueba (
     INDEX idx_prueba_id (prueba_id),
     CONSTRAINT fk_resultado_prueba FOREIGN KEY (prueba_id) REFERENCES pruebas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-=======
->>>>>>> origin/main

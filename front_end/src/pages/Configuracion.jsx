@@ -4,17 +4,10 @@ const Configuracion = () => {
   const [activeTab, setActiveTab] = useState('usuarios')
 
   const [usuarios, setUsuarios] = useState([
-<<<<<<< HEAD
     { id: 1, nombre: 'Dr. Juan Pérez', email: 'juan.perez@omegalab.com', rol: 'ADMINISTRADOR', estado: 'Activo' },
     { id: 2, nombre: 'Ana García', email: 'ana.garcia@omegalab.com', rol: 'SUPERVISOR_QA', estado: 'Activo' },
     { id: 3, nombre: 'Carlos Rodríguez', email: 'carlos.rodriguez@omegalab.com', rol: 'SUPERVISOR_CALIDAD', estado: 'Activo' },
     { id: 4, nombre: 'María López', email: 'maria.lopez@omegalab.com', rol: 'ANALISTA_LABORATORIO', estado: 'Activo' }
-=======
-    { id: 1, nombre: 'Dr. Juan Pérez', email: 'juan.perez@proscience.com', rol: 'ADMINISTRADOR', estado: 'Activo' },
-    { id: 2, nombre: 'Ana García', email: 'ana.garcia@proscience.com', rol: 'SUPERVISOR_QA', estado: 'Activo' },
-    { id: 3, nombre: 'Carlos Rodríguez', email: 'carlos.rodriguez@proscience.com', rol: 'SUPERVISOR_CALIDAD', estado: 'Activo' },
-    { id: 4, nombre: 'María López', email: 'maria.lopez@proscience.com', rol: 'ANALISTA_LABORATORIO', estado: 'Activo' }
->>>>>>> origin/main
   ])
 
   const [equipos, setEquipos] = useState([

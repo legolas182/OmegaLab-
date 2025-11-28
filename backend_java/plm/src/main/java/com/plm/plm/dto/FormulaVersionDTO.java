@@ -1,6 +1,5 @@
 package com.plm.plm.dto;
 
-import com.plm.plm.Enums.EstadoUsuario;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,15 +9,13 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialDTO {
+public class FormulaVersionDTO {
     private Integer id;
-    private String codigo;
-    private String nombre;
+    private Integer formulaId;
+    private String version;
     private String descripcion;
-    private Integer categoriaId;
-    private String unidadMedida;
-    private EstadoUsuario estado;
+    private String justificacion;
+    private String formulaData;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
 

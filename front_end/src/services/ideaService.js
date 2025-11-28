@@ -128,6 +128,19 @@ class IdeaService {
     }
   }
 
+  async generateFromMaterials(objetivo, materialIds, compoundIds = []) {
+    try {
+      const response = await api.post('/ideas/generate-from-materials', {
+        objetivo,
+        materialIds,
+        compoundIds
+      });
+      return response.data.data.idea;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   handleError(error) {
     if (error.response) {
       const message = error.response.data?.error?.message || error.response.data?.message || 'Error en la petición';

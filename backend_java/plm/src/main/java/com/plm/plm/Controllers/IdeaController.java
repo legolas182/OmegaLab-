@@ -66,6 +66,9 @@ public class IdeaController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.plm.plm.Reposotory.ChemicalCompoundRepository chemicalCompoundRepository;
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createIdea(
             @RequestBody IdeaDTO ideaDTO,
@@ -77,6 +80,78 @@ public class IdeaController {
         data.put("idea", idea);
         response.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/generate-from-materials")
+    public ResponseEntity<Map<String, Object>> generateFormulaFromMaterials(
+            @RequestBody Map<String, Object> request,
+            HttpServletRequest httpRequest) {
+        Integer userId = getUserIdFromRequest(httpRequest);
+        
+        try {
+            String objetivo = (String) request.get("objetivo");
+            @SuppressWarnings("unchecked")
+            List<Integer> materialIds = (List<Integer>) request.get("materialIds");
+            @SuppressWarnings("unchecked")
+            List<Integer> compoundIds = (List<Integer>) request.get("compoundIds");
+            
+            if (objetivo == null || objetivo.trim().isEmpty()) {
+                throw new RuntimeException("El objetivo es requerido");
+            }
+            
+            // Obtener materiales seleccionados
+            List<com.plm.plm.Models.Material> materialesSeleccionados = new java.util.ArrayList<>();
+            if (materialIds != null) {
+                for (Integer materialId : materialIds) {
+                    materialRepository.findById(materialId).ifPresent(materialesSeleccionados::add);
+                }
+            }
+            
+            // Obtener todos los materiales disponibles
+            List<com.plm.plm.Models.Material> materialesDisponibles = materialRepository.findByEstado(EstadoUsuario.ACTIVO);
+            
+            // Obtener compuestos de BD químicas si hay
+            List<com.plm.plm.Models.ChemicalCompound> compounds = new java.util.ArrayList<>();
+            if (compoundIds != null && chemicalCompoundRepository != null) {
+                for (Integer compoundId : compoundIds) {
+                    chemicalCompoundRepository.findById(compoundId).ifPresent(compounds::add);
+                }
+            }
+            
+            // Llamar a OpenAI
+            String aiResponse = openAIService.generateFormulaFromMaterials(
+                objetivo, materialIds, materialesDisponibles, compounds);
+            
+            // Parsear respuesta y crear idea/fórmula
+            IdeaDTO ideaDTO = parseAIResponseFromMaterials(aiResponse, objetivo, materialIds);
+            IdeaDTO idea = ideaService.createIdea(ideaDTO, userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            Map<String, IdeaDTO> data = new HashMap<>();
+            data.put("idea", idea);
+            response.put("data", data);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            
+        } catch (Exception e) {
+            System.err.println("Error al generar fórmula desde materias primas: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Crear idea básica si falla
+            IdeaDTO ideaDTO = new IdeaDTO();
+            ideaDTO.setObjetivo((String) request.get("objetivo"));
+            ideaDTO.setTitulo("Nueva fórmula experimental - " + request.get("objetivo"));
+            ideaDTO.setDescripcion("Fórmula generada automáticamente desde materias primas. " +
+                    "Nota: Hubo un problema al procesar con IA, se creó una idea básica.");
+            categoryRepository.findByNombre("Nutracéutico").ifPresent(cat -> ideaDTO.setCategoriaId(cat.getId()));
+            ideaDTO.setPrioridad("Alta");
+            
+            IdeaDTO idea = ideaService.createIdea(ideaDTO, userId);
+            Map<String, Object> response = new HashMap<>();
+            Map<String, IdeaDTO> data = new HashMap<>();
+            data.put("idea", idea);
+            response.put("data", data);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
     }
 
     @PostMapping("/generate-from-product")
@@ -222,6 +297,62 @@ public class IdeaController {
         }
         
         System.out.println("==========================================");
+        return ideaDTO;
+    }
+
+    private IdeaDTO parseAIResponseFromMaterials(String aiResponse, String objetivo, List<Integer> materialIds) {
+        System.out.println("==========================================");
+        System.out.println("PARSING AI RESPONSE FROM MATERIALS");
+        System.out.println("==========================================");
+        
+        IdeaDTO ideaDTO = new IdeaDTO();
+        ideaDTO.setObjetivo(objetivo);
+        categoryRepository.findByNombre("Nutracéutico").ifPresent(cat -> ideaDTO.setCategoriaId(cat.getId()));
+        ideaDTO.setPrioridad("Alta");
+        
+        try {
+            // Limpiar la respuesta si tiene markdown code blocks
+            String cleanedResponse = aiResponse;
+            if (cleanedResponse.contains("```json")) {
+                cleanedResponse = cleanedResponse.substring(cleanedResponse.indexOf("```json") + 7);
+                if (cleanedResponse.contains("```")) {
+                    cleanedResponse = cleanedResponse.substring(0, cleanedResponse.indexOf("```"));
+                }
+            } else if (cleanedResponse.contains("```")) {
+                cleanedResponse = cleanedResponse.replace("```", "");
+            }
+            cleanedResponse = cleanedResponse.trim();
+            
+            // Intentar parsear como JSON
+            JsonNode jsonNode = objectMapper.readTree(cleanedResponse);
+            
+            if (jsonNode.has("titulo")) {
+                ideaDTO.setTitulo(jsonNode.get("titulo").asText());
+            } else {
+                ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
+            }
+            
+            if (jsonNode.has("descripcion")) {
+                ideaDTO.setDescripcion(jsonNode.get("descripcion").asText());
+            } else {
+                ideaDTO.setDescripcion(aiResponse);
+            }
+            
+            // Guardar la respuesta completa de la IA
+            ideaDTO.setDetallesIA(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode));
+            
+            // Extraer pruebas requeridas
+            if (jsonNode.has("pruebasRequeridas")) {
+                ideaDTO.setPruebasRequeridas(jsonNode.get("pruebasRequeridas").asText());
+            }
+            
+        } catch (Exception e) {
+            System.out.println("ERROR: La respuesta de IA no es JSON válido: " + e.getMessage());
+            ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
+            ideaDTO.setDescripcion(aiResponse);
+            ideaDTO.setDetallesIA(aiResponse);
+        }
+        
         return ideaDTO;
     }
 

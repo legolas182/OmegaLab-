@@ -8,7 +8,6 @@ import com.plm.plm.Models.Prueba;
 import com.plm.plm.Models.ResultadoPrueba;
 import com.plm.plm.Models.User;
 import com.plm.plm.Enums.EstadoIdea;
-import com.plm.plm.Enums.EstadoPrueba;
 import com.plm.plm.Reposotory.IdeaRepository;
 import com.plm.plm.Reposotory.PruebaRepository;
 import com.plm.plm.Reposotory.ResultadoPruebaRepository;
@@ -77,17 +76,16 @@ public class PruebaServiceImpl implements PruebaService {
         Prueba prueba = pruebaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prueba no encontrada"));
         
-        // Forzar la carga de la relación con la idea
+
         if (prueba.getIdea() != null) {
-            prueba.getIdea().getId(); // Acceder para forzar la carga
+            prueba.getIdea().getId();
             if (prueba.getIdea().getEstado() != null) {
-                prueba.getIdea().getEstado(); // Acceder al estado
+                prueba.getIdea().getEstado();
             }
         }
-        
-        // Forzar la carga de los resultados
+
         if (prueba.getResultados() != null) {
-            prueba.getResultados().size(); // Acceder para forzar la carga de la colección
+            prueba.getResultados().size();
         }
         
         return prueba.getDTO();
@@ -98,11 +96,10 @@ public class PruebaServiceImpl implements PruebaService {
     public List<PruebaDTO> getPruebasByIdeaId(Integer ideaId) {
         return pruebaRepository.findByIdeaId(ideaId).stream()
                 .map(prueba -> {
-                    // Forzar la carga de la relación con la idea
                     if (prueba.getIdea() != null) {
-                        prueba.getIdea().getId(); // Acceder para forzar la carga
+                        prueba.getIdea().getId();
                         if (prueba.getIdea().getEstado() != null) {
-                            prueba.getIdea().getEstado(); // Acceder al estado
+                            prueba.getIdea().getEstado();
                         }
                     }
                     return prueba.getDTO();
@@ -115,11 +112,10 @@ public class PruebaServiceImpl implements PruebaService {
     public List<PruebaDTO> getPruebasByAnalistaId(Integer analistaId) {
         return pruebaRepository.findByAnalistaId(analistaId).stream()
                 .map(prueba -> {
-                    // Forzar la carga de la relación con la idea
                     if (prueba.getIdea() != null) {
-                        prueba.getIdea().getId(); // Acceder para forzar la carga
+                        prueba.getIdea().getId();
                         if (prueba.getIdea().getEstado() != null) {
-                            prueba.getIdea().getEstado(); // Acceder al estado
+                            prueba.getIdea().getEstado();
                         }
                     }
                     return prueba.getDTO();
@@ -142,8 +138,6 @@ public class PruebaServiceImpl implements PruebaService {
         if (pruebaDTO.getEstado() != null) {
             EstadoPrueba estadoAnterior = prueba.getEstado();
             prueba.setEstado(pruebaDTO.getEstado());
-            
-            // Si la prueba se completa (COMPLETADA, OOS o RECHAZADA) y no tiene fecha de finalización, establecerla
             if ((pruebaDTO.getEstado() == EstadoPrueba.COMPLETADA || 
                  pruebaDTO.getEstado() == EstadoPrueba.OOS || 
                  pruebaDTO.getEstado() == EstadoPrueba.RECHAZADA) &&
@@ -184,12 +178,7 @@ public class PruebaServiceImpl implements PruebaService {
         return pruebaGuardada.getDTO();
     }
     
-    /**
-     * Sincroniza el estado de la idea basándose en el estado de todas sus pruebas asociadas.
-     * Si todas las pruebas están completadas:
-     * - Si todas pasaron (COMPLETADA), la idea pasa a PRUEBA_APROBADA
-     * - Si alguna falló (OOS o RECHAZADA), la idea pasa a RECHAZADA
-     */
+
     private void sincronizarEstadoIdea(Integer ideaId) {
         try {
             // Obtener todas las pruebas asociadas a la idea

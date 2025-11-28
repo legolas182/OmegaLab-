@@ -1,6 +1,5 @@
 package com.plm.plm.dto;
 
-import com.plm.plm.Enums.EstadoUsuario;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,15 +9,17 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialDTO {
+public class FormulaIngredientDTO {
     private Integer id;
-    private String codigo;
+    private Integer formulaId;
+    private Integer materialId;
+    private Integer compoundId;
     private String nombre;
-    private String descripcion;
-    private Integer categoriaId;
-    private String unidadMedida;
-    private EstadoUsuario estado;
+    private Double cantidad;
+    private String unidad;
+    private Double porcentaje;
+    private String funcion;
+    private Integer secuencia;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
 

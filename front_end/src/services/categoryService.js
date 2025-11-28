@@ -4,7 +4,6 @@ class CategoryService {
   async getCategories(filters = {}) {
     try {
       const params = new URLSearchParams();
-<<<<<<< HEAD
       if (filters.tipo) params.append('tipoProducto', filters.tipo);
       if (filters.tipoProducto) params.append('tipoProducto', filters.tipoProducto);
       if (filters.search) params.append('search', filters.search);
@@ -13,13 +12,6 @@ class CategoryService {
       const response = await api.get(`/categories?${params.toString()}`);
       // CategoryController devuelve directamente { categories: [...] } sin envolver en "data"
       return response.data.categories || [];
-=======
-      if (filters.tipo) params.append('tipo', filters.tipo);
-      if (filters.search) params.append('search', filters.search);
-
-      const response = await api.get(`/categories?${params.toString()}`);
-      return response.data.data.categories;
->>>>>>> origin/main
     } catch (error) {
       throw this.handleError(error);
     }
@@ -28,12 +20,8 @@ class CategoryService {
   async getCategoryById(id) {
     try {
       const response = await api.get(`/categories/${id}`);
-<<<<<<< HEAD
       // CategoryController devuelve directamente { category: {...} } sin envolver en "data"
       return response.data.category;
-=======
-      return response.data.data.category;
->>>>>>> origin/main
     } catch (error) {
       throw this.handleError(error);
     }
@@ -42,12 +30,8 @@ class CategoryService {
   async createCategory(categoryData) {
     try {
       const response = await api.post('/categories', categoryData);
-<<<<<<< HEAD
       // CategoryController devuelve directamente { category: {...} } sin envolver en "data"
       return response.data.category;
-=======
-      return response.data.data.category;
->>>>>>> origin/main
     } catch (error) {
       throw this.handleError(error);
     }
@@ -56,12 +40,8 @@ class CategoryService {
   async updateCategory(id, categoryData) {
     try {
       const response = await api.put(`/categories/${id}`, categoryData);
-<<<<<<< HEAD
       // CategoryController devuelve directamente { category: {...} } sin envolver en "data"
       return response.data.category;
-=======
-      return response.data.data.category;
->>>>>>> origin/main
     } catch (error) {
       throw this.handleError(error);
     }

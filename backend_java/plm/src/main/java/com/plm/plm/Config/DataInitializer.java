@@ -18,10 +18,7 @@ import com.plm.plm.Reposotory.ProductRepository;
 import com.plm.plm.Reposotory.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-<<<<<<< HEAD
 import org.springframework.jdbc.core.JdbcTemplate;
-=======
->>>>>>> origin/main
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +51,6 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-<<<<<<< HEAD
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -62,10 +58,6 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         updateIdeasTableSchema();
         updatePruebasTableSchema();
-=======
-    @Override
-    public void run(String... args) throws Exception {
->>>>>>> origin/main
         initializeUsers();
         initializeCategories();
         initializeMaterials();
@@ -73,7 +65,6 @@ public class DataInitializer implements CommandLineRunner {
         initializeBOMs();
     }
 
-<<<<<<< HEAD
     /**
      * Actualiza la estructura de la tabla ideas si es necesario
      */
@@ -252,15 +243,6 @@ public class DataInitializer implements CommandLineRunner {
             {Rol.SUPERVISOR_QA, "supervisor.qa@omegalab.com", "supervisor123", "Supervisor QA"},
             {Rol.SUPERVISOR_CALIDAD, "supervisor.calidad@omegalab.com", "calidad123", "Supervisor Calidad"},
             {Rol.ANALISTA_LABORATORIO, "analista.lab@omegalab.com", "analista123", "Analista Laboratorio"}
-=======
-    private void initializeUsers() {
-        // Configuración de usuarios para cada rol
-        Object[][] usuariosConfig = {
-            {Rol.ADMINISTRADOR, "admin@proscience.com", "admin123", "Administrador"},
-            {Rol.SUPERVISOR_QA, "supervisor.qa@proscience.com", "supervisor123", "Supervisor QA"},
-            {Rol.SUPERVISOR_CALIDAD, "supervisor.calidad@proscience.com", "calidad123", "Supervisor Calidad"},
-            {Rol.ANALISTA_LABORATORIO, "analista.lab@proscience.com", "analista123", "Analista Laboratorio"}
->>>>>>> origin/main
         };
 
         List<User> usuariosCreados = new ArrayList<>();
@@ -300,7 +282,6 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeCategories() {
-<<<<<<< HEAD
         // No borrar datos existentes para preservar las ideas y sus relaciones
         long existingCategories = categoryRepository.count();
         if (existingCategories > 0) {
@@ -325,31 +306,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         List<Category> categoriesToCreate = new ArrayList<>();
-=======
-        long existingProducts = productRepository.count();
-        if (existingProducts > 0) {
-            System.out.println("Eliminando " + existingProducts + " productos existentes...");
-            productRepository.deleteAll();
-            System.out.println("Productos eliminados exitosamente");
-        }
-
-        // Eliminar materiales antes de eliminar categorías (por restricción de clave foránea)
-        long existingMaterials = materialRepository.count();
-        if (existingMaterials > 0) {
-            System.out.println("Eliminando " + existingMaterials + " materiales existentes...");
-            materialRepository.deleteAll();
-            System.out.println("Materiales eliminados exitosamente");
-        }
-
-        long existingCategories = categoryRepository.count();
-        if (existingCategories > 0) {
-            System.out.println("Eliminando " + existingCategories + " categorías existentes...");
-            categoryRepository.deleteAll();
-            System.out.println("Categorías eliminadas exitosamente");
-        }
-
-        List<Category> categories = new ArrayList<>();
->>>>>>> origin/main
 
         String[][] categoriasPT = {
             {"Proteínas", "Proteínas de suero y mezclas proteicas"},
@@ -385,7 +341,6 @@ public class DataInitializer implements CommandLineRunner {
             {"Enzimas", "Enzimas digestivas"}
         };
 
-<<<<<<< HEAD
         // Crear solo categorías que no existen
         for (String[] cat : categoriasPT) {
             String key = cat[0] + "_" + TipoProducto.PRODUCTO_TERMINADO.name();
@@ -440,42 +395,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         List<Product> productsToCreate = new ArrayList<>();
-=======
-        for (String[] cat : categoriasPT) {
-            Category category = new Category();
-            category.setNombre(cat[0]);
-            category.setDescripcion(cat[1]);
-            category.setTipoProducto(TipoProducto.PRODUCTO_TERMINADO);
-            category.setEstado(EstadoUsuario.ACTIVO);
-            categories.add(category);
-        }
-
-        for (String[] cat : categoriasMP) {
-            Category category = new Category();
-            category.setNombre(cat[0]);
-            category.setDescripcion(cat[1]);
-            category.setTipoProducto(TipoProducto.MATERIA_PRIMA);
-            category.setEstado(EstadoUsuario.ACTIVO);
-            categories.add(category);
-        }
-
-        for (String[] cat : categoriasComp) {
-            Category category = new Category();
-            category.setNombre(cat[0]);
-            category.setDescripcion(cat[1]);
-            category.setTipoProducto(TipoProducto.COMPONENTE);
-            category.setEstado(EstadoUsuario.ACTIVO);
-            categories.add(category);
-        }
-
-        categoryRepository.saveAll(categories);
-        System.out.println("Se crearon " + categories.size() + " categorías exitosamente");
-    }
-
-    private void initializeProducts() {
-
-        List<Product> products = new ArrayList<>();
->>>>>>> origin/main
 
         String[] productosTerminados = {
             "BEST WHEY 2.04 LB", "BEST WHEY 4 LB", "BEST PROTEIN 2.04 LB",
@@ -524,7 +443,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         for (int i = 0; i < 20; i++) {
-<<<<<<< HEAD
             String codigo = "PT-" + String.format("%03d", i + 1);
             // Solo crear si no existe
             if (!existingProductsMap.containsKey(codigo)) {
@@ -559,28 +477,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         List<Material> materialsToCreate = new ArrayList<>();
-=======
-            Product product = new Product();
-            product.setCodigo("PT-" + String.format("%03d", i + 1));
-            product.setNombre(productosTerminados[i]);
-            product.setDescripcion(descripcionesPT[i]);
-            product.setCategoria(categoriasPT[i]);
-            Category categoriaEntity = categoriasMap.get(categoriasPT[i]);
-            if (categoriaEntity != null) {
-                product.setCategoriaEntity(categoriaEntity);
-            }
-            product.setUnidadMedida("un");
-            product.setEstado(EstadoUsuario.ACTIVO);
-            products.add(product);
-        }
-
-        productRepository.saveAll(products);
-        System.out.println("Se crearon " + products.size() + " productos terminados exitosamente");
-    }
-
-    private void initializeMaterials() {
-        List<Material> materials = new ArrayList<>();
->>>>>>> origin/main
 
         String[] materiasPrimas = {
             "Proteína de Suero Concentrada (WPC 80%)", "Proteína de Suero Aislada (WPI 90%)",
@@ -622,7 +518,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         for (int i = 0; i < 15; i++) {
-<<<<<<< HEAD
             String codigo = "MP-" + String.format("%03d", i + 1);
             // Solo crear si no existe
             if (!existingMaterialsMap.containsKey(codigo)) {
@@ -664,37 +559,6 @@ public class DataInitializer implements CommandLineRunner {
 
         // Obtener el usuario admin para asignar como creador
         Optional<User> adminOpt = userRepository.findByEmail("admin@omegalab.com");
-=======
-            Material material = new Material();
-            material.setCodigo("MP-" + String.format("%03d", i + 1));
-            material.setNombre(materiasPrimas[i]);
-            material.setDescripcion(descripcionesMP[i]);
-            material.setCategoria(categoriasMP[i]);
-            Category categoriaEntity = categoriasMap.get(categoriasMP[i]);
-            if (categoriaEntity != null) {
-                material.setCategoriaEntity(categoriaEntity);
-            }
-            material.setUnidadMedida("kg");
-            material.setEstado(EstadoUsuario.ACTIVO);
-            materials.add(material);
-        }
-
-        materialRepository.saveAll(materials);
-        System.out.println("Se crearon " + materials.size() + " materiales exitosamente");
-    }
-
-    private void initializeBOMs() {
-        // Eliminar todos los BOMs existentes
-        long existingBOMs = bomRepository.count();
-        if (existingBOMs > 0) {
-            System.out.println("Eliminando " + existingBOMs + " BOMs existentes...");
-            bomRepository.deleteAll();
-            System.out.println("BOMs eliminados exitosamente");
-        }
-
-        // Obtener el usuario admin para asignar como creador
-        Optional<User> adminOpt = userRepository.findByEmail("admin@proscience.com");
->>>>>>> origin/main
         User admin = adminOpt.orElse(null);
 
         List<Product> allProducts = productRepository.findAll();
@@ -709,7 +573,6 @@ public class DataInitializer implements CommandLineRunner {
             materialesMap.put(m.getCodigo(), m);
         }
 
-<<<<<<< HEAD
         // Crear BOMs solo para productos que no tienen BOM
         // Crear BOMs para productos terminados de proteínas
         if (!existingBOMsMap.containsKey(productosMap.get("PT-001") != null ? productosMap.get("PT-001").getId() : -1)) {
@@ -858,114 +721,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         System.out.println("BOMs verificados y creados solo para productos que no tenían BOM");
-=======
-        // Crear BOMs para productos terminados de proteínas
-        createBOMForProduct(productosMap.get("PT-001"), "BEST WHEY 2.04 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-001", "MP-001", "MP-001", "MP-001"},
-            new double[]{0.85, 0.05, 0.03, 0.04, 0.03},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-002"), "BEST WHEY 4 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-002", "MP-003", "MP-004", "MP-005"},
-            new double[]{0.85, 0.05, 0.03, 0.04, 0.03},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-003"), "BEST PROTEIN 2.04 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-002", "MP-003", "MP-004", "MP-005", "MP-006"},
-            new double[]{0.50, 0.30, 0.15, 0.03, 0.01, 0.01},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-004"), "BEST VEGAN", admin, productosMap,
-            new String[]{"MP-004", "MP-005", "MP-006", "MP-007", "MP-008", "MP-009"},
-            new double[]{0.60, 0.30, 0.02, 0.04, 0.02, 0.02},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-005"), "SMART 3.25 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-002", "MP-003", "MP-004", "MP-005", "MP-006"},
-            new double[]{0.70, 0.20, 0.05, 0.02, 0.02, 0.01},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-006"), "SMART 6 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-002", "MP-003", "MP-004", "MP-005", "MP-006"},
-            new double[]{0.70, 0.20, 0.05, 0.02, 0.02, 0.01},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-007"), "SMART BOLSA 13.01 LB", admin, productosMap,
-            new String[]{"MP-001", "MP-002", "MP-003", "MP-004", "MP-005", "MP-006"},
-            new double[]{0.70, 0.20, 0.05, 0.02, 0.02, 0.01},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-008"), "LA WEY 1.72 LB", admin, productosMap,
-            new String[]{"MP-002", "MP-003", "MP-004", "MP-005", "MP-006"},
-            new double[]{0.90, 0.05, 0.02, 0.02, 0.01},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        // BOMs para creatinas
-        createBOMForProduct(productosMap.get("PT-009"), "LEGACY 30S CREATINA HCL", admin, productosMap,
-            new String[]{"MP-006", "MP-007"},
-            new double[]{0.95, 0.05},
-            new String[]{"kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-010"), "LEGACY 50S CREATINA HCL", admin, productosMap,
-            new String[]{"MP-006", "MP-007"},
-            new double[]{0.95, 0.05},
-            new String[]{"kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-011"), "LEGACY PLUS 50S", admin, productosMap,
-            new String[]{"MP-006", "MP-007", "MP-010"},
-            new double[]{0.85, 0.10, 0.05},
-            new String[]{"kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-012"), "LEGEND CON CREAPURE®", admin, productosMap,
-            new String[]{"MP-006"},
-            new double[]{1.0},
-            new String[]{"kg"});
-
-        createBOMForProduct(productosMap.get("PT-013"), "LEGEND CON CREAPURE® 50s", admin, productosMap,
-            new String[]{"MP-006"},
-            new double[]{1.0},
-            new String[]{"kg"});
-
-        // BOMs para suplementos
-        createBOMForProduct(productosMap.get("PT-014"), "EEA'S (ARMY) 30 SERVICIOS", admin, productosMap,
-            new String[]{"MP-008", "MP-009", "MP-010", "MP-011", "MP-012"},
-            new double[]{0.40, 0.35, 0.20, 0.03, 0.02},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-015"), "INTENZE 30 SERVICIOS", admin, productosMap,
-            new String[]{"MP-011", "MP-012", "MP-013", "MP-014", "MP-001", "MP-002"},
-            new double[]{0.30, 0.25, 0.20, 0.15, 0.05, 0.05},
-            new String[]{"kg", "kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-016"), "THE ONE", admin, productosMap,
-            new String[]{"MP-010", "MP-011", "MP-012", "MP-013", "MP-014"},
-            new double[]{0.20, 0.15, 0.30, 0.20, 0.15},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-017"), "OMEGA 3", admin, productosMap,
-            new String[]{"MP-001", "MP-002"},
-            new double[]{0.90, 0.10},
-            new String[]{"kg", "kg"});
-
-        // Los kits no tienen BOM directo, son combinaciones de productos terminados
-        // Pero podemos crear BOMs básicos para ellos
-        createBOMForProduct(productosMap.get("PT-018"), "KIT GYMBRO", admin, productosMap,
-            new String[]{"MP-001", "MP-006", "MP-007", "MP-008"},
-            new double[]{0.60, 0.30, 0.05, 0.05},
-            new String[]{"kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-019"), "KIT GYM RAT", admin, productosMap,
-            new String[]{"MP-001", "MP-006", "MP-008", "MP-009", "MP-010"},
-            new double[]{0.50, 0.25, 0.15, 0.05, 0.05},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        createBOMForProduct(productosMap.get("PT-020"), "KIT ESSENTIAL", admin, productosMap,
-            new String[]{"MP-001", "MP-006", "MP-008", "MP-010", "MP-011"},
-            new double[]{0.40, 0.20, 0.20, 0.15, 0.05},
-            new String[]{"kg", "kg", "kg", "kg", "kg"});
-
-        System.out.println("Se crearon BOMs para todos los productos terminados exitosamente");
->>>>>>> origin/main
     }
 
     private void createBOMForProduct(Product producto, String nombreBOM, User creador, 

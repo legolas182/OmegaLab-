@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import materialService from '../../services/materialService'
-<<<<<<< HEAD
+import categoryService from '../../services/categoryService'
 import ConfirmDialog from '../../components/ConfirmDialog'
-=======
->>>>>>> origin/main
 
 const MateriaPrima = () => {
   const [materials, setMaterials] = useState([])
@@ -12,7 +10,7 @@ const MateriaPrima = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
-<<<<<<< HEAD
+  const [categories, setCategories] = useState([])
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -20,20 +18,19 @@ const MateriaPrima = () => {
     onConfirm: null,
     type: 'danger'
   })
-=======
->>>>>>> origin/main
 
   const [newMaterial, setNewMaterial] = useState({
     codigo: '',
     nombre: '',
     descripcion: '',
-    categoria: '',
+    categoriaId: null,
     tipo: 'MATERIA_PRIMA',
     unidadMedida: 'kg'
   })
 
   useEffect(() => {
     loadMaterials()
+    loadCategories()
   }, [searchTerm, filterTipo])
 
   const loadMaterials = async () => {
@@ -51,6 +48,35 @@ const MateriaPrima = () => {
     }
   }
 
+  const loadCategories = async () => {
+    try {
+      const allCategories = await categoryService.getCategories({ tipoProducto: 'MATERIA_PRIMA' })
+      if (!allCategories || allCategories.length === 0) {
+        const all = await categoryService.getCategories({ all: true })
+        const filtered = all.filter(cat => {
+          const tipo = cat.tipoProducto
+          const tipoStr = typeof tipo === 'string' ? tipo : (tipo?.name || tipo?.toString() || '')
+          return tipoStr === 'MATERIA_PRIMA' || 
+                 tipoStr === 'materia_prima' ||
+                 tipoStr.toUpperCase() === 'MATERIA_PRIMA'
+        })
+        setCategories(filtered)
+      } else {
+        setCategories(allCategories)
+      }
+    } catch (err) {
+      console.error('Error cargando categorías:', err)
+      setCategories([])
+    }
+  }
+
+  // Helper para obtener el nombre de la categoría desde categoriaId
+  const getCategoryName = (categoriaId) => {
+    if (!categoriaId) return 'Sin categoría'
+    const category = categories.find(cat => cat.id === categoriaId)
+    return category ? category.nombre : 'Sin categoría'
+  }
+
   const handleCreateMaterial = async (e) => {
     e.preventDefault()
     try {
@@ -63,7 +89,7 @@ const MateriaPrima = () => {
         codigo: '',
         nombre: '',
         descripcion: '',
-        categoria: '',
+        categoriaId: null,
         tipo: 'MATERIA_PRIMA',
         unidadMedida: 'kg'
       })
@@ -74,7 +100,6 @@ const MateriaPrima = () => {
     }
   }
 
-<<<<<<< HEAD
   const handleDeleteMaterial = (id) => {
     setConfirmDialog({
       isOpen: true,
@@ -93,19 +118,6 @@ const MateriaPrima = () => {
       },
       type: 'danger'
     })
-=======
-  const handleDeleteMaterial = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar este material?')) return
-    try {
-      setLoading(true)
-      await materialService.deleteMaterial(id)
-      await loadMaterials()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
->>>>>>> origin/main
   }
 
   return (
@@ -181,7 +193,7 @@ const MateriaPrima = () => {
                           {material.tipo}
                         </span>
                       </td>
-                      <td className="p-4 text-text-muted">{material.categoria || 'Sin categoría'}</td>
+                      <td className="p-4 text-text-muted">{getCategoryName(material.categoriaId)}</td>
                       <td className="p-4 text-text-muted">{material.unidadMedida}</td>
                       <td className="p-4">
                         <span className={`px-2 py-1 rounded text-xs ${
@@ -269,13 +281,31 @@ const MateriaPrima = () => {
                 </div>
                 <div>
                   <label className="block text-text-light text-sm font-medium mb-2">Categoría</label>
-                  <input
-                    type="text"
-                    value={newMaterial.categoria}
-                    onChange={(e) => setNewMaterial({ ...newMaterial, categoria: e.target.value })}
-                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                    placeholder="Categoría"
-                  />
+                  <select
+                    value={newMaterial.categoriaId || ''}
+                    onChange={(e) => {
+                      setNewMaterial({ 
+                        ...newMaterial, 
+                        categoriaId: e.target.value ? parseInt(e.target.value) : null
+                      })
+                    }}
+                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    disabled={categories.length === 0}
+                  >
+                    <option value="">
+                      {categories.length === 0 ? 'Cargando categorías...' : 'Seleccionar categoría...'}
+                    </option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {categories.length === 0 && (
+                    <p className="text-text-muted text-xs mt-1">
+                      No hay categorías disponibles. Crea categorías en la sección de Categorías.
+                    </p>
+                  )}
                 </div>
               </div>
               <div>
@@ -313,7 +343,6 @@ const MateriaPrima = () => {
           </div>
         </div>
       )}
-<<<<<<< HEAD
 
       {/* Dialog de confirmación */}
       <ConfirmDialog
@@ -324,8 +353,6 @@ const MateriaPrima = () => {
         message={confirmDialog.message}
         type={confirmDialog.type}
       />
-=======
->>>>>>> origin/main
     </div>
   )
 }

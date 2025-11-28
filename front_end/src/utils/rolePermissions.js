@@ -27,15 +27,11 @@ export const getRoleName = (role) => {
  */
 export const hasAnyRole = (user, ...roles) => {
   if (!user || !user.rol) return false;
-<<<<<<< HEAD
   // Normalizar el rol del usuario a mayúsculas para comparación
   const userRole = String(user.rol).toUpperCase();
   // Normalizar los roles a verificar a mayúsculas
   const normalizedRoles = roles.map(role => String(role).toUpperCase());
   return normalizedRoles.includes(userRole);
-=======
-  return roles.includes(user.rol);
->>>>>>> origin/main
 };
 
 /**

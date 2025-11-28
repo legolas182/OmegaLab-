@@ -12,10 +12,7 @@ import UnidadesMedida from './pages/inventario/UnidadesMedida'
 import IA from './pages/IA'
 import Produccion from './pages/Produccion'
 import Pruebas from './pages/Pruebas'
-<<<<<<< HEAD
 import Historial from './pages/Historial'
-=======
->>>>>>> origin/main
 import Aprobacion from './pages/Aprobacion'
 import Trazabilidad from './pages/Trazabilidad'
 import Conocimiento from './pages/Conocimiento'
@@ -48,10 +45,7 @@ function App() {
             <Route path="ia" element={<IA />} />
             <Route path="produccion" element={<Produccion />} />
             <Route path="pruebas" element={<Pruebas />} />
-<<<<<<< HEAD
             <Route path="historial" element={<Historial />} />
-=======
->>>>>>> origin/main
             <Route path="aprobacion" element={<Aprobacion />} />
             <Route path="trazabilidad" element={<Trazabilidad />} />
             <Route path="conocimiento" element={<Conocimiento />} />

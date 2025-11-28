@@ -18,11 +18,7 @@ import java.util.List;
 @Table(name = "materiales",
     indexes = {
         @Index(name = "idx_codigo", columnList = "codigo"),
-<<<<<<< HEAD
         @Index(name = "idx_categoria_id", columnList = "categoria_id"),
-=======
-        @Index(name = "idx_categoria", columnList = "categoria"),
->>>>>>> origin/main
         @Index(name = "idx_estado", columnList = "estado")
     },
     uniqueConstraints = {
@@ -52,12 +48,6 @@ public class Material {
     @JoinColumn(name = "categoria_id", foreignKey = @ForeignKey(name = "fk_material_categoria"))
     private Category categoriaEntity;
 
-<<<<<<< HEAD
-=======
-    @Column(length = 100)
-    private String categoria;
-
->>>>>>> origin/main
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private String unidadMedida = "kg";
 
@@ -77,11 +67,7 @@ public class Material {
     private List<BOMItem> usadoEnBOMs = new ArrayList<>();
 
     public String getCategoriaNombre() {
-<<<<<<< HEAD
         return categoriaEntity != null ? categoriaEntity.getNombre() : null;
-=======
-        return categoriaEntity != null ? categoriaEntity.getNombre() : categoria;
->>>>>>> origin/main
     }
 
     public MaterialDTO getDTO() {
@@ -90,10 +76,6 @@ public class Material {
         dto.setCodigo(codigo);
         dto.setNombre(nombre);
         dto.setDescripcion(descripcion);
-<<<<<<< HEAD
-=======
-        dto.setCategoria(categoria);
->>>>>>> origin/main
         dto.setCategoriaId(categoriaEntity != null ? categoriaEntity.getId() : null);
         dto.setUnidadMedida(unidadMedida);
         dto.setEstado(estado);
