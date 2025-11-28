@@ -713,24 +713,51 @@ const Ideas = () => {
       </div>
 
               {/* Pruebas Requeridas */}
-              {selectedFormula.pruebasRequeridas && (
-                <div className="mt-4 pt-4 border-t border-border-dark">
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="text-text-light font-semibold mb-2 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-sm">assignment</span>
-                          Pruebas Requeridas (Generadas por IA)
-                        </h4>
-                        <p className="text-text-muted text-xs mb-3">
-                          Lista de pruebas de laboratorio que deben realizarse para validar esta fórmula:
-                        </p>
-                        <div className="whitespace-pre-line text-text-light text-sm leading-relaxed bg-card-dark p-3 rounded-lg border border-border-dark">
-                          {selectedFormula.pruebasRequeridas}
+              {selectedFormula.pruebasRequeridas && (() => {
+                // Procesar el texto de pruebas requeridas
+                let pruebasText = selectedFormula.pruebasRequeridas;
+                
+                // Reemplazar \n literales y saltos de línea reales
+                pruebasText = pruebasText.replace(/\\n/g, '\n');
+                
+                // Dividir por líneas y limpiar
+                const lineas = pruebasText
+                  .split('\n')
+                  .map(linea => linea.trim())
+                  .filter(linea => linea.length > 0);
+                
+                return (
+                  <div className="mt-4 pt-4 border-t border-border-dark">
+                    <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="text-text-light font-semibold mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">assignment</span>
+                            Pruebas Requeridas (Generadas por IA)
+                          </h4>
+                          <p className="text-text-muted text-xs mb-3">
+                            Lista de pruebas de laboratorio que deben realizarse para validar esta fórmula:
+                          </p>
+                          <div className="bg-card-dark p-3 rounded-lg border border-border-dark">
+                            <ul className="space-y-2 text-text-light text-sm leading-relaxed">
+                              {lineas.map((linea, idx) => {
+                                // Si la línea ya empieza con "- " o "• ", mantenerla
+                                // Si no, agregar bullet
+                                const textoLimpio = linea.startsWith('- ') || linea.startsWith('• ') 
+                                  ? linea.substring(2) 
+                                  : linea;
+                                return (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-primary mt-1">•</span>
+                                    <span>{textoLimpio}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
+                      {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
                       // Verificar si ya existe una prueba para esta fórmula
                       const pruebasExistentes = pruebasPorIdea.get(selectedFormula.id) || []
                       const tienePruebaIniciada = pruebasExistentes.length > 0
@@ -784,9 +811,10 @@ const Ideas = () => {
                         </div>
                       )
                     })()}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Detalles de IA */}
               {selectedFormula.detallesIA && (
@@ -804,6 +832,317 @@ const Ideas = () => {
 
                     return (
                       <div className="space-y-4">
+                        {/* Lista de Ingredientes (para fórmulas experimentales) */}
+                        {aiDetails.ingredientes && Array.isArray(aiDetails.ingredientes) && aiDetails.ingredientes.length > 0 && (
+                          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">list</span>
+                              Lista de Ingredientes
+                            </h4>
+                            <div className="space-y-2">
+                              {aiDetails.ingredientes.map((ingrediente, idx) => (
+                                <div key={idx} className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <span className="text-text-light font-medium">{ingrediente.nombre || 'Ingrediente'}</span>
+                                    {ingrediente.funcion && (
+                                      <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
+                                        {ingrediente.funcion}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                    {ingrediente.cantidad !== undefined && (
+                                      <div>
+                                        <span className="text-text-muted">Cantidad:</span>
+                                        <p className="text-text-light font-medium">
+                                          {ingrediente.cantidad} {ingrediente.unidad || 'g'}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {ingrediente.porcentaje !== undefined && (
+                                      <div>
+                                        <span className="text-text-muted">Porcentaje:</span>
+                                        <p className="text-primary font-medium">{ingrediente.porcentaje}%</p>
+                                      </div>
+                                    )}
+                                    {ingrediente.materialId && (
+                                      <div>
+                                        <span className="text-text-muted">Material ID:</span>
+                                        <p className="text-text-light">{ingrediente.materialId}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Contenido nutricional del ingrediente */}
+                                  {(ingrediente.contenidoProteina !== undefined || ingrediente.contenidoCarbohidratos !== undefined || ingrediente.contenidoGrasas !== undefined) && (
+                                    <div className="mt-2 pt-2 border-t border-border-dark">
+                                      <p className="text-text-muted text-xs mb-1">Contenido Nutricional:</p>
+                                      <div className="flex flex-wrap gap-3 text-xs">
+                                        {ingrediente.contenidoProteina !== undefined && (
+                                          <span className="text-text-light">
+                                            Proteína: <span className="font-medium">{ingrediente.contenidoProteina}%</span>
+                                          </span>
+                                        )}
+                                        {ingrediente.contenidoCarbohidratos !== undefined && (
+                                          <span className="text-text-light">
+                                            Carbohidratos: <span className="font-medium">{ingrediente.contenidoCarbohidratos}%</span>
+                                          </span>
+                                        )}
+                                        {ingrediente.contenidoGrasas !== undefined && (
+                                          <span className="text-text-light">
+                                            Grasas: <span className="font-medium">{ingrediente.contenidoGrasas}%</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Rendimiento del Batch */}
+                        {(aiDetails.rendimiento || aiDetails.unidadRendimiento) && (
+                          <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">scale</span>
+                              Rendimiento del Batch
+                            </h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-text-light text-lg font-bold">
+                                {aiDetails.rendimiento || 'N/A'} {aiDetails.unidadRendimiento || 'g'}
+                              </span>
+                              <span className="text-text-muted text-sm">(1 kg batch)</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Perfil Nutricional */}
+                        {aiDetails.perfilNutricional && (
+                          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">nutrition</span>
+                              Perfil Nutricional
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Por 100g */}
+                              {aiDetails.perfilNutricional.por100g && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Por 100g</h5>
+                                  <div className="space-y-1 text-sm">
+                                    {aiDetails.perfilNutricional.por100g.proteina !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Proteína:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.proteina} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.por100g.carbohidratos !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Carbohidratos:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.carbohidratos} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.por100g.grasas !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Grasas:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.grasas} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.por100g.calorias !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Calorías:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.calorias} kcal</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Por Ración */}
+                              {aiDetails.perfilNutricional.porRacion && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">
+                                    Por Ración ({aiDetails.perfilNutricional.porRacion.tamanoRacion || 'N/A'} {aiDetails.perfilNutricional.porRacion.unidad || 'g'})
+                                  </h5>
+                                  <div className="space-y-1 text-sm">
+                                    {aiDetails.perfilNutricional.porRacion.proteina !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Proteína:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.proteina} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porRacion.carbohidratos !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Carbohidratos:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.carbohidratos} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porRacion.grasas !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Grasas:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.grasas} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porRacion.calorias !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Calorías:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.calorias} kcal</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Cálculos Nutricionales */}
+                        {aiDetails.calculosNutricionales && (
+                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">calculate</span>
+                              Cálculos Nutricionales Detallados
+                            </h4>
+                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                                {aiDetails.calculosNutricionales.replace(/\\n/g, '\n')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Proceso de Fabricación */}
+                        {aiDetails.procesoFabricacion && (
+                          <div className="p-4 rounded-lg bg-teal-500/10 border border-teal-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
+                              Proceso de Fabricación
+                            </h4>
+                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                                {aiDetails.procesoFabricacion.replace(/\\n/g, '\n')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Buenas Prácticas */}
+                        {aiDetails.buenasPracticas && (
+                          <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">verified</span>
+                              Buenas Prácticas, Seguridad y Regulación
+                            </h4>
+                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                                {aiDetails.buenasPracticas.replace(/\\n/g, '\n')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Parámetros Fisicoquímicos (para fórmulas experimentales) */}
+                        {aiDetails.parametrosFisicoquimicos && (
+                          <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">science</span>
+                              Parámetros Fisicoquímicos Predichos
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {aiDetails.parametrosFisicoquimicos.solubilidad && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">Solubilidad</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.solubilidad}</p>
+                                </div>
+                              )}
+                              {aiDetails.parametrosFisicoquimicos.logP && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">LogP Promedio</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.logP}</p>
+                                </div>
+                              )}
+                              {aiDetails.parametrosFisicoquimicos.pH && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">pH Estimado</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.pH}</p>
+                                </div>
+                              )}
+                              {aiDetails.parametrosFisicoquimicos.estabilidad && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">Estabilidad</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.estabilidad}</p>
+                                </div>
+                              )}
+                              {aiDetails.parametrosFisicoquimicos.compatibilidad && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">Compatibilidad</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.compatibilidad}</p>
+                                </div>
+                              )}
+                              {aiDetails.parametrosFisicoquimicos.biodisponibilidad && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-muted text-xs mb-1">Biodisponibilidad</p>
+                                  <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.biodisponibilidad}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Pruebas Requeridas (desde detalles de IA) */}
+                        {aiDetails.pruebasRequeridas && (() => {
+                          // Procesar el texto de pruebas requeridas
+                          let pruebasText = aiDetails.pruebasRequeridas;
+                          
+                          // Reemplazar \n literales y saltos de línea reales
+                          pruebasText = pruebasText.replace(/\\n/g, '\n');
+                          
+                          // Dividir por líneas y limpiar
+                          const lineas = pruebasText
+                            .split('\n')
+                            .map(linea => linea.trim())
+                            .filter(linea => linea.length > 0);
+                          
+                          return (
+                            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                              <h4 className="text-text-light font-semibold mb-2 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm">assignment</span>
+                                Pruebas Requeridas (Generadas por IA)
+                              </h4>
+                              <p className="text-text-muted text-xs mb-3">
+                                Lista de pruebas de laboratorio que deben realizarse para validar esta fórmula:
+                              </p>
+                              <div className="bg-card-dark p-3 rounded-lg border border-border-dark">
+                                <ul className="space-y-2 text-text-light text-sm leading-relaxed">
+                                  {lineas.map((linea, idx) => {
+                                    // Si la línea ya empieza con "- " o "• ", mantenerla
+                                    // Si no, agregar bullet
+                                    const textoLimpio = linea.startsWith('- ') || linea.startsWith('• ') 
+                                      ? linea.substring(2) 
+                                      : linea;
+                                    return (
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-primary mt-1">•</span>
+                                        <span>{textoLimpio}</span>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Justificación (para fórmulas experimentales) */}
+                        {aiDetails.justificacion && (
+                          <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">description</span>
+                              Justificación Técnica
+                            </h4>
+                            <p className="text-text-light text-sm leading-relaxed">{aiDetails.justificacion}</p>
+                          </div>
+                        )}
+
                         {/* BOM Modificado */}
                         {aiDetails.bomModificado && Array.isArray(aiDetails.bomModificado) && aiDetails.bomModificado.length > 0 && (
                           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">

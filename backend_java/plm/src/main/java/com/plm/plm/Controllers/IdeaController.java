@@ -114,7 +114,10 @@ public class IdeaController {
             List<com.plm.plm.Models.ChemicalCompound> compounds = new java.util.ArrayList<>();
             if (compoundIds != null && chemicalCompoundRepository != null) {
                 for (Integer compoundId : compoundIds) {
-                    chemicalCompoundRepository.findById(compoundId).ifPresent(compounds::add);
+                    // Filtrar nulls - los compuestos de APIs externas no tienen ID hasta que se guarden en BD
+                    if (compoundId != null) {
+                        chemicalCompoundRepository.findById(compoundId).ifPresent(compounds::add);
+                    }
                 }
             }
             
@@ -304,55 +307,225 @@ public class IdeaController {
         System.out.println("==========================================");
         System.out.println("PARSING AI RESPONSE FROM MATERIALS");
         System.out.println("==========================================");
+        System.out.println("Respuesta completa (primeros 500 caracteres): " + 
+            (aiResponse != null ? aiResponse.substring(0, Math.min(500, aiResponse.length())) : "null"));
         
         IdeaDTO ideaDTO = new IdeaDTO();
         ideaDTO.setObjetivo(objetivo);
         categoryRepository.findByNombre("Nutracéutico").ifPresent(cat -> ideaDTO.setCategoriaId(cat.getId()));
         ideaDTO.setPrioridad("Alta");
         
+        if (aiResponse == null || aiResponse.trim().isEmpty()) {
+            System.err.println("ERROR: La respuesta de IA está vacía o es null");
+            ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
+            ideaDTO.setDescripcion("Fórmula generada automáticamente desde materias primas. " +
+                    "Nota: La respuesta de la IA estaba vacía.");
+            return ideaDTO;
+        }
+        
         try {
             // Limpiar la respuesta si tiene markdown code blocks
             String cleanedResponse = aiResponse;
+            
+            // Eliminar bloques de código markdown (```json ... ```)
             if (cleanedResponse.contains("```json")) {
-                cleanedResponse = cleanedResponse.substring(cleanedResponse.indexOf("```json") + 7);
-                if (cleanedResponse.contains("```")) {
-                    cleanedResponse = cleanedResponse.substring(0, cleanedResponse.indexOf("```"));
+                int startIndex = cleanedResponse.indexOf("```json");
+                cleanedResponse = cleanedResponse.substring(startIndex + 7); // +7 para saltar "```json"
+                int endIndex = cleanedResponse.indexOf("```");
+                if (endIndex > 0) {
+                    cleanedResponse = cleanedResponse.substring(0, endIndex);
                 }
             } else if (cleanedResponse.contains("```")) {
-                cleanedResponse = cleanedResponse.replace("```", "");
+                // Si solo tiene ``` sin especificar el lenguaje
+                int startIndex = cleanedResponse.indexOf("```");
+                cleanedResponse = cleanedResponse.substring(startIndex + 3); // +3 para saltar "```"
+                int endIndex = cleanedResponse.indexOf("```");
+                if (endIndex > 0) {
+                    cleanedResponse = cleanedResponse.substring(0, endIndex);
+                } else {
+                    // Si no encuentra el cierre, eliminar solo el inicio
+                    cleanedResponse = cleanedResponse.replace("```", "");
+                }
             }
+            
+            // Eliminar cualquier texto antes del primer { si existe
+            int firstBrace = cleanedResponse.indexOf('{');
+            if (firstBrace > 0) {
+                cleanedResponse = cleanedResponse.substring(firstBrace);
+            }
+            
+            // Eliminar cualquier texto después del último } si existe
+            int lastBrace = cleanedResponse.lastIndexOf('}');
+            if (lastBrace > 0 && lastBrace < cleanedResponse.length() - 1) {
+                cleanedResponse = cleanedResponse.substring(0, lastBrace + 1);
+            }
+            
             cleanedResponse = cleanedResponse.trim();
             
-            // Intentar parsear como JSON
-            JsonNode jsonNode = objectMapper.readTree(cleanedResponse);
+            System.out.println("Respuesta limpiada. Intentando parsear JSON...");
+            System.out.println("Longitud total: " + cleanedResponse.length());
+            System.out.println("Primeros 500 caracteres de respuesta limpiada: " + 
+                cleanedResponse.substring(0, Math.min(500, cleanedResponse.length())));
             
+            // Guardar JSON completo para debug si falla
+            String jsonToParse = cleanedResponse;
+            
+            // Intentar parsear como JSON
+            JsonNode jsonNode = null;
+            try {
+                jsonNode = objectMapper.readTree(jsonToParse);
+            } catch (com.fasterxml.jackson.core.JsonParseException e) {
+                System.err.println("ERROR al parsear JSON en primer intento: " + e.getMessage());
+                System.err.println("Posición del error: línea " + e.getLocation().getLineNr() + ", columna " + e.getLocation().getColumnNr());
+                
+                // Guardar JSON completo para análisis
+                System.err.println("JSON completo (primeros 2000 caracteres): " + 
+                    cleanedResponse.substring(0, Math.min(2000, cleanedResponse.length())));
+                
+                // Intentar reparar: buscar el área problemática
+                int errorLine = (int) e.getLocation().getLineNr();
+                int errorCol = (int) e.getLocation().getColumnNr();
+                
+                // Mostrar contexto alrededor del error
+                String[] lines = cleanedResponse.split("\n");
+                if (errorLine > 0 && errorLine <= lines.length) {
+                    System.err.println("Línea con error (" + errorLine + "): " + lines[errorLine - 1]);
+                    if (errorLine > 1) {
+                        System.err.println("Línea anterior: " + lines[errorLine - 2]);
+                    }
+                    if (errorLine < lines.length) {
+                        System.err.println("Línea siguiente: " + lines[errorLine]);
+                    }
+                    // Mostrar caracteres alrededor de la columna problemática
+                    if (errorCol > 0 && errorCol <= lines[errorLine - 1].length()) {
+                        int start = Math.max(0, errorCol - 50);
+                        int end = Math.min(lines[errorLine - 1].length(), errorCol + 50);
+                        System.err.println("Contexto alrededor de columna " + errorCol + ": " + 
+                            lines[errorLine - 1].substring(start, end));
+                    }
+                }
+                
+                // Intentar reparación: escapar saltos de línea y comillas dentro de strings
+                try {
+                    StringBuilder repaired = new StringBuilder();
+                    boolean inString = false;
+                    boolean escaped = false;
+                    
+                    for (int i = 0; i < cleanedResponse.length(); i++) {
+                        char c = cleanedResponse.charAt(i);
+                        
+                        if (escaped) {
+                            repaired.append(c);
+                            escaped = false;
+                            continue;
+                        }
+                        
+                        if (c == '\\') {
+                            escaped = true;
+                            repaired.append(c);
+                            continue;
+                        }
+                        
+                        if (c == '"') {
+                            inString = !inString;
+                            repaired.append(c);
+                            continue;
+                        }
+                        
+                        if (inString) {
+                            // Dentro de un string, escapar caracteres problemáticos
+                            if (c == '\n') {
+                                repaired.append("\\n");
+                            } else if (c == '\r') {
+                                repaired.append("\\r");
+                                // Si es \r\n, saltar el \n
+                                if (i + 1 < cleanedResponse.length() && cleanedResponse.charAt(i + 1) == '\n') {
+                                    i++;
+                                }
+                            } else if (c == '\t') {
+                                repaired.append("\\t");
+                            } else if (c == '"' && !escaped) {
+                                // Comilla no escapada dentro de string - esto no debería pasar
+                                repaired.append("\\\"");
+                            } else {
+                                repaired.append(c);
+                            }
+                        } else {
+                            repaired.append(c);
+                        }
+                    }
+                    
+                    jsonToParse = repaired.toString();
+                    System.out.println("Intentando parsear JSON reparado (longitud: " + jsonToParse.length() + ")...");
+                    jsonNode = objectMapper.readTree(jsonToParse);
+                    System.out.println("JSON reparado y parseado exitosamente");
+                } catch (Exception repairException) {
+                    System.err.println("ERROR: No se pudo reparar el JSON: " + repairException.getMessage());
+                    repairException.printStackTrace();
+                    // Guardar JSON crudo completo para análisis manual
+                    System.err.println("JSON completo que falló (guardado para análisis):");
+                    System.err.println(cleanedResponse);
+                    throw e; // Lanzar el error original
+                }
+            }
+            System.out.println("JSON parseado exitosamente. Keys disponibles: " + jsonNode.fieldNames());
+            
+            // Extraer título
             if (jsonNode.has("titulo")) {
                 ideaDTO.setTitulo(jsonNode.get("titulo").asText());
+                System.out.println("Título extraído: " + ideaDTO.getTitulo());
             } else {
                 ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
+                System.out.println("No se encontró 'titulo' en el JSON, usando título por defecto");
             }
             
+            // Extraer descripción
             if (jsonNode.has("descripcion")) {
                 ideaDTO.setDescripcion(jsonNode.get("descripcion").asText());
+                System.out.println("Descripción extraída (longitud): " + ideaDTO.getDescripcion().length());
             } else {
-                ideaDTO.setDescripcion(aiResponse);
+                ideaDTO.setDescripcion("Fórmula generada automáticamente desde materias primas.");
+                System.out.println("No se encontró 'descripcion' en el JSON, usando descripción por defecto");
             }
             
-            // Guardar la respuesta completa de la IA
+            // Guardar la respuesta completa de la IA en formato JSON
             ideaDTO.setDetallesIA(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode));
+            System.out.println("Detalles IA guardados (longitud): " + ideaDTO.getDetallesIA().length());
             
             // Extraer pruebas requeridas
             if (jsonNode.has("pruebasRequeridas")) {
                 ideaDTO.setPruebasRequeridas(jsonNode.get("pruebasRequeridas").asText());
+                System.out.println("Pruebas requeridas extraídas (longitud): " + 
+                    (ideaDTO.getPruebasRequeridas() != null ? ideaDTO.getPruebasRequeridas().length() : 0));
+            } else {
+                System.out.println("No se encontró 'pruebasRequeridas' en el JSON");
             }
             
-        } catch (Exception e) {
-            System.out.println("ERROR: La respuesta de IA no es JSON válido: " + e.getMessage());
+            // Verificar que los campos importantes estén presentes
+            boolean tieneIngredientes = jsonNode.has("ingredientes");
+            boolean tieneParametros = jsonNode.has("parametrosFisicoquimicos");
+            System.out.println("Tiene ingredientes: " + tieneIngredientes);
+            System.out.println("Tiene parametrosFisicoquimicos: " + tieneParametros);
+            
+        } catch (com.fasterxml.jackson.core.JsonParseException e) {
+            System.err.println("ERROR: Error al parsear JSON de la respuesta de IA: " + e.getMessage());
+            System.err.println("Mensaje completo: " + e.getMessage());
+            e.printStackTrace();
             ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
-            ideaDTO.setDescripcion(aiResponse);
-            ideaDTO.setDetallesIA(aiResponse);
+            ideaDTO.setDescripcion("Fórmula generada automáticamente desde materias primas. " +
+                    "Nota: Hubo un problema al procesar con IA, se creó una idea básica. Error: " + e.getMessage());
+            ideaDTO.setDetallesIA(aiResponse); // Guardar la respuesta cruda para debug
+        } catch (Exception e) {
+            System.err.println("ERROR: Excepción inesperada al procesar respuesta de IA: " + e.getMessage());
+            System.err.println("Tipo de excepción: " + e.getClass().getName());
+            e.printStackTrace();
+            ideaDTO.setTitulo("Nueva fórmula experimental - " + objetivo);
+            ideaDTO.setDescripcion("Fórmula generada automáticamente desde materias primas. " +
+                    "Nota: Hubo un problema al procesar con IA, se creó una idea básica. Error: " + e.getMessage());
+            ideaDTO.setDetallesIA(aiResponse); // Guardar la respuesta cruda para debug
         }
         
+        System.out.println("==========================================");
         return ideaDTO;
     }
 

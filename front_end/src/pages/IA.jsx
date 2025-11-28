@@ -133,7 +133,10 @@ const IA = () => {
       setMessage({ type: '', text: '' })
 
       try {
-        const compoundIds = selectedCompounds.map(c => c.id)
+        // Filtrar compuestos que tienen ID (los de BD químicas pueden no tener ID hasta que se guarden)
+        const compoundIds = selectedCompounds
+          .map(c => c.id)
+          .filter(id => id != null)
         const idea = await ideaService.generateFromMaterials(objetivo, selectedMaterials, compoundIds)
         setMessage({ type: 'success', text: 'Fórmula generada exitosamente. Revisa el módulo de Ideas para ver los detalles.' })
         

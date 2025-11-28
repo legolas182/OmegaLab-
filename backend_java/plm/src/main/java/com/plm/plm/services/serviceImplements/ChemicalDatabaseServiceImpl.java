@@ -185,16 +185,20 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
     private String buildPubChemUrl(String query, SearchType type) {
         query = query.trim().replace(" ", "%20");
         
+        // Propiedades adicionales disponibles en PubChem:
+        // MolecularFormula, Title, IUPACName, IsomericSMILES, etc.
+        String properties = "MolecularWeight,CanonicalSMILES,IsomericSMILES,MolecularFormula,XLogP,InChI,InChIKey,Title,IUPACName";
+        
         switch (type) {
             case NAME:
-                return String.format("%s/compound/name/%s/property/MolecularWeight,CanonicalSMILES,XLogP,InChI,InChIKey/JSON",
-                    PUBCHEM_BASE_URL, query);
+                return String.format("%s/compound/name/%s/property/%s/JSON",
+                    PUBCHEM_BASE_URL, query, properties);
             case FORMULA:
-                return String.format("%s/compound/formula/%s/property/MolecularWeight,CanonicalSMILES,XLogP,InChI,InChIKey/JSON",
-                    PUBCHEM_BASE_URL, query);
+                return String.format("%s/compound/formula/%s/property/%s/JSON",
+                    PUBCHEM_BASE_URL, query, properties);
             case SMILES:
-                return String.format("%s/compound/smiles/%s/property/MolecularWeight,CanonicalSMILES,XLogP,InChI,InChIKey/JSON",
-                    PUBCHEM_BASE_URL, query);
+                return String.format("%s/compound/smiles/%s/property/%s/JSON",
+                    PUBCHEM_BASE_URL, query, properties);
             default:
                 return null;
         }
@@ -205,6 +209,7 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
         
         switch (type) {
             case NAME:
+                // Incluir más campos en la respuesta usando el parámetro 'fields'
                 return String.format("%s/molecule.json?pref_name__icontains=%s&format=json",
                     CHEMBL_BASE_URL, query);
             default:
@@ -231,17 +236,26 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                 ChemicalCompoundDTO dto = new ChemicalCompoundDTO();
                 dto.setSource("PubChem");
                 
+                // Debug: Log todas las claves disponibles
+                System.out.println("PubChem properties keys: " + prop.keySet());
+                
                 // Intentar obtener el nombre real del compuesto, si está disponible
-                // Por defecto usar el query
+                // Prioridad: Title (nombre común) > IUPACName (nombre técnico) > query
                 String compoundName = query;
                 if (prop.containsKey("Title")) {
-                    compoundName = (String) prop.get("Title");
+                    Object title = prop.get("Title");
+                    if (title != null && !title.toString().trim().isEmpty()) {
+                        compoundName = title.toString();
+                    }
                 } else if (prop.containsKey("IUPACName")) {
-                    compoundName = (String) prop.get("IUPACName");
+                    Object iupac = prop.get("IUPACName");
+                    if (iupac != null && !iupac.toString().trim().isEmpty()) {
+                        compoundName = iupac.toString();
+                    }
                 }
                 dto.setName(compoundName);
                 
-                // Extraer propiedades
+                // Extraer propiedades - intentar múltiples nombres posibles
                 if (prop.containsKey("MolecularWeight")) {
                     Object mw = prop.get("MolecularWeight");
                     if (mw != null) {
@@ -257,9 +271,15 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                     }
                 }
                 
+                // Intentar múltiples variantes de SMILES
                 if (prop.containsKey("CanonicalSMILES")) {
                     Object smiles = prop.get("CanonicalSMILES");
-                    if (smiles != null) {
+                    if (smiles != null && !smiles.toString().trim().isEmpty()) {
+                        dto.setSmiles(smiles.toString());
+                    }
+                } else if (prop.containsKey("IsomericSMILES")) {
+                    Object smiles = prop.get("IsomericSMILES");
+                    if (smiles != null && !smiles.toString().trim().isEmpty()) {
                         dto.setSmiles(smiles.toString());
                     }
                 }
@@ -295,10 +315,15 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                     }
                 }
                 
-                // Intentar obtener fórmula molecular si está disponible
+                // Intentar obtener fórmula molecular - múltiples variantes
                 if (prop.containsKey("MolecularFormula")) {
                     Object formula = prop.get("MolecularFormula");
-                    if (formula != null) {
+                    if (formula != null && !formula.toString().trim().isEmpty()) {
+                        dto.setFormula(formula.toString());
+                    }
+                } else if (prop.containsKey("Formula")) {
+                    Object formula = prop.get("Formula");
+                    if (formula != null && !formula.toString().trim().isEmpty()) {
                         dto.setFormula(formula.toString());
                     }
                 }
@@ -331,6 +356,9 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                 ChemicalCompoundDTO dto = new ChemicalCompoundDTO();
                 dto.setSource("ChEMBL");
                 
+                // Debug: Log todas las claves disponibles
+                System.out.println("ChEMBL molecule keys: " + molecule.keySet());
+                
                 // Nombre
                 if (molecule.containsKey("pref_name")) {
                     Object prefName = molecule.get("pref_name");
@@ -358,6 +386,7 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                 if (molecule.containsKey("molecule_structures")) {
                     Map<String, Object> structures = (Map<String, Object>) molecule.get("molecule_structures");
                     if (structures != null) {
+                        System.out.println("ChEMBL structures keys: " + structures.keySet());
                         if (structures.containsKey("canonical_smiles")) {
                             dto.setSmiles((String) structures.get("canonical_smiles"));
                         }
@@ -374,16 +403,33 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                 if (molecule.containsKey("molecule_properties")) {
                     Map<String, Object> properties = (Map<String, Object>) molecule.get("molecule_properties");
                     if (properties != null) {
+                        System.out.println("ChEMBL properties keys: " + properties.keySet());
                         if (properties.containsKey("molecular_weight")) {
                             Object mw = properties.get("molecular_weight");
-                            if (mw instanceof Number) {
-                                dto.setMolecularWeight(((Number) mw).doubleValue());
+                            if (mw != null) {
+                                if (mw instanceof Number) {
+                                    dto.setMolecularWeight(((Number) mw).doubleValue());
+                                } else if (mw instanceof String) {
+                                    try {
+                                        dto.setMolecularWeight(Double.parseDouble((String) mw));
+                                    } catch (NumberFormatException e) {
+                                        // Ignorar si no se puede parsear
+                                    }
+                                }
                             }
                         }
                         if (properties.containsKey("alogp")) {
                             Object logP = properties.get("alogp");
-                            if (logP instanceof Number) {
-                                dto.setLogP(((Number) logP).doubleValue());
+                            if (logP != null) {
+                                if (logP instanceof Number) {
+                                    dto.setLogP(((Number) logP).doubleValue());
+                                } else if (logP instanceof String) {
+                                    try {
+                                        dto.setLogP(Double.parseDouble((String) logP));
+                                    } catch (NumberFormatException e) {
+                                        // Ignorar si no se puede parsear
+                                    }
+                                }
                             }
                         }
                         if (properties.containsKey("hbd")) {
@@ -406,18 +452,25 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
                         }
                         if (properties.containsKey("psa")) {
                             Object tpsa = properties.get("psa");
-                            if (tpsa instanceof Number) {
-                                dto.setTpsa(((Number) tpsa).doubleValue());
+                            if (tpsa != null) {
+                                if (tpsa instanceof Number) {
+                                    dto.setTpsa(((Number) tpsa).doubleValue());
+                                } else if (tpsa instanceof String) {
+                                    try {
+                                        dto.setTpsa(Double.parseDouble((String) tpsa));
+                                    } catch (NumberFormatException e) {
+                                        // Ignorar si no se puede parsear
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-                
-                // Fórmula molecular
-                if (molecule.containsKey("molecule_properties")) {
-                    Map<String, Object> properties = (Map<String, Object>) molecule.get("molecule_properties");
-                    if (properties != null && properties.containsKey("full_molformula")) {
-                        dto.setFormula((String) properties.get("full_molformula"));
+                        // Fórmula molecular
+                        if (properties.containsKey("full_molformula")) {
+                            Object formula = properties.get("full_molformula");
+                            if (formula != null && !formula.toString().trim().isEmpty()) {
+                                dto.setFormula(formula.toString());
+                            }
+                        }
                     }
                 }
 

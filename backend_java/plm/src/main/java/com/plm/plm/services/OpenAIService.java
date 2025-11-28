@@ -291,8 +291,27 @@ public class OpenAIService {
             promptBuilder.append("1. La suma de todos los porcentajes debe ser exactamente 100%\n");
             promptBuilder.append("2. Usa principalmente las materias primas seleccionadas\n");
             promptBuilder.append("3. Puedes agregar excipientes, saborizantes, endulzantes del inventario si es necesario\n");
-            promptBuilder.append("4. Calcula las cantidades en gramos para un rendimiento de 100g\n");
-            promptBuilder.append("5. Especifica la función de cada ingrediente (proteína base, excipiente, saborizante, etc.)\n\n");
+            promptBuilder.append("4. Calcula las cantidades en gramos para un rendimiento de 1000g (1 kg batch)\n");
+            promptBuilder.append("5. Especifica la función de cada ingrediente (proteína base, excipiente, saborizante, etc.)\n");
+            promptBuilder.append("6. Calcula el contenido nutricional detallado (proteína, carbohidratos, grasas) por 100g y por ración típica\n");
+            promptBuilder.append("7. Incluye cálculos paso a paso de macronutrientes cuando sea relevante\n\n");
+            
+            promptBuilder.append("CÁLCULOS NUTRICIONALES REQUERIDOS:\n");
+            promptBuilder.append("Para cada fórmula, calcula y reporta:\n");
+            promptBuilder.append("- Proteína total en el batch y por 100g\n");
+            promptBuilder.append("- Carbohidratos totales en el batch y por 100g\n");
+            promptBuilder.append("- Grasas totales en el batch y por 100g\n");
+            promptBuilder.append("- Perfil nutricional por ración típica (ej: 30g o 100g según el tipo de producto)\n");
+            promptBuilder.append("- Calorías aproximadas por 100g y por ración\n");
+            promptBuilder.append("- Incluye los cálculos matemáticos cuando sea relevante (ej: WPI 90%% proteína × cantidad = proteína aportada)\n\n");
+            
+            promptBuilder.append("PROCESO DE FABRICACIÓN:\n");
+            promptBuilder.append("Incluye recomendaciones sobre:\n");
+            promptBuilder.append("- Orden de mezclado de ingredientes\n");
+            promptBuilder.append("- Equipamiento necesario (mezcladores, tamices, etc.)\n");
+            promptBuilder.append("- Tiempos de mezclado\n");
+            promptBuilder.append("- Condiciones de almacenamiento\n");
+            promptBuilder.append("- Buenas prácticas de manufactura\n\n");
             
             promptBuilder.append("PREDICCIÓN DE PARÁMETROS FISICOQUÍMICOS:\n");
             promptBuilder.append("Para la fórmula completa, predice:\n");
@@ -303,27 +322,45 @@ public class OpenAIService {
             promptBuilder.append("- Compatibilidad: Compatibilidad entre ingredientes\n");
             promptBuilder.append("- Biodisponibilidad: Predicción de biodisponibilidad oral\n\n");
             
-            promptBuilder.append("IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido con las siguientes claves:\n");
+            promptBuilder.append("IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido y bien formateado. NO uses markdown code blocks (```json).\n");
+            promptBuilder.append("CRÍTICO: Todos los strings dentro del JSON deben tener saltos de línea escapados como \\n, NO uses saltos de línea reales dentro de strings.\n");
+            promptBuilder.append("CRÍTICO: Todas las comillas dentro de strings deben estar escapadas como \\\".\n");
+            promptBuilder.append("CRÍTICO: El JSON debe ser una sola línea o usar \\n para saltos de línea dentro de strings.\n\n");
+            promptBuilder.append("Estructura JSON requerida (CRÍTICO: respeta exactamente esta estructura):\n");
             promptBuilder.append("{\n");
             promptBuilder.append("  \"titulo\": \"Título descriptivo de la fórmula\",\n");
-            promptBuilder.append("  \"descripcion\": \"Descripción detallada de la fórmula experimental\",\n");
+            promptBuilder.append("  \"descripcion\": \"Descripción detallada. Usa \\\\n para saltos de línea.\",\n");
+            promptBuilder.append("  \"rendimiento\": 1000,\n");
+            promptBuilder.append("  \"unidadRendimiento\": \"g\",\n");
             promptBuilder.append("  \"ingredientes\": [\n");
-            promptBuilder.append("    {\"nombre\": \"Nombre del ingrediente\", \"cantidad\": X.XX, \"unidad\": \"g\", \"porcentaje\": X.XX, \"funcion\": \"Función del ingrediente\", \"materialId\": ID o null}\n");
+            promptBuilder.append("    {\"nombre\": \"Nombre exacto\", \"cantidad\": X.XX, \"unidad\": \"g\", \"porcentaje\": X.XX, \"funcion\": \"Función específica\", \"materialId\": ID o null, \"contenidoProteina\": X.XX (si aplica), \"contenidoCarbohidratos\": X.XX (si aplica), \"contenidoGrasas\": X.XX (si aplica)}\n");
             promptBuilder.append("  ],\n");
-            promptBuilder.append("  \"parametrosFisicoquimicos\": {\n");
-            promptBuilder.append("    \"solubilidad\": \"Predicción de solubilidad\",\n");
-            promptBuilder.append("    \"logP\": \"LogP promedio predicho\",\n");
-            promptBuilder.append("    \"pH\": \"pH estimado\",\n");
-            promptBuilder.append("    \"estabilidad\": \"Predicción de estabilidad\",\n");
-            promptBuilder.append("    \"compatibilidad\": \"Análisis de compatibilidad\",\n");
-            promptBuilder.append("    \"biodisponibilidad\": \"Predicción de biodisponibilidad\"\n");
+            promptBuilder.append("  \"perfilNutricional\": {\n");
+            promptBuilder.append("    \"por100g\": {\"proteina\": X.XX, \"carbohidratos\": X.XX, \"grasas\": X.XX, \"calorias\": X.XX},\n");
+            promptBuilder.append("    \"porRacion\": {\"tamanoRacion\": X.XX, \"unidad\": \"g\", \"proteina\": X.XX, \"carbohidratos\": X.XX, \"grasas\": X.XX, \"calorias\": X.XX}\n");
             promptBuilder.append("  },\n");
-            promptBuilder.append("  \"escenariosPositivos\": [\"Escenario positivo 1\", \"Escenario positivo 2\"],\n");
-            promptBuilder.append("  \"escenariosNegativos\": [\"Escenario negativo 1\", \"Escenario negativo 2\"],\n");
-            promptBuilder.append("  \"justificacion\": \"Justificación técnica de la fórmula\",\n");
-            promptBuilder.append("  \"pruebasRequeridas\": \"Lista de pruebas de laboratorio requeridas. Formato: cada prueba en una línea nueva con guión, incluyendo parámetro y especificación. Ejemplo:\\n- pH (especificación: 6.5 - 7.5)\\n- Humedad (especificación: ≤ 5%%)\\n- Proteína (especificación: ≥ 80%%)\"\n");
+            promptBuilder.append("  \"calculosNutricionales\": \"Explicación detallada de los cálculos. Usa \\\\n para saltos de línea. Ejemplo: WPI 90%% proteína × 890g = 801g proteína\\\\nProteína total batch = 801g + 6g (cacao) = 807g\\\\nProteína por 100g = (807g / 1000g) × 100 = 80.7g\",\n");
+            promptBuilder.append("  \"procesoFabricacion\": \"Pasos detallados del proceso. Usa \\\\n para separar pasos. Ejemplo: 1. Pesado: pesar cada ingrediente con balanza analítica\\\\n2. Tamizado: tamizar polvos para romper aglomerados\\\\n3. Mezclado: añadir ingredientes mayoritarios primero...\",\n");
+            promptBuilder.append("  \"buenasPracticas\": \"Recomendaciones de seguridad, calidad y regulación. Usa \\\\n para separar puntos.\",\n");
+            promptBuilder.append("  \"parametrosFisicoquimicos\": {\n");
+            promptBuilder.append("    \"solubilidad\": \"Predicción detallada\",\n");
+            promptBuilder.append("    \"logP\": \"Valor o rango\",\n");
+            promptBuilder.append("    \"pH\": \"Valor o rango\",\n");
+            promptBuilder.append("    \"estabilidad\": \"Predicción detallada\",\n");
+            promptBuilder.append("    \"compatibilidad\": \"Análisis detallado\",\n");
+            promptBuilder.append("    \"biodisponibilidad\": \"Predicción detallada\"\n");
+            promptBuilder.append("  },\n");
+            promptBuilder.append("  \"escenariosPositivos\": [\"Escenario 1\", \"Escenario 2\"],\n");
+            promptBuilder.append("  \"escenariosNegativos\": [\"Escenario 1\", \"Escenario 2\"],\n");
+            promptBuilder.append("  \"justificacion\": \"Justificación técnica detallada. Usa \\\\n para saltos de línea.\",\n");
+            promptBuilder.append("  \"pruebasRequeridas\": \"Lista de pruebas. Usa \\\\n para separar líneas. Ejemplo: - pH (especificación: 6.5 - 7.5)\\\\n- Humedad (especificación: ≤ 5%%)\\\\n- Proteína (especificación: ≥ 80%%)\"\n");
             promptBuilder.append("}\n\n");
-            promptBuilder.append("Asegúrate de que el JSON sea válido y que la suma de porcentajes sea exactamente 100%%.");
+            promptBuilder.append("REGLAS CRÍTICAS:\n");
+            promptBuilder.append("1. El JSON debe ser válido y parseable\n");
+            promptBuilder.append("2. NO uses saltos de línea reales (\\n) dentro de strings JSON - usa \\\\n\n");
+            promptBuilder.append("3. NO uses comillas dobles sin escapar dentro de strings - usa \\\\\"\n");
+            promptBuilder.append("4. La suma de porcentajes debe ser exactamente 100%%\n");
+            promptBuilder.append("5. Responde SOLO con el JSON, sin texto adicional antes o después.\n");
             
             String prompt = promptBuilder.toString();
             System.out.println("Prompt construido. Longitud: " + prompt.length() + " caracteres");
@@ -361,19 +398,41 @@ public class OpenAIService {
 
             // Extraer la respuesta
             Map<String, Object> responseBody = response.getBody();
+            System.out.println("Status code de respuesta: " + response.getStatusCode());
+            System.out.println("Response body keys: " + (responseBody != null ? responseBody.keySet() : "null"));
             
             if (responseBody != null && responseBody.containsKey("choices")) {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                System.out.println("Número de choices: " + (choices != null ? choices.size() : 0));
+                
                 if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> firstChoice = choices.get(0);
+                    System.out.println("First choice keys: " + firstChoice.keySet());
+                    
                     Map<String, Object> messageResponse = (Map<String, Object>) firstChoice.get("message");
-                    String content = (String) messageResponse.get("content");
-                    System.out.println("Respuesta recibida de OpenAI (desde materias primas)");
-                    return content;
+                    if (messageResponse != null) {
+                        String content = (String) messageResponse.get("content");
+                        System.out.println("Respuesta recibida de OpenAI (desde materias primas)");
+                        System.out.println("Longitud de contenido: " + (content != null ? content.length() : 0));
+                        System.out.println("Primeros 300 caracteres: " + 
+                            (content != null ? content.substring(0, Math.min(300, content.length())) : "null"));
+                        
+                        if (content == null || content.trim().isEmpty()) {
+                            throw new RuntimeException("La respuesta de OpenAI está vacía");
+                        }
+                        
+                        return content;
+                    } else {
+                        throw new RuntimeException("No se encontró 'message' en la respuesta de OpenAI");
+                    }
+                } else {
+                    throw new RuntimeException("No se encontraron 'choices' en la respuesta de OpenAI");
                 }
+            } else {
+                System.err.println("ERROR: Response body no contiene 'choices'");
+                System.err.println("Response body completo: " + responseBody);
+                throw new RuntimeException("No se recibió respuesta válida de OpenAI. Response body: " + responseBody);
             }
-
-            throw new RuntimeException("No se recibió respuesta válida de OpenAI");
 
         } catch (Exception e) {
             System.err.println("Error al generar fórmula desde materias primas: " + e.getMessage());
