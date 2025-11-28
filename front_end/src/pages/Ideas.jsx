@@ -1088,50 +1088,6 @@ const Ideas = () => {
                           </div>
                         )}
 
-                        {/* Pruebas Requeridas (desde detalles de IA) */}
-                        {aiDetails.pruebasRequeridas && (() => {
-                          // Procesar el texto de pruebas requeridas
-                          let pruebasText = aiDetails.pruebasRequeridas;
-                          
-                          // Reemplazar \n literales y saltos de línea reales
-                          pruebasText = pruebasText.replace(/\\n/g, '\n');
-                          
-                          // Dividir por líneas y limpiar
-                          const lineas = pruebasText
-                            .split('\n')
-                            .map(linea => linea.trim())
-                            .filter(linea => linea.length > 0);
-                          
-                          return (
-                            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                              <h4 className="text-text-light font-semibold mb-2 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-sm">assignment</span>
-                                Pruebas Requeridas (Generadas por IA)
-                              </h4>
-                              <p className="text-text-muted text-xs mb-3">
-                                Lista de pruebas de laboratorio que deben realizarse para validar esta fórmula:
-                              </p>
-                              <div className="bg-card-dark p-3 rounded-lg border border-border-dark">
-                                <ul className="space-y-2 text-text-light text-sm leading-relaxed">
-                                  {lineas.map((linea, idx) => {
-                                    // Si la línea ya empieza con "- " o "• ", mantenerla
-                                    // Si no, agregar bullet
-                                    const textoLimpio = linea.startsWith('- ') || linea.startsWith('• ') 
-                                      ? linea.substring(2) 
-                                      : linea;
-                                    return (
-                                      <li key={idx} className="flex items-start gap-2">
-                                        <span className="text-primary mt-1">•</span>
-                                        <span>{textoLimpio}</span>
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </div>
-                            </div>
-                          );
-                        })()}
-
                         {/* Justificación (para fórmulas experimentales) */}
                         {aiDetails.justificacion && (
                           <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
@@ -1139,7 +1095,9 @@ const Ideas = () => {
                               <span className="material-symbols-outlined text-sm">description</span>
                               Justificación Técnica
                             </h4>
-                            <p className="text-text-light text-sm leading-relaxed">{aiDetails.justificacion}</p>
+                            <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                              {aiDetails.justificacion.replace(/\\n/g, '\n')}
+                            </p>
                           </div>
                         )}
 
@@ -1276,76 +1234,6 @@ const Ideas = () => {
                           </div>
                         )}
 
-                        {/* Justificación */}
-                        {aiDetails.justificacion && (
-                          <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">science</span>
-                              Justificación Técnica
-                            </h4>
-                            <p className="text-text-light text-sm leading-relaxed">{aiDetails.justificacion}</p>
-                          </div>
-                        )}
-
-                        {/* Parámetros Fisicoquímicos */}
-                        {aiDetails.parametrosFisicoquimicos && (
-                          <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">psychology</span>
-                              Predicción de Parámetros Fisicoquímicos
-                            </h4>
-                            <p className="text-text-muted text-xs mb-4 italic">
-                              Modelos predictivos para estimar propiedades como solubilidad, estabilidad, compatibilidad y biodisponibilidad.
-                            </p>
-                            <div className="space-y-3">
-                              {aiDetails.parametrosFisicoquimicos.solubilidad && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-indigo-400 text-sm">water_drop</span>
-                                    <span className="text-text-light font-medium text-sm">Solubilidad</span>
-                                  </div>
-                                  <p className="text-text-light text-sm leading-relaxed">{aiDetails.parametrosFisicoquimicos.solubilidad}</p>
-                                </div>
-                              )}
-                              {aiDetails.parametrosFisicoquimicos.logP && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-indigo-400 text-sm">calculate</span>
-                                    <span className="text-text-light font-medium text-sm">LogP (Coeficiente de Partición)</span>
-                                  </div>
-                                  <p className="text-text-light text-sm leading-relaxed">{aiDetails.parametrosFisicoquimicos.logP}</p>
-                                </div>
-                              )}
-                              {aiDetails.parametrosFisicoquimicos.estabilidad && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-indigo-400 text-sm">shield</span>
-                                    <span className="text-text-light font-medium text-sm">Estabilidad</span>
-                                  </div>
-                                  <p className="text-text-light text-sm leading-relaxed">{aiDetails.parametrosFisicoquimicos.estabilidad}</p>
-                                </div>
-                              )}
-                              {aiDetails.parametrosFisicoquimicos.biodisponibilidad && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-indigo-400 text-sm">biotech</span>
-                                    <span className="text-text-light font-medium text-sm">Biodisponibilidad</span>
-                                  </div>
-                                  <p className="text-text-light text-sm leading-relaxed">{aiDetails.parametrosFisicoquimicos.biodisponibilidad}</p>
-                                </div>
-                              )}
-                              {aiDetails.parametrosFisicoquimicos.compatibilidad && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-indigo-400 text-sm">sync</span>
-                                    <span className="text-text-light font-medium text-sm">Compatibilidad</span>
-                                  </div>
-                                  <p className="text-text-light text-sm leading-relaxed">{aiDetails.parametrosFisicoquimicos.compatibilidad}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )
                   })()}
