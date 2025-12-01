@@ -271,22 +271,48 @@ public class OpenAIService {
             promptBuilder.append("OBJETIVO DE LA FÓRMULA:\n");
             promptBuilder.append(objetivo).append("\n\n");
             
-            if (materialesSeleccionadosInfo != null && !materialesSeleccionadosInfo.isEmpty()) {
-                promptBuilder.append("MATERIAS PRIMAS SELECCIONADAS:\n");
-                promptBuilder.append(materialesSeleccionadosInfo).append("\n\n");
+            // Si NO hay materiales seleccionados, la IA debe seleccionarlos automáticamente
+            if (materialIds == null || materialIds.isEmpty()) {
+                promptBuilder.append("INSTRUCCIÓN CRÍTICA: NO se han seleccionado materias primas. DEBES seleccionar automáticamente las materias primas más adecuadas del inventario disponible basándote SOLO en el objetivo especificado.\n");
+                promptBuilder.append("Analiza el inventario completo y selecciona las materias primas que mejor cumplan con el objetivo.\n\n");
+            } else {
+                if (materialesSeleccionadosInfo != null && !materialesSeleccionadosInfo.isEmpty()) {
+                    promptBuilder.append("MATERIAS PRIMAS PRE-SELECCIONADAS (puedes usar estas o seleccionar otras del inventario):\n");
+                    promptBuilder.append(materialesSeleccionadosInfo).append("\n\n");
+                }
             }
             
+            promptBuilder.append("INVENTARIO COMPLETO DE MATERIAS PRIMAS DISPONIBLES:\n");
             promptBuilder.append(inventarioInfo).append("\n\n");
             
             if (compoundsInfo != null && !compoundsInfo.isEmpty()) {
-                promptBuilder.append("COMPUESTOS QUÍMICOS DE BASES DE DATOS:\n");
+                promptBuilder.append("COMPUESTOS QUÍMICOS DE BASES DE DATOS EXTERNAS DISPONIBLES:\n");
                 promptBuilder.append(compoundsInfo).append("\n\n");
             }
             
             promptBuilder.append("INSTRUCCIONES CRÍTICAS:\n");
-            promptBuilder.append("Eres un experto químico formulador de productos nutracéuticos y suplementos deportivos.\n");
-            promptBuilder.append("Debes crear una fórmula química PRECISA y un protocolo de análisis COMPLETO que cumpla con el 100%% de los componentes especificados.\n");
-            promptBuilder.append("La fórmula debe ser precisa, segura y cumplir con todas las especificaciones técnicas y regulatorias.\n\n");
+            promptBuilder.append("1. SELECCIÓN AUTOMÁTICA DE MATERIAS PRIMAS:\n");
+            promptBuilder.append("   - Analiza el objetivo y el inventario completo\n");
+            promptBuilder.append("   - Selecciona las materias primas MÁS ADECUADAS del inventario que cumplan con el objetivo\n");
+            promptBuilder.append("   - Para cada material seleccionado, incluye su ID en el campo \"materialId\" del ingrediente\n");
+            promptBuilder.append("   - Justifica claramente por qué seleccionaste cada material en \"justificacionSeleccion\"\n\n");
+            promptBuilder.append("2. BÚSQUEDA Y SELECCIÓN AUTOMÁTICA DE COMPUESTOS EN BD EXTERNAS:\n");
+            promptBuilder.append("   - DEBES buscar activamente en bases de datos externas (PubChem, ChEMBL, DrugBank, ZINC) compuestos que sean necesarios para la fórmula\n");
+            promptBuilder.append("   - Si identificas que necesitas un compuesto específico (ej: dextrosa, HMB, BCAAs, vitaminas, etc.) que NO está en el inventario, DEBES buscarlo en las BD externas\n");
+            promptBuilder.append("   - Para cada compuesto encontrado en BD externas, inclúyelo en \"materialesSugeridosBD\" con TODA su información:\n");
+            promptBuilder.append("     * Nombre exacto del compuesto\n");
+            promptBuilder.append("     * Fórmula molecular completa\n");
+            promptBuilder.append("     * Peso molecular preciso\n");
+            promptBuilder.append("     * LogP (si está disponible)\n");
+            promptBuilder.append("     * Solubilidad\n");
+            promptBuilder.append("     * Propiedades químicas y biológicas relevantes\n");
+            promptBuilder.append("     * Fuente (PubChem, ChEMBL, DrugBank o ZINC)\n");
+            promptBuilder.append("     * Justificación clara de por qué es necesario\n");
+            promptBuilder.append("   - NO solo sugieras, BUSCA y SELECCIONA activamente los compuestos necesarios de las BD externas\n");
+            promptBuilder.append("   - Si el inventario tiene todo lo necesario, puedes omitir esta sección, pero si falta algo crítico, DEBES buscarlo\n\n");
+            promptBuilder.append("3. FÓRMULA PRECISA:\n");
+            promptBuilder.append("   - Crea una fórmula química PRECISA y un protocolo de análisis COMPLETO\n");
+            promptBuilder.append("   - La fórmula debe ser precisa, segura y cumplir con todas las especificaciones técnicas y regulatorias\n\n");
             
             promptBuilder.append("I. ESPECIFICACIONES DE MATERIAS PRIMAS:\n");
             promptBuilder.append("Para CADA materia prima utilizada en la fórmula, debes especificar:\n");
@@ -304,15 +330,22 @@ public class OpenAIService {
             promptBuilder.append("   - Excipientes: Especificaciones de pureza, humedad, granulometría\n");
             promptBuilder.append("   - Saborizantes/Endulzantes: Concentración, formulaciones moleculares\n\n");
             
-            promptBuilder.append("II. COMBINACIONES Y GRAMAJES:\n");
-            promptBuilder.append("1. La suma de todos los porcentajes DEBE ser exactamente 100%%\n");
-            promptBuilder.append("2. Calcula las cantidades en gramos para el rendimiento especificado\n");
-            promptBuilder.append("3. Para cada ingrediente, especifica:\n");
-            promptBuilder.append("   - Cantidad en gramos\n");
-            promptBuilder.append("   - Porcentaje exacto\n");
+            promptBuilder.append("II. COMBINACIONES Y GRAMAJES (CRÍTICO - 100%% DE MATERIAS PRIMAS):\n");
+            promptBuilder.append("1. REGLA ABSOLUTA: La suma de todos los porcentajes DEBE ser EXACTAMENTE 100.00%%. NO puede ser 99.9%% ni 100.1%%, debe ser exactamente 100.00%%\n");
+            promptBuilder.append("2. TODOS los ingredientes DEBEN ser materias primas del inventario o compuestos de BD externas. NO puedes dejar porcentajes sin asignar\n");
+            promptBuilder.append("3. Calcula las cantidades en gramos para el rendimiento especificado\n");
+            promptBuilder.append("4. Para cada ingrediente, especifica:\n");
+            promptBuilder.append("   - Cantidad en gramos (debe sumar exactamente el rendimiento total)\n");
+            promptBuilder.append("   - Porcentaje exacto (debe sumar exactamente 100.00%%)\n");
             promptBuilder.append("   - Función específica (proteína base, excipiente, saborizante, etc.)\n");
             promptBuilder.append("   - Contenido proteico, de carbohidratos y grasas del ingrediente\n");
-            promptBuilder.append("   - Formulación molecular del componente principal\n\n");
+            promptBuilder.append("   - Formulación molecular del componente principal\n");
+            promptBuilder.append("   - materialId: Si es del inventario, incluye el ID. Si es de BD externa, puede ser null\n\n");
+            promptBuilder.append("5. VALIDACIÓN OBLIGATORIA: Antes de responder, verifica que:\n");
+            promptBuilder.append("   - Suma de porcentajes = 100.00%% (exactamente)\n");
+            promptBuilder.append("   - Suma de cantidades en gramos = rendimiento total (exactamente)\n");
+            promptBuilder.append("   - Todos los ingredientes tienen cantidad y porcentaje asignados\n");
+            promptBuilder.append("   - No hay ingredientes con porcentaje 0%% o cantidad 0g\n\n");
             
             promptBuilder.append("III. CÁLCULOS NUTRICIONALES DETALLADOS:\n");
             promptBuilder.append("Para la fórmula completa, calcula y reporta:\n");
@@ -411,6 +444,31 @@ public class OpenAIService {
             promptBuilder.append("  \"descripcion\": \"Descripción detallada. Usa \\\\n para saltos de línea.\",\n");
             promptBuilder.append("  \"rendimiento\": 1000,\n");
             promptBuilder.append("  \"unidadRendimiento\": \"g\",\n");
+            promptBuilder.append("  \"materialesSeleccionados\": [ID1, ID2, ID3],\n");
+            promptBuilder.append("  \"justificacionSeleccion\": \"Explicación detallada de por qué seleccionaste cada material del inventario. Para cada material, indica: nombre, por qué es adecuado para el objetivo, qué aporta a la fórmula. Usa \\\\n para saltos de línea.\",\n");
+            promptBuilder.append("  \"materialesSugeridosBD\": [\n");
+            promptBuilder.append("    {\n");
+            promptBuilder.append("      \"nombre\": \"Nombre exacto del compuesto (ej: Dextrosa, HMB, Leucina, etc.)\",\n");
+            promptBuilder.append("      \"formulaMolecular\": \"Fórmula molecular completa y precisa (ej: C6H12O6 para dextrosa, C5H10O3 para HMB)\",\n");
+            promptBuilder.append("      \"pesoMolecular\": X.XX (valor numérico preciso en g/mol),\n");
+            promptBuilder.append("      \"logP\": X.XX (coeficiente de partición octanol-agua, si aplica y está disponible),\n");
+            promptBuilder.append("      \"solubilidad\": \"Descripción detallada de solubilidad en agua, etanol, etc.\",\n");
+            promptBuilder.append("      \"propiedades\": \"Propiedades químicas, físicas y biológicas relevantes (ej: índice glucémico, biodisponibilidad, función biológica)\",\n");
+            promptBuilder.append("      \"justificacion\": \"Explicación clara de por qué este compuesto es necesario para cumplir el objetivo y por qué no está en el inventario\",\n");
+            promptBuilder.append("      \"fuente\": \"PubChem\" o \"ChEMBL\" o \"DrugBank\" o \"ZINC\" (simula que lo encontraste en esta BD)\n");
+            promptBuilder.append("    }\n");
+            promptBuilder.append("  ],\n");
+            promptBuilder.append("  INSTRUCCIÓN CRÍTICA Y OBLIGATORIA: DEBES buscar activamente compuestos en BD externas y AGREGARLOS a materialesSugeridosBD.\n");
+            promptBuilder.append("  NO DEJES este array vacío a menos que el inventario tenga ABSOLUTAMENTE TODO lo necesario.\n");
+            promptBuilder.append("  SIEMPRE busca y agrega al menos 1-3 compuestos que sean útiles para el objetivo, incluso si están parcialmente en inventario.\n");
+            promptBuilder.append("  Ejemplos de compuestos que DEBES buscar y agregar si son relevantes:\n");
+            promptBuilder.append("  - Carbohidratos: Dextrosa (C6H12O6), Maltodextrina, Fructosa, etc.\n");
+            promptBuilder.append("  - Aminoácidos: HMB (C5H10O3), BCAAs individuales, Arginina, etc.\n");
+            promptBuilder.append("  - Vitaminas: Vitamina D3, Vitamina B12, etc.\n");
+            promptBuilder.append("  - Minerales: Magnesio, Zinc, etc.\n");
+            promptBuilder.append("  - Otros: Creatina monohidratada, Beta-alanina, etc.\n");
+            promptBuilder.append("  IMPORTANTE: Usa tu conocimiento de química y bases de datos (PubChem, ChEMBL, DrugBank, ZINC) para proporcionar información precisa.\n");
+            promptBuilder.append("  Si el objetivo requiere algo específico (ej: \"alta en azúcar\"), DEBES buscar y agregar compuestos de carbohidratos de BD externas.\n\n");
             promptBuilder.append("  \"ingredientes\": [\n");
             promptBuilder.append("    {\n");
             promptBuilder.append("      \"nombre\": \"Nombre exacto\",\n");

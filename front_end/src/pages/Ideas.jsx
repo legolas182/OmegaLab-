@@ -538,156 +538,34 @@ const Ideas = () => {
               {/* Información Básica */}
               <div>
                 <h3 className="text-text-light font-semibold text-lg mb-3">Información General</h3>
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark space-y-2">
-                  <p className="text-text-muted text-sm mb-3">{selectedFormula.descripcion}</p>
-                  
+                <div className="p-4 rounded-lg bg-card-dark border border-border-dark">
                   {selectedFormula.objetivo && (
-                    <div className="mb-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="mb-3">
                       <p className="text-text-muted text-xs mb-1">Objetivo:</p>
-                      <p className="text-text-light text-sm font-medium">{selectedFormula.objetivo}</p>
-                  </div>
+                      <p className="text-text-light text-sm">{selectedFormula.objetivo}</p>
+                    </div>
                   )}
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    {selectedFormula.productoOrigenNombre && (
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div>
+                      <span className="text-text-muted text-xs">Estado:</span>
+                      <p className="text-text-light font-medium">{selectedFormula.estado || 'N/A'}</p>
+                    </div>
+                    {selectedFormula.categoria && (
                       <div>
-                        <span className="text-text-muted text-xs">Producto origen:</span>
-                        <p className="text-text-light font-medium">{selectedFormula.productoOrigenNombre}</p>
+                        <span className="text-text-muted text-xs">Categoría:</span>
+                        <p className="text-text-light font-medium">{selectedFormula.categoria}</p>
                       </div>
                     )}
-                    <div>
-                      <span className="text-text-muted text-xs">Categoría:</span>
-                      <p className="text-text-light font-medium">{selectedFormula.categoria || 'N/A'}</p>
-                  </div>
-                    <div>
-                      <span className="text-text-muted text-xs">Creado por:</span>
-                      <p className="text-text-light font-medium">{selectedFormula.createdByName || 'N/A'}</p>
-                    </div>
                     <div>
                       <span className="text-text-muted text-xs">Fecha:</span>
                       <p className="text-text-light font-medium">
                         {selectedFormula.createdAt ? new Date(selectedFormula.createdAt).toLocaleDateString('es-ES') : 'N/A'}
                       </p>
                     </div>
-                    {selectedFormula.asignadoANombre && (
-                      <div>
-                        <span className="text-text-muted text-xs">Asignado a:</span>
-                        <p className="text-text-light font-medium">{selectedFormula.asignadoANombre}</p>
-                      </div>
-                    )}
-                    {selectedFormula.approvedByName && (
-                      <div>
-                        <span className="text-text-muted text-xs">Aprobado por:</span>
-                        <p className="text-text-light font-medium">{selectedFormula.approvedByName}</p>
-                      </div>
-                    )}
                   </div>
-        </div>
-      </div>
+                </div>
+              </div>
 
-              {/* Pruebas Requeridas */}
-              {selectedFormula.pruebasRequeridas && (() => {
-                // Procesar el texto de pruebas requeridas
-                let pruebasText = selectedFormula.pruebasRequeridas;
-                
-                // Reemplazar \n literales y saltos de línea reales
-                pruebasText = pruebasText.replace(/\\n/g, '\n');
-                
-                // Dividir por líneas y limpiar
-                const lineas = pruebasText
-                  .split('\n')
-                  .map(linea => linea.trim())
-                  .filter(linea => linea.length > 0);
-                
-                return (
-                  <div className="mt-4 pt-4 border-t border-border-dark">
-                    <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="text-text-light font-semibold mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">assignment</span>
-                            Pruebas Requeridas (Generadas por IA)
-                          </h4>
-                          <p className="text-text-muted text-xs mb-3">
-                            Lista de pruebas de laboratorio que deben realizarse para validar esta fórmula:
-                          </p>
-                          <div className="bg-card-dark p-3 rounded-lg border border-border-dark">
-                            <ul className="space-y-2 text-text-light text-sm leading-relaxed">
-                              {lineas.map((linea, idx) => {
-                                // Si la línea ya empieza con "- " o "• ", mantenerla
-                                // Si no, agregar bullet
-                                const textoLimpio = linea.startsWith('- ') || linea.startsWith('• ') 
-                                  ? linea.substring(2) 
-                                  : linea;
-                                return (
-                                  <li key={idx} className="flex items-start gap-2">
-                                    <span className="text-primary mt-1">•</span>
-                                    <span>{textoLimpio}</span>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                      {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
-                      // Verificar si ya existe una prueba para esta fórmula
-                      const pruebasExistentes = pruebasPorIdea.get(selectedFormula.id) || []
-                      const tienePruebaIniciada = pruebasExistentes.length > 0
-                      
-                      return !tienePruebaIniciada ? (
-                        <div className="mt-4 pt-4 border-t border-primary/20">
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Crear prueba automáticamente con los datos de la idea
-                                const codigoMuestra = `MU-${selectedFormula.id}-${Date.now()}`
-                                const nuevaPrueba = await pruebaService.createPrueba({
-                                  ideaId: selectedFormula.id,
-                                  codigoMuestra: codigoMuestra,
-                                  tipoPrueba: 'Control de Calidad - Fórmula IA',
-                                  descripcion: `Prueba generada automáticamente para validar la fórmula: ${selectedFormula.titulo}`,
-                                  pruebasRequeridas: selectedFormula.pruebasRequeridas,
-                                  estado: 'PENDIENTE'
-                                })
-                                
-                                // Recargar pruebas
-                                loadPruebasForIdeas()
-                                
-                                // Redirigir a Pruebas con la prueba seleccionada
-                                navigate(`/pruebas?pruebaId=${nuevaPrueba.id}`)
-                              } catch (error) {
-                                console.error('Error al crear prueba:', error)
-                                alert('Error al crear prueba: ' + (error.message || 'Error desconocido'))
-                              }
-                            }}
-                            className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center justify-center gap-2"
-                          >
-                            <span className="material-symbols-outlined text-sm">play_arrow</span>
-                            Iniciar Prueba
-                          </button>
-                          <p className="text-text-muted text-xs mt-2 text-center">
-                            Se creará una prueba con estos parámetros y serás redirigido al módulo de Control de Calidad
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="mt-4 pt-4 border-t border-primary/20">
-                          <div className="p-3 rounded-lg bg-success/10 border border-success/30">
-                            <p className="text-text-light text-sm font-medium flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">check_circle</span>
-                              Prueba iniciada
-                            </p>
-                            <p className="text-text-muted text-xs mt-1">
-                              Ya existe una prueba para esta idea. Puedes verla en el módulo de Pruebas / Control de Calidad.
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })()}
-                    </div>
-                  </div>
-                );
-              })()}
 
               {/* Detalles de IA */}
               {selectedFormula.detallesIA && (
@@ -705,6 +583,116 @@ const Ideas = () => {
 
                     return (
                       <div className="space-y-4">
+                        {/* Materiales Seleccionados Automáticamente por la IA */}
+                        {aiDetails.materialesSeleccionados && Array.isArray(aiDetails.materialesSeleccionados) && aiDetails.materialesSeleccionados.length > 0 && (
+                          <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                              Materias Primas Seleccionadas Automáticamente por la IA
+                            </h4>
+                            <div className="mb-3">
+                              <p className="text-text-muted text-xs mb-2">
+                                La IA analizó el inventario completo y seleccionó {aiDetails.materialesSeleccionados.length} materia(s) prima(s) que mejor cumplen con el objetivo:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {aiDetails.materialesSeleccionados.map((materialId, idx) => (
+                                  <span key={idx} className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30">
+                                    ID: {materialId}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            {aiDetails.justificacionSeleccion && (
+                              <div className="mt-3 pt-3 border-t border-green-500/20">
+                                <p className="text-text-muted text-xs mb-2 font-medium">Justificación de la Selección:</p>
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                                    {aiDetails.justificacionSeleccion.replace(/\\n/g, '\n')}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Materiales Sugeridos de Bases de Datos Externas */}
+                        {(() => {
+                          // Debug: verificar qué hay en materialesSugeridosBD
+                          if (aiDetails.materialesSugeridosBD) {
+                            console.log('materialesSugeridosBD encontrado:', aiDetails.materialesSugeridosBD)
+                            console.log('Tipo:', typeof aiDetails.materialesSugeridosBD)
+                            console.log('Es array?', Array.isArray(aiDetails.materialesSugeridosBD))
+                            console.log('Longitud:', Array.isArray(aiDetails.materialesSugeridosBD) ? aiDetails.materialesSugeridosBD.length : 'N/A')
+                          } else {
+                            console.log('materialesSugeridosBD NO encontrado en aiDetails')
+                            console.log('Keys disponibles en aiDetails:', Object.keys(aiDetails))
+                          }
+                          
+                          return aiDetails.materialesSugeridosBD && Array.isArray(aiDetails.materialesSugeridosBD) && aiDetails.materialesSugeridosBD.length > 0 ? (
+                            <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                              <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm">science</span>
+                                Nuevos Compuestos Sugeridos de Bases de Datos Externas
+                              </h4>
+                              <p className="text-text-muted text-xs mb-3">
+                                La IA identificó {aiDetails.materialesSugeridosBD.length} compuesto(s) que no están en el inventario pero son necesarios para la fórmula:
+                              </p>
+                              <div className="space-y-3">
+                                {aiDetails.materialesSugeridosBD.map((compuesto, idx) => (
+                                  <div key={idx} className="p-4 rounded-lg bg-card-dark border border-border-dark">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <h5 className="text-text-light font-semibold text-base">{compuesto.nombre || 'Compuesto'}</h5>
+                                      {(compuesto.fuente || compuesto.source) && (
+                                        <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-400 text-xs">
+                                          {compuesto.fuente || compuesto.source}
+                                        </span>
+                                      )}
+                                    </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
+                                    {compuesto.formulaMolecular && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Fórmula Molecular:</span>
+                                        <p className="text-text-light font-medium font-mono">{compuesto.formulaMolecular}</p>
+                                      </div>
+                                    )}
+                                    {compuesto.pesoMolecular && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Peso Molecular:</span>
+                                        <p className="text-text-light font-medium">{compuesto.pesoMolecular} g/mol</p>
+                                      </div>
+                                    )}
+                                    {compuesto.logP !== null && compuesto.logP !== undefined && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">LogP:</span>
+                                        <p className="text-text-light font-medium">{compuesto.logP}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {compuesto.solubilidad && (
+                                    <div className="mb-2">
+                                      <span className="text-text-muted text-xs">Solubilidad:</span>
+                                      <p className="text-text-light text-sm">{compuesto.solubilidad}</p>
+                                    </div>
+                                  )}
+                                  {compuesto.propiedades && (
+                                    <div className="mb-2">
+                                      <span className="text-text-muted text-xs">Propiedades:</span>
+                                      <p className="text-text-light text-sm">{compuesto.propiedades}</p>
+                                    </div>
+                                  )}
+                                  {compuesto.justificacion && (
+                                    <div className="mt-3 pt-3 border-t border-border-dark">
+                                      <span className="text-text-muted text-xs font-medium">¿Por qué es necesario?</span>
+                                      <p className="text-text-light text-sm mt-1">{compuesto.justificacion}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          ) : null
+                        })()}
+
                         {/* Lista de Ingredientes (para fórmulas experimentales) */}
                         {aiDetails.ingredientes && Array.isArray(aiDetails.ingredientes) && aiDetails.ingredientes.length > 0 && (
                           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
@@ -838,116 +826,6 @@ const Ideas = () => {
                           </div>
                         )}
 
-                        {/* Perfil Nutricional */}
-                        {aiDetails.perfilNutricional && (
-                          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">nutrition</span>
-                              Perfil Nutricional
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {/* Por Batch */}
-                              {aiDetails.perfilNutricional.porBatch && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <h5 className="text-text-light font-medium mb-2">Por Batch Completo</h5>
-                                  <div className="space-y-1 text-sm">
-                                    {aiDetails.perfilNutricional.porBatch.proteina !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Proteína:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.proteina} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porBatch.carbohidratos !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Carbohidratos:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.carbohidratos} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porBatch.grasas !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Grasas:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.grasas} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porBatch.calorias !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Calorías:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.calorias} kcal</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              {/* Por 100g */}
-                              {aiDetails.perfilNutricional.por100g && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <h5 className="text-text-light font-medium mb-2">Por 100g</h5>
-                                  <div className="space-y-1 text-sm">
-                                    {aiDetails.perfilNutricional.por100g.proteina !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Proteína:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.proteina} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.por100g.carbohidratos !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Carbohidratos:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.carbohidratos} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.por100g.grasas !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Grasas:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.grasas} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.por100g.calorias !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Calorías:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.por100g.calorias} kcal</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              {/* Por Ración */}
-                              {aiDetails.perfilNutricional.porRacion && (
-                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                                  <h5 className="text-text-light font-medium mb-2">
-                                    Por Ración ({aiDetails.perfilNutricional.porRacion.tamanoRacion || 'N/A'} {aiDetails.perfilNutricional.porRacion.unidad || 'g'})
-                                  </h5>
-                                  <div className="space-y-1 text-sm">
-                                    {aiDetails.perfilNutricional.porRacion.proteina !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Proteína:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.proteina} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porRacion.carbohidratos !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Carbohidratos:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.carbohidratos} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porRacion.grasas !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Grasas:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.grasas} g</span>
-                                      </div>
-                                    )}
-                                    {aiDetails.perfilNutricional.porRacion.calorias !== undefined && (
-                                      <div className="flex justify-between">
-                                        <span className="text-text-muted">Calorías:</span>
-                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porRacion.calorias} kcal</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
                         {/* Fórmula Química General */}
                         {aiDetails.formulaQuimicaGeneral && (
                           <div className="p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
@@ -958,51 +836,6 @@ const Ideas = () => {
                             <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
                               <p className="text-text-light text-sm leading-relaxed whitespace-pre-line font-mono">
                                 {aiDetails.formulaQuimicaGeneral.replace(/\\n/g, '\n')}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Cálculos Nutricionales */}
-                        {aiDetails.calculosNutricionales && (
-                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">calculate</span>
-                              Cálculos Nutricionales Detallados
-                            </h4>
-                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
-                                {aiDetails.calculosNutricionales.replace(/\\n/g, '\n')}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Proceso de Fabricación */}
-                        {aiDetails.procesoFabricacion && (
-                          <div className="p-4 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
-                              Proceso de Fabricación
-                            </h4>
-                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
-                                {aiDetails.procesoFabricacion.replace(/\\n/g, '\n')}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Buenas Prácticas */}
-                        {aiDetails.buenasPracticas && (
-                          <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">verified</span>
-                              Buenas Prácticas, Seguridad y Regulación
-                            </h4>
-                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
-                                {aiDetails.buenasPracticas.replace(/\\n/g, '\n')}
                               </p>
                             </div>
                           </div>
@@ -1246,6 +1079,144 @@ const Ideas = () => {
                                   </div>
                                 </div>
                               )}
+                              
+                              {/* Botón Iniciar Prueba para Analistas */}
+                              {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
+                                // Verificar si ya existe una prueba para esta fórmula
+                                const pruebasExistentes = pruebasPorIdea.get(selectedFormula.id) || []
+                                const tienePruebaIniciada = pruebasExistentes.length > 0
+                                
+                                return !tienePruebaIniciada ? (
+                                  <div className="mt-4 pt-4 border-t border-rose-500/20">
+                                    <button
+                                      onClick={async () => {
+                                        try {
+                                          // Obtener el protocolo de análisis completo de los detalles de IA
+                                          const aiDetails = parseAIDetails(selectedFormula.detallesIA)
+                                          let pruebasTexto = ''
+                                          
+                                          if (aiDetails && aiDetails.protocoloAnalisis) {
+                                            // Construir texto detallado del protocolo de análisis
+                                            const protocolo = aiDetails.protocoloAnalisis
+                                            const lineas = []
+                                            
+                                            // Pruebas Físicas
+                                            if (protocolo.pruebasFisicas) {
+                                              lineas.push('PRUEBAS FÍSICAS:')
+                                              if (protocolo.pruebasFisicas.apariencia) lineas.push(`- Apariencia: ${protocolo.pruebasFisicas.apariencia}`)
+                                              if (protocolo.pruebasFisicas.olor) lineas.push(`- Olor: ${protocolo.pruebasFisicas.olor}`)
+                                              if (protocolo.pruebasFisicas.solubilidad) lineas.push(`- Solubilidad: ${protocolo.pruebasFisicas.solubilidad}`)
+                                              if (protocolo.pruebasFisicas.humedad) lineas.push(`- Humedad: ${protocolo.pruebasFisicas.humedad}`)
+                                              if (protocolo.pruebasFisicas.densidadAparente) lineas.push(`- Densidad Aparente: ${protocolo.pruebasFisicas.densidadAparente}`)
+                                              lineas.push('')
+                                            }
+                                            
+                                            // Pruebas Químicas
+                                            if (protocolo.pruebasQuimicas) {
+                                              lineas.push('PRUEBAS QUÍMICAS:')
+                                              if (protocolo.pruebasQuimicas.proteina) lineas.push(`- Proteína: ${protocolo.pruebasQuimicas.proteina}`)
+                                              if (protocolo.pruebasQuimicas.grasa) lineas.push(`- Grasa: ${protocolo.pruebasQuimicas.grasa}`)
+                                              if (protocolo.pruebasQuimicas.carbohidratos) lineas.push(`- Carbohidratos: ${protocolo.pruebasQuimicas.carbohidratos}`)
+                                              if (protocolo.pruebasQuimicas.creatina) lineas.push(`- Creatina: ${protocolo.pruebasQuimicas.creatina}`)
+                                              if (protocolo.pruebasQuimicas.perfilAminoacidos) lineas.push(`- Perfil de Aminoácidos: ${protocolo.pruebasQuimicas.perfilAminoacidos}`)
+                                              if (protocolo.pruebasQuimicas.metalesPesados) lineas.push(`- Metales Pesados: ${protocolo.pruebasQuimicas.metalesPesados}`)
+                                              if (protocolo.pruebasQuimicas.pH) lineas.push(`- pH: ${protocolo.pruebasQuimicas.pH}`)
+                                              if (protocolo.pruebasQuimicas.cenizas) lineas.push(`- Cenizas: ${protocolo.pruebasQuimicas.cenizas}`)
+                                              lineas.push('')
+                                            }
+                                            
+                                            // Pruebas Microbiológicas
+                                            if (protocolo.pruebasMicrobiologicas) {
+                                              lineas.push('PRUEBAS MICROBIOLÓGICAS:')
+                                              if (protocolo.pruebasMicrobiologicas.bacteriasAerobias) lineas.push(`- Bacterias Aerobias: ${protocolo.pruebasMicrobiologicas.bacteriasAerobias}`)
+                                              if (protocolo.pruebasMicrobiologicas.mohosLevaduras) lineas.push(`- Mohos y Levaduras: ${protocolo.pruebasMicrobiologicas.mohosLevaduras}`)
+                                              if (protocolo.pruebasMicrobiologicas.eColi) lineas.push(`- E. coli: ${protocolo.pruebasMicrobiologicas.eColi}`)
+                                              if (protocolo.pruebasMicrobiologicas.salmonella) lineas.push(`- Salmonella: ${protocolo.pruebasMicrobiologicas.salmonella}`)
+                                              if (protocolo.pruebasMicrobiologicas.coliformes) lineas.push(`- Coliformes: ${protocolo.pruebasMicrobiologicas.coliformes}`)
+                                              lineas.push('')
+                                            }
+                                            
+                                            // Directrices para el Analista
+                                            if (protocolo.directricesAnalista) {
+                                              lineas.push('DIRECTRICES PARA EL ANALISTA:')
+                                              if (protocolo.directricesAnalista.preparacionMuestras) {
+                                                lineas.push('Preparación de Muestras:')
+                                                lineas.push(protocolo.directricesAnalista.preparacionMuestras.replace(/\\n/g, '\n'))
+                                                lineas.push('')
+                                              }
+                                              if (protocolo.directricesAnalista.calibracionEquipos) {
+                                                lineas.push('Calibración de Equipos:')
+                                                lineas.push(protocolo.directricesAnalista.calibracionEquipos.replace(/\\n/g, '\n'))
+                                                lineas.push('')
+                                              }
+                                              if (protocolo.directricesAnalista.controlCalidad) {
+                                                lineas.push('Control de Calidad:')
+                                                lineas.push(protocolo.directricesAnalista.controlCalidad.replace(/\\n/g, '\n'))
+                                                lineas.push('')
+                                              }
+                                              if (protocolo.directricesAnalista.interpretacionResultados) {
+                                                lineas.push('Interpretación de Resultados:')
+                                                lineas.push(protocolo.directricesAnalista.interpretacionResultados.replace(/\\n/g, '\n'))
+                                                lineas.push('')
+                                              }
+                                              if (protocolo.directricesAnalista.documentacion) {
+                                                lineas.push('Documentación:')
+                                                lineas.push(protocolo.directricesAnalista.documentacion.replace(/\\n/g, '\n'))
+                                              }
+                                            }
+                                            
+                                            pruebasTexto = lineas.join('\n')
+                                          } else if (selectedFormula.pruebasRequeridas) {
+                                            // Fallback a pruebas requeridas si no hay protocolo
+                                            pruebasTexto = selectedFormula.pruebasRequeridas
+                                          } else {
+                                            pruebasTexto = 'Protocolo de análisis no disponible. Revisar detalles de IA.'
+                                          }
+                                          
+                                          // Crear prueba automáticamente con los datos de la idea
+                                          const codigoMuestra = `MU-${selectedFormula.id}-${Date.now()}`
+                                          const nuevaPrueba = await pruebaService.createPrueba({
+                                            ideaId: selectedFormula.id,
+                                            codigoMuestra: codigoMuestra,
+                                            tipoPrueba: 'Control de Calidad - Fórmula IA',
+                                            descripcion: `Prueba generada automáticamente para validar la fórmula: ${selectedFormula.titulo}`,
+                                            pruebasRequeridas: pruebasTexto,
+                                            estado: 'PENDIENTE'
+                                          })
+                                          
+                                          // Recargar pruebas
+                                          loadPruebasForIdeas()
+                                          
+                                          // Redirigir a Pruebas con la prueba seleccionada
+                                          navigate(`/pruebas?pruebaId=${nuevaPrueba.id}`)
+                                        } catch (error) {
+                                          console.error('Error al crear prueba:', error)
+                                          alert('Error al crear prueba: ' + (error.message || 'Error desconocido'))
+                                        }
+                                      }}
+                                      className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center justify-center gap-2"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">play_arrow</span>
+                                      Iniciar Prueba
+                                    </button>
+                                    <p className="text-text-muted text-xs mt-2 text-center">
+                                      Se creará una prueba con el protocolo de análisis completo y serás redirigido al módulo de Control de Calidad
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="mt-4 pt-4 border-t border-rose-500/20">
+                                    <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+                                      <p className="text-text-light text-sm font-medium flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                                        Prueba iniciada
+                                      </p>
+                                      <p className="text-text-muted text-xs mt-1">
+                                        Ya existe una prueba para esta idea. Puedes verla en el módulo de Pruebas / Control de Calidad.
+                                      </p>
+                                    </div>
+                                  </div>
+                                )
+                              })()}
                             </div>
                           </div>
                         )}
@@ -1289,19 +1260,6 @@ const Ideas = () => {
                                 </div>
                               )}
                             </div>
-                          </div>
-                        )}
-
-                        {/* Justificación (para fórmulas experimentales) */}
-                        {aiDetails.justificacion && (
-                          <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
-                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">description</span>
-                              Justificación Técnica
-                            </h4>
-                            <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
-                              {aiDetails.justificacion.replace(/\\n/g, '\n')}
-                            </p>
                           </div>
                         )}
 
@@ -1399,24 +1357,6 @@ const Ideas = () => {
                             <p className="text-text-light text-sm leading-relaxed">{aiDetails.verificacionInventario}</p>
                           </div>
                         )}
-
-                        {/* Materiales Nuevos - Siempre visible */}
-                        <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                          <h4 className="text-text-light font-semibold mb-3">
-                            Materiales Nuevos Agregados
-                          </h4>
-                          {aiDetails.materialesNuevos && Array.isArray(aiDetails.materialesNuevos) && aiDetails.materialesNuevos.length > 0 ? (
-                            <ul className="space-y-2">
-                              {aiDetails.materialesNuevos.map((material, idx) => (
-                                <li key={idx} className="text-text-light text-sm">
-                                  <span>{material}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-text-muted text-sm italic">No se agregaron materiales nuevos a esta fórmula.</p>
-                          )}
-                        </div>
 
                         {/* Materiales Eliminados */}
                         {aiDetails.materialesEliminados && Array.isArray(aiDetails.materialesEliminados) && aiDetails.materialesEliminados.length > 0 && (

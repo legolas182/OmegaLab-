@@ -130,30 +130,32 @@ const IA = () => {
 
   const handleGenerateFormula = async () => {
     if (modo === 'materias-primas') {
-      if (selectedMaterials.length === 0 && selectedCompounds.length === 0) {
-        setMessage({ type: 'error', text: 'Debes seleccionar al menos una materia prima o compuesto químico' })
+      // Ya no requerimos que seleccionen materiales - la IA los seleccionará automáticamente
+      if (!objetivo.trim()) {
+        setMessage({ type: 'error', text: 'Debes especificar el objetivo de la fórmula' })
         return
       }
-    if (!objetivo.trim()) {
-        setMessage({ type: 'error', text: 'Debes especificar el objetivo de la fórmula' })
-      return
-    }
 
-    setGenerating(true)
-    setMessage({ type: '', text: '' })
+      setGenerating(true)
+      setMessage({ type: '', text: '' })
 
-    try {
+      try {
+        // Si hay materiales seleccionados manualmente, los enviamos
+        // Si no hay ninguno, enviamos array vacío y la IA seleccionará automáticamente
+        const materialIdsToSend = selectedMaterials.length > 0 ? selectedMaterials : []
+        
         // Filtrar compuestos que tienen ID (los de BD químicas pueden no tener ID hasta que se guarden)
         const compoundIds = selectedCompounds
           .map(c => c.id)
           .filter(id => id != null)
-        const idea = await ideaService.generateFromMaterials(objetivo, selectedMaterials, compoundIds)
-        setMessage({ type: 'success', text: 'Fórmula generada exitosamente. Revisa el módulo de Ideas para ver los detalles.' })
+        
+        const idea = await ideaService.generateFromMaterials(objetivo, materialIdsToSend, compoundIds)
+        setMessage({ type: 'success', text: 'Fórmula generada exitosamente. La IA ha seleccionado automáticamente las materias primas del inventario. Revisa el módulo de Ideas para ver los detalles completos.' })
       
-      // Limpiar formulario
+        // Limpiar formulario
         setSelectedMaterials([])
         setSelectedCompounds([])
-      setObjetivo('')
+        setObjetivo('')
         setRendimiento(100)
       } catch (error) {
         console.error('Error generando fórmula:', error)
@@ -284,125 +286,17 @@ const IA = () => {
             </div>
           </div>
 
-          {/* Selección de Materias Primas */}
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-text-light text-lg font-semibold">Materias Primas</h3>
-              <button
-                onClick={() => setShowMaterialSelector(true)}
-                className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
-              >
-                Seleccionar del Inventario
-              </button>
-            </div>
-
-            {selectedMaterials.length === 0 && selectedCompounds.length === 0 ? (
-              <div className="text-center py-8 rounded-lg bg-input-dark border border-border-dark">
-                <span className="material-symbols-outlined text-4xl text-text-muted mb-2">inventory_2</span>
-                <p className="text-text-muted text-sm">No hay materias primas seleccionadas</p>
-                <p className="text-text-muted text-xs mt-1">Haz clic en "Seleccionar del Inventario" para comenzar</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* Materias Primas Seleccionadas */}
-                {selectedMaterials.length > 0 && (
-                  <div>
-                    <p className="text-text-muted text-xs mb-2 font-medium">
-                      Materias Primas del Inventario ({selectedMaterials.length})
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedMaterials.map(id => {
-                        const material = materials.find(m => m.id === id)
-                        return material ? (
-                          <div
-                            key={id}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/20 border border-primary/30"
-                          >
-                            <span className="text-primary text-sm font-medium">{material.nombre}</span>
-                            <button
-                              onClick={() => handleToggleMaterial(material.id)}
-                              className="p-0.5 rounded text-primary hover:bg-primary/20"
-                            >
-                              <span className="material-symbols-outlined text-sm">close</span>
-                            </button>
-                          </div>
-                        ) : null
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Compuestos de BD Químicas Seleccionados */}
-                {selectedCompounds.length > 0 && (
-                  <div>
-                    <p className="text-text-muted text-xs mb-2 font-medium">
-                      Compuestos de BD Químicas ({selectedCompounds.length})
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCompounds.map((compound) => (
-                        <div
-                          key={compound.id || compound.name}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30"
-                        >
-                          <span className="text-emerald-400 text-sm font-medium">{compound.name}</span>
-                          <button
-                            onClick={() => setSelectedCompounds(selectedCompounds.filter(c => c.id !== compound.id && c.name !== compound.name))}
-                            className="p-0.5 rounded text-emerald-400 hover:bg-emerald-500/20"
-                          >
-                            <span className="material-symbols-outlined text-sm">close</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Compuestos de BD Químicas Seleccionados */}
-          {selectedCompounds.length > 0 && (
-            <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-              <h3 className="text-text-light text-lg font-semibold mb-4">Compuestos de BD Químicas</h3>
-              <div className="space-y-2">
-                {selectedCompounds.map((compound) => (
-                  <div key={compound.id} className="p-3 rounded-lg bg-input-dark border border-border-dark">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-text-light font-medium">{compound.name}</p>
-                        {compound.formula && (
-                          <p className="text-text-muted text-xs mt-1">Fórmula: {compound.formula}</p>
-                        )}
-                        {compound.molecularWeight && (
-                          <p className="text-text-muted text-xs">MW: {compound.molecularWeight} g/mol</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                          {compound.source}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setSelectedCompounds(selectedCompounds.filter(c => c.id !== compound.id))}
-                        className="p-1 rounded text-text-muted hover:text-danger"
-                      >
-                        <span className="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Botón Generar */}
           <button
             onClick={handleGenerateFormula}
-            disabled={generating || (selectedMaterials.length === 0 && selectedCompounds.length === 0) || !objetivo.trim()}
+            disabled={generating || !objetivo.trim()}
             className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {generating ? (
               <>
                 <span className="material-symbols-outlined animate-spin">sync</span>
-                Generando fórmula con IA...
+                Analizando inventario y generando fórmula con IA...
               </>
             ) : (
               <>
@@ -411,6 +305,23 @@ const IA = () => {
               </>
             )}
           </button>
+          
+          {/* Información adicional */}
+          <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-blue-400 text-xl">info</span>
+              <div className="flex-1">
+                <p className="text-text-light text-sm font-medium mb-1">¿Cómo funciona la selección automática?</p>
+                <ul className="text-text-muted text-xs space-y-1 list-disc list-inside">
+                  <li>La IA analiza el inventario completo de materias primas</li>
+                  <li>Selecciona automáticamente las más adecuadas para tu objetivo</li>
+                  <li>Sugiere nuevos compuestos de bases de datos externas si son necesarios</li>
+                  <li>Muestra una justificación detallada de cada selección</li>
+                  <li>Puedes revisar y modificar las selecciones en el módulo de Ideas</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         /* MODO: Modificar Producto Existente */

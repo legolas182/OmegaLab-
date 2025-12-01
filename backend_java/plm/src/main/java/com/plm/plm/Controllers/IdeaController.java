@@ -501,6 +501,37 @@ public class IdeaController {
                 System.out.println("No se encontró 'pruebasRequeridas' en el JSON");
             }
             
+            // Extraer materiales seleccionados automáticamente por la IA
+            if (jsonNode.has("materialesSeleccionados")) {
+                JsonNode materialesSeleccionadosNode = jsonNode.get("materialesSeleccionados");
+                if (materialesSeleccionadosNode.isArray()) {
+                    List<Integer> materialesSeleccionados = new java.util.ArrayList<>();
+                    for (JsonNode materialIdNode : materialesSeleccionadosNode) {
+                        if (materialIdNode.isInt()) {
+                            materialesSeleccionados.add(materialIdNode.asInt());
+                        }
+                    }
+                    // Guardar en detallesIA como parte del JSON completo
+                    System.out.println("Materiales seleccionados por IA: " + materialesSeleccionados.size());
+                }
+            }
+            
+            // Extraer justificación de selección
+            if (jsonNode.has("justificacionSeleccion")) {
+                String justificacion = jsonNode.get("justificacionSeleccion").asText();
+                System.out.println("Justificación de selección extraída (longitud): " + justificacion.length());
+                // Guardar en detallesIA como parte del JSON completo
+            }
+            
+            // Extraer materiales sugeridos de BD externas
+            if (jsonNode.has("materialesSugeridosBD")) {
+                JsonNode materialesSugeridosNode = jsonNode.get("materialesSugeridosBD");
+                if (materialesSugeridosNode.isArray()) {
+                    System.out.println("Materiales sugeridos de BD externas: " + materialesSugeridosNode.size());
+                    // Guardar en detallesIA como parte del JSON completo
+                }
+            }
+            
             // Verificar que los campos importantes estén presentes
             boolean tieneIngredientes = jsonNode.has("ingredientes");
             boolean tieneParametros = jsonNode.has("parametrosFisicoquimicos");
