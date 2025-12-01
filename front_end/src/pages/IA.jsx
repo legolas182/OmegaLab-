@@ -18,13 +18,16 @@ const IA = () => {
   const [selectedCompounds, setSelectedCompounds] = useState([])
   const [objetivo, setObjetivo] = useState('')
   const [rendimiento, setRendimiento] = useState(100)
+  const [showMaterialSelector, setShowMaterialSelector] = useState(false)
+  const [materialSearchTerm, setMaterialSearchTerm] = useState('')
+  const [materialFilterTipo, setMaterialFilterTipo] = useState('')
   
   // Estados para modificar producto (actual)
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   
   // Estados para búsqueda en BD químicas
-  const [showChemicalSearch, setShowChemicalSearch] = useState(false)
+  const [showChemicalSearch, setShowChemicalSearch] = useState(false) // Para pestaña dentro del modal
   const [searchQuery, setSearchQuery] = useState('')
   const [searchType, setSearchType] = useState('NAME')
   const [searchSource, setSearchSource] = useState('PubChem')
@@ -115,32 +118,42 @@ const IA = () => {
     })
   }
 
+  // Filtrar materias primas según búsqueda y filtros
+  const filteredMaterials = materials.filter(m => {
+    if (!m) return false
+    const matchesSearch = !materialSearchTerm || 
+      (m.nombre && m.nombre.toLowerCase().includes(materialSearchTerm.toLowerCase())) ||
+      (m.codigo && m.codigo.toLowerCase().includes(materialSearchTerm.toLowerCase()))
+    const matchesFilter = !materialFilterTipo || m.tipo === materialFilterTipo
+    return matchesSearch && matchesFilter
+  })
+
   const handleGenerateFormula = async () => {
     if (modo === 'materias-primas') {
-      if (selectedMaterials.length === 0) {
-        setMessage({ type: 'error', text: 'Debes seleccionar al menos una materia prima' })
+      if (selectedMaterials.length === 0 && selectedCompounds.length === 0) {
+        setMessage({ type: 'error', text: 'Debes seleccionar al menos una materia prima o compuesto químico' })
         return
       }
-      if (!objetivo.trim()) {
+    if (!objetivo.trim()) {
         setMessage({ type: 'error', text: 'Debes especificar el objetivo de la fórmula' })
-        return
-      }
+      return
+    }
 
-      setGenerating(true)
-      setMessage({ type: '', text: '' })
+    setGenerating(true)
+    setMessage({ type: '', text: '' })
 
-      try {
+    try {
         // Filtrar compuestos que tienen ID (los de BD químicas pueden no tener ID hasta que se guarden)
         const compoundIds = selectedCompounds
           .map(c => c.id)
           .filter(id => id != null)
         const idea = await ideaService.generateFromMaterials(objetivo, selectedMaterials, compoundIds)
         setMessage({ type: 'success', text: 'Fórmula generada exitosamente. Revisa el módulo de Ideas para ver los detalles.' })
-        
-        // Limpiar formulario
+      
+      // Limpiar formulario
         setSelectedMaterials([])
         setSelectedCompounds([])
-        setObjetivo('')
+      setObjetivo('')
         setRendimiento(100)
       } catch (error) {
         console.error('Error generando fórmula:', error)
@@ -160,18 +173,18 @@ const IA = () => {
       }
 
       setGenerating(true)
-      setMessage({ type: '', text: '' })
+        setMessage({ type: '', text: '' })
 
       try {
         const idea = await ideaService.generateFromProduct(selectedProduct.id, objetivo)
         setMessage({ type: 'success', text: 'Idea generada exitosamente con IA. Revisa el módulo de Ideas para ver los detalles completos.' })
         setSelectedProduct(null)
         setObjetivo('')
-      } catch (error) {
-        console.error('Error generando ideas:', error)
+    } catch (error) {
+      console.error('Error generando ideas:', error)
         setMessage({ type: 'error', text: error.message || 'Error al generar ideas' })
-      } finally {
-        setGenerating(false)
+    } finally {
+      setGenerating(false)
       }
     }
   }
@@ -276,53 +289,74 @@ const IA = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-text-light text-lg font-semibold">Materias Primas</h3>
               <button
-                onClick={() => setShowChemicalSearch(true)}
-                className="px-4 py-2 rounded-lg bg-primary/20 text-primary font-medium hover:bg-primary/30 flex items-center gap-2"
+                onClick={() => setShowMaterialSelector(true)}
+                className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
               >
-                <span className="material-symbols-outlined text-sm">search</span>
-                Buscar en BD Químicas
+                <span className="material-symbols-outlined text-sm">add</span>
+                Seleccionar del Inventario
               </button>
             </div>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {materials.map((material) => (
-                <label
-                  key={material.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedMaterials.includes(material.id)
-                      ? 'bg-primary/20 border-primary/50'
-                      : 'bg-input-dark border-border-dark hover:bg-border-dark'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedMaterials.includes(material.id)}
-                    onChange={() => handleToggleMaterial(material.id)}
-                    className="w-5 h-5 rounded border-border-dark bg-card-dark text-primary"
-                  />
-                  <div className="flex-1">
-                    <p className="text-text-light font-medium">{material.nombre}</p>
-                    <p className="text-text-muted text-xs">{material.codigo} • {material.unidadMedida}</p>
+            {selectedMaterials.length === 0 && selectedCompounds.length === 0 ? (
+              <div className="text-center py-8 rounded-lg bg-input-dark border border-border-dark">
+                <span className="material-symbols-outlined text-4xl text-text-muted mb-2">inventory_2</span>
+                <p className="text-text-muted text-sm">No hay materias primas seleccionadas</p>
+                <p className="text-text-muted text-xs mt-1">Haz clic en "Seleccionar del Inventario" para comenzar</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Materias Primas Seleccionadas */}
+                {selectedMaterials.length > 0 && (
+                  <div>
+                    <p className="text-text-muted text-xs mb-2 font-medium">
+                      Materias Primas del Inventario ({selectedMaterials.length})
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMaterials.map(id => {
+                        const material = materials.find(m => m.id === id)
+                        return material ? (
+                          <div
+                            key={id}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/20 border border-primary/30"
+                          >
+                            <span className="text-primary text-sm font-medium">{material.nombre}</span>
+                            <button
+                              onClick={() => handleToggleMaterial(material.id)}
+                              className="p-0.5 rounded text-primary hover:bg-primary/20"
+                            >
+                              <span className="material-symbols-outlined text-sm">close</span>
+                            </button>
+                          </div>
+                        ) : null
+                      })}
+                    </div>
                   </div>
-                </label>
-              ))}
-            </div>
+                )}
 
-            {selectedMaterials.length > 0 && (
-              <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <p className="text-text-light text-sm font-medium mb-2">
-                  Materias primas seleccionadas: {selectedMaterials.length}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedMaterials.map(id => {
-                    const material = materials.find(m => m.id === id)
-                    return material ? (
-                      <span key={id} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                        {material.nombre}
-                      </span>
-                    ) : null
-                  })}
-                </div>
+                {/* Compuestos de BD Químicas Seleccionados */}
+                {selectedCompounds.length > 0 && (
+                  <div>
+                    <p className="text-text-muted text-xs mb-2 font-medium">
+                      Compuestos de BD Químicas ({selectedCompounds.length})
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCompounds.map((compound) => (
+                        <div
+                          key={compound.id || compound.name}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30"
+                        >
+                          <span className="text-emerald-400 text-sm font-medium">{compound.name}</span>
+                          <button
+                            onClick={() => setSelectedCompounds(selectedCompounds.filter(c => c.id !== compound.id && c.name !== compound.name))}
+                            className="p-0.5 rounded text-emerald-400 hover:bg-emerald-500/20"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -363,7 +397,7 @@ const IA = () => {
           {/* Botón Generar */}
           <button
             onClick={handleGenerateFormula}
-            disabled={generating || selectedMaterials.length === 0 || !objetivo.trim()}
+            disabled={generating || (selectedMaterials.length === 0 && selectedCompounds.length === 0) || !objetivo.trim()}
             className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {generating ? (
@@ -382,195 +416,376 @@ const IA = () => {
       ) : (
         /* MODO: Modificar Producto Existente */
         <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-          <h2 className="text-text-light text-xl font-semibold mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined">auto_awesome</span>
+        <h2 className="text-text-light text-xl font-semibold mb-4 flex items-center gap-2">
+          <span className="material-symbols-outlined">auto_awesome</span>
             Modificar Producto Existente
-          </h2>
-          <p className="text-text-muted text-sm mb-6">
-            Selecciona un producto del inventario y especifica qué quieres lograr. 
-            La IA analizará el producto completo (incluyendo su BOM) y generará nuevas fórmulas sugeridas.
-          </p>
+        </h2>
+        <p className="text-text-muted text-sm mb-6">
+          Selecciona un producto del inventario y especifica qué quieres lograr. 
+          La IA analizará el producto completo (incluyendo su BOM) y generará nuevas fórmulas sugeridas.
+        </p>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-text-light text-sm font-medium mb-2">
-                Seleccionar Producto del Inventario
-              </label>
-              <select
-                value={selectedProduct?.id || ''}
-                onChange={(e) => {
-                  const product = products.find(p => p.id === parseInt(e.target.value))
-                  setSelectedProduct(product || null)
-                }}
-                className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-              >
-                <option value="">-- Selecciona un producto --</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.codigo} - {product.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-text-light text-sm font-medium mb-2">
-                ¿Qué quieres lograr? <span className="text-text-muted">(Objetivo)</span>
-              </label>
-              <textarea
-                value={objetivo}
-                onChange={(e) => setObjetivo(e.target.value)}
-                rows={3}
-                placeholder='Ejemplo: "quiero crear una proteína para diabéticos"'
-                className="w-full px-4 py-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-              />
-            </div>
-
-            <button
-              onClick={handleGenerateFormula}
-              disabled={generating || !selectedProduct || !objetivo.trim()}
-              className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        <div className="space-y-4">
+          <div>
+            <label className="block text-text-light text-sm font-medium mb-2">
+              Seleccionar Producto del Inventario
+            </label>
+            <select
+              value={selectedProduct?.id || ''}
+              onChange={(e) => {
+                const product = products.find(p => p.id === parseInt(e.target.value))
+                setSelectedProduct(product || null)
+              }}
+              className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
             >
-              {generating ? (
-                <>
-                  <span className="material-symbols-outlined animate-spin">sync</span>
-                  Analizando producto y generando ideas...
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined">psychology</span>
-                  Generar Ideas con IA
-                </>
-              )}
+              <option value="">-- Selecciona un producto --</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.codigo} - {product.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-text-light text-sm font-medium mb-2">
+              ¿Qué quieres lograr? <span className="text-text-muted">(Objetivo)</span>
+            </label>
+            <textarea
+              value={objetivo}
+              onChange={(e) => setObjetivo(e.target.value)}
+              rows={3}
+                placeholder='Ejemplo: "quiero crear una proteína para diabéticos"'
+              className="w-full px-4 py-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <button
+              onClick={handleGenerateFormula}
+            disabled={generating || !selectedProduct || !objetivo.trim()}
+            className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {generating ? (
+              <>
+                <span className="material-symbols-outlined animate-spin">sync</span>
+                Analizando producto y generando ideas...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">psychology</span>
+                Generar Ideas con IA
+              </>
+            )}
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal de Búsqueda en BD Químicas */}
-      {showChemicalSearch && (
+      {/* Modal de Selección de Materias Primas e Inventario */}
+      {showMaterialSelector && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowChemicalSearch(false)
+              setShowMaterialSelector(false)
             }
           }}
         >
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+          <div className="bg-card-dark rounded-lg border border-border-dark max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="sticky top-0 bg-card-dark border-b border-border-dark p-6 flex items-center justify-between z-10">
-              <h2 className="text-text-light text-2xl font-bold">Búsqueda en Bases de Datos Químicas</h2>
+              <h2 className="text-text-light text-2xl font-bold">Seleccionar Materias Primas</h2>
               <button
-                onClick={() => setShowChemicalSearch(false)}
+                onClick={() => setShowMaterialSelector(false)}
                 className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark"
               >
                 <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
+          </button>
+        </div>
 
-            <div className="p-6 space-y-4">
-              {/* Selector de Base de Datos */}
-              <div className="flex gap-2">
-                {['PubChem', 'ChEMBL', 'all'].map((source) => (
-                  <button
-                    key={source}
-                    onClick={() => setSearchSource(source)}
-                    className={`px-4 py-2 rounded-lg font-medium ${
-                      searchSource === source
-                        ? 'bg-primary text-white'
-                        : 'bg-input-dark text-text-light hover:bg-border-dark'
-                    }`}
-                  >
-                    {source === 'all' ? 'Todas' : source}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tipo de Búsqueda */}
-              <div>
-                <label className="block text-text-light text-sm font-medium mb-2">Tipo de Búsqueda</label>
-                <select
-                  value={searchType}
-                  onChange={(e) => setSearchType(e.target.value)}
-                  className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                >
-                  <option value="NAME">Por Nombre</option>
-                  <option value="FORMULA">Por Fórmula Molecular</option>
-                  <option value="SMILES">Por SMILES</option>
-                  <option value="CAS">Por Número CAS</option>
-                </select>
-              </div>
-
-              {/* Campo de Búsqueda */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearchChemical()}
-                  placeholder="Buscar compuesto químico..."
-                  className="flex-1 h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                />
+            <div className="p-6">
+              {/* Pestañas */}
+              <div className="flex gap-2 mb-6 border-b border-border-dark">
                 <button
-                  onClick={handleSearchChemical}
-                  disabled={searching || !searchQuery.trim()}
-                  className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
+                  onClick={() => setShowChemicalSearch(false)}
+                  className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                    !showChemicalSearch
+                      ? 'bg-primary text-white'
+                      : 'bg-input-dark text-text-light hover:bg-border-dark'
+                  }`}
                 >
-                  <span className="material-symbols-outlined">search</span>
-                  {searching ? 'Buscando...' : 'Buscar'}
+                  <span className="material-symbols-outlined align-middle mr-2 text-sm">inventory_2</span>
+                  Inventario
+                </button>
+                <button
+                  onClick={() => setShowChemicalSearch(true)}
+                  className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                    showChemicalSearch
+                      ? 'bg-primary text-white'
+                      : 'bg-input-dark text-text-light hover:bg-border-dark'
+                  }`}
+                >
+                  <span className="material-symbols-outlined align-middle mr-2 text-sm">science</span>
+                  Bases de Datos Químicas
                 </button>
               </div>
 
-              {/* Resultados */}
-              {searchResults.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-text-light font-semibold">
-                    Resultados ({searchResults.length})
-                  </h3>
-                  {searchResults.map((compound, index) => (
-                    <div
-                      key={compound.id || index}
-                      className="p-4 rounded-lg bg-input-dark border border-border-dark hover:border-primary/50 cursor-pointer"
-                      onClick={() => {
-                        setSelectedCompound(compound)
-                      }}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-text-light font-semibold">{compound.name}</h4>
-                          {compound.formula && (
-                            <p className="text-text-muted text-sm mt-1">Fórmula: {compound.formula}</p>
-                          )}
-                          {compound.molecularWeight && (
-                            <p className="text-text-muted text-sm">Peso Molecular: {compound.molecularWeight} g/mol</p>
-                          )}
-                          {compound.logP !== null && compound.logP !== undefined && (
-                            <p className="text-text-muted text-sm">LogP: {compound.logP}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                            {compound.source}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleAddCompound(compound)
-                            }}
-                            className="px-3 py-1 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
-                          >
-                            Agregar
-                          </button>
-                        </div>
-                      </div>
+              {!showChemicalSearch ? (
+                /* Pestaña: Inventario */
+                <div>
+                  {/* Búsqueda y Filtros */}
+                  <div className="mb-4 space-y-3">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={materialSearchTerm}
+                        onChange={(e) => setMaterialSearchTerm(e.target.value)}
+                        placeholder="Buscar materia prima..."
+                        className="flex-1 h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                      />
+                      <select
+                        value={materialFilterTipo}
+                        onChange={(e) => setMaterialFilterTipo(e.target.value)}
+                        className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                      >
+                        <option value="">Todos los tipos</option>
+                        <option value="MATERIA_PRIMA">Materia Prima</option>
+                        <option value="EXCIPIENTE">Excipiente</option>
+                        <option value="SABORIZANTE">Saborizante</option>
+                        <option value="ENDULZANTE">Endulzante</option>
+                      </select>
                     </div>
-                  ))}
+                    <div className="flex items-center justify-between text-sm">
+                      <p className="text-text-muted">
+                        {filteredMaterials.length} materias primas disponibles
+                      </p>
+                      <p className="text-primary font-medium">
+                        {selectedMaterials.length} seleccionada{selectedMaterials.length !== 1 ? 's' : ''}
+                      </p>
+            </div>
+          </div>
+
+                  {/* Checklist de Materias Primas */}
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {filteredMaterials.map((material) => (
+                        <label
+                          key={material.id}
+                          className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                            selectedMaterials.includes(material.id)
+                              ? 'bg-primary/20 border-primary/50'
+                              : 'bg-input-dark border-border-dark hover:bg-border-dark'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedMaterials.includes(material.id)}
+                            onChange={() => handleToggleMaterial(material.id)}
+                            className="w-5 h-5 rounded border-border-dark bg-card-dark text-primary focus:ring-2 focus:ring-primary/50"
+                          />
+                          <div className="flex-1">
+                            <p className="text-text-light font-medium">{material.nombre}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <p className="text-text-muted text-xs">{material.codigo}</p>
+                              <span className="text-text-muted">•</span>
+                              <p className="text-text-muted text-xs">{material.unidadMedida}</p>
+                              {material.tipo && (
+                                <>
+                                  <span className="text-text-muted">•</span>
+                                  <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">
+                                    {material.tipo}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            {material.descripcion && (
+                              <p className="text-text-muted text-xs mt-1 line-clamp-1">{material.descripcion}</p>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+      </div>
+
+                  {filteredMaterials.length === 0 && (
+                    <div className="text-center py-12">
+                      <span className="material-symbols-outlined text-4xl text-text-muted mb-2">search_off</span>
+                      <p className="text-text-muted text-sm">No se encontraron materias primas</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Pestaña: Bases de Datos Químicas */
+        <div>
+                  {/* Selector de Base de Datos */}
+                  <div className="flex gap-2 mb-4">
+                    {['PubChem', 'ChEMBL', 'all'].map((source) => (
+                      <button
+                        key={source}
+                        onClick={() => setSearchSource(source)}
+                        className={`px-4 py-2 rounded-lg font-medium ${
+                          searchSource === source
+                            ? 'bg-primary text-white'
+                            : 'bg-input-dark text-text-light hover:bg-border-dark'
+                        }`}
+                      >
+                        {source === 'all' ? 'Todas' : source}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tipo de Búsqueda */}
+                  <div className="mb-4">
+                    <label className="block text-text-light text-sm font-medium mb-2">Tipo de Búsqueda</label>
+                    <select
+                      value={searchType}
+                      onChange={(e) => setSearchType(e.target.value)}
+                      className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    >
+                      <option value="NAME">Por Nombre</option>
+                      <option value="FORMULA">Por Fórmula Molecular</option>
+                      <option value="SMILES">Por SMILES</option>
+                      <option value="CAS">Por Número CAS</option>
+                    </select>
+                  </div>
+
+                  {/* Campo de Búsqueda */}
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearchChemical()}
+                      placeholder="Buscar compuesto químico..."
+                      className="flex-1 h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    />
+                    <button
+                      onClick={handleSearchChemical}
+                      disabled={searching || !searchQuery.trim()}
+                      className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined">search</span>
+                      {searching ? 'Buscando...' : 'Buscar'}
+                    </button>
+                  </div>
+
+                  {/* Resultados */}
+                  {searchResults.length > 0 && (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      <h3 className="text-text-light font-semibold">
+                        Resultados ({searchResults.length})
+                      </h3>
+                      {searchResults.map((compound, index) => (
+                        <div
+                          key={compound.id || index}
+                          className="p-4 rounded-lg bg-input-dark border border-border-dark hover:border-primary/50"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="text-text-light font-semibold">{compound.name}</h4>
+                              {compound.formula && (
+                                <p className="text-text-muted text-sm mt-1">Fórmula: {compound.formula}</p>
+                              )}
+                              {compound.molecularWeight && (
+                                <p className="text-text-muted text-sm">Peso Molecular: {compound.molecularWeight} g/mol</p>
+                              )}
+                              {compound.logP !== null && compound.logP !== undefined && (
+                                <p className="text-text-muted text-sm">LogP: {compound.logP}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
+                                {compound.source}
+                              </span>
+                              <button
+                                onClick={() => handleAddCompound(compound)}
+                                className="px-3 py-1 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
+                              >
+                                Agregar
+                              </button>
+                            </div>
+        </div>
+      </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {searchResults.length === 0 && !searching && searchQuery && (
+                    <div className="text-center py-12">
+                      <span className="material-symbols-outlined text-4xl text-text-muted mb-2">search_off</span>
+                      <p className="text-text-muted text-sm">No se encontraron resultados</p>
+                    </div>
+                  )}
+
+                  {!searchQuery && (
+                    <div className="text-center py-12">
+                      <span className="material-symbols-outlined text-4xl text-text-muted mb-2">science</span>
+                      <p className="text-text-muted text-sm">Ingresa un término de búsqueda para comenzar</p>
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Resumen de Selecciones */}
+              {(selectedMaterials.length > 0 || selectedCompounds.length > 0) && (
+                <div className="mt-6 pt-6 border-t border-border-dark">
+                  <h3 className="text-text-light font-semibold mb-3">Resumen de Selecciones</h3>
+                  <div className="space-y-2">
+                    {selectedMaterials.length > 0 && (
+                      <div>
+                        <p className="text-text-muted text-xs mb-2">
+                          Materias Primas ({selectedMaterials.length})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedMaterials.map(id => {
+                            const material = materials.find(m => m.id === id)
+                            return material ? (
+                              <span key={id} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
+                                {material.nombre}
+                              </span>
+                            ) : null
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedCompounds.length > 0 && (
+                      <div>
+                        <p className="text-text-muted text-xs mb-2">
+                          Compuestos BD Químicas ({selectedCompounds.length})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedCompounds.map((compound, idx) => (
+                            <span key={compound.id || idx} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs">
+                              {compound.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Botones de Acción */}
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowMaterialSelector(false)}
+                  className="px-4 py-3 rounded-lg bg-input-dark text-text-light font-medium hover:bg-border-dark"
+                >
+                  Cerrar
+            </button>
+                <button
+                  onClick={() => {
+                    setShowMaterialSelector(false)
+                    setShowChemicalSearch(false)
+                  }}
+                  className="px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+                >
+                  Confirmar Selección
+            </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* Modal de Detalles de Compuesto */}
       {selectedCompound && (
@@ -602,28 +817,28 @@ const IA = () => {
                 )}
 
                 {selectedCompound.molecularWeight && (
-                  <div>
+                <div>
                     <span className="text-text-muted text-sm">Peso Molecular:</span>
                     <p className="text-text-light font-medium">{selectedCompound.molecularWeight} g/mol</p>
-                  </div>
+                </div>
                 )}
 
                 {selectedCompound.logP !== null && selectedCompound.logP !== undefined && (
-                  <div>
+                <div>
                     <span className="text-text-muted text-sm">LogP:</span>
                     <p className="text-text-light font-medium">{selectedCompound.logP}</p>
-                  </div>
+                </div>
                 )}
 
                 {selectedCompound.solubility && (
-                  <div>
+                <div>
                     <span className="text-text-muted text-sm">Solubilidad:</span>
                     <p className="text-text-light font-medium">{selectedCompound.solubility}</p>
-                  </div>
+                </div>
                 )}
 
                 {selectedCompound.bioactivity && (
-                  <div>
+                <div>
                     <span className="text-text-muted text-sm">Bioactividad:</span>
                     <p className="text-text-light font-medium">{selectedCompound.bioactivity}</p>
                   </div>
