@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
+import ideaService from '../services/ideaService'
 
 const Produccion = () => {
   const { user } = useAuth()
@@ -17,21 +18,43 @@ const Produccion = () => {
       </div>
     )
   }
-  const [ordenes, setOrdenes] = useState([
-    {
-      id: 'OP-2024-001',
-      producto: 'Vitamina D3 2000UI',
-      cantidad: 1000,
-      estado: 'En Proceso',
-      fechaInicio: '15/01/2024',
-      dispensacion: { completada: true, items: 5, total: 5 },
-      lineClearance: { completado: false }
-    }
-  ])
 
+  const [ordenes, setOrdenes] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [selectedOrden, setSelectedOrden] = useState(null)
   const [showDispensacion, setShowDispensacion] = useState(false)
   const [showLineClearance, setShowLineClearance] = useState(false)
+
+  useEffect(() => {
+    loadOrdenes()
+  }, [])
+
+  const loadOrdenes = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const data = await ideaService.getOrdenesProduccion()
+      // Transformar las ideas en órdenes de producción
+      const ordenesTransformadas = data.map(idea => ({
+        id: `OP-${idea.id}`,
+        ideaId: idea.id,
+        producto: idea.titulo,
+        cantidad: 1000, // Cantidad por defecto (se puede obtener del BOM o agregar campo específico)
+        estado: 'En Proceso',
+        fechaInicio: idea.approvedAt ? new Date(idea.approvedAt).toLocaleDateString('es-ES') : new Date(idea.createdAt).toLocaleDateString('es-ES'),
+        dispensacion: { completada: false, items: 0, total: 0 },
+        lineClearance: { completado: false },
+        idea: idea // Guardar la idea completa para referencia
+      }))
+      setOrdenes(ordenesTransformadas)
+    } catch (err) {
+      setError(err.message || 'Error al cargar órdenes de producción')
+      console.error('Error al cargar órdenes:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="w-full h-full">
@@ -45,13 +68,28 @@ const Produccion = () => {
         </button>
       </div>
 
+      {error && (
+        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+          <span className="material-symbols-outlined text-danger">error</span>
+          <p className="text-danger text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Lista de Órdenes */}
       <div className="rounded-lg bg-card-dark border border-border-dark mb-6">
         <div className="p-4 border-b border-border-dark">
-          <h2 className="text-text-light font-semibold">Órdenes de Producción</h2>
+          <h2 className="text-text-light font-semibold">Órdenes de Producción ({ordenes.length})</h2>
         </div>
-        <div className="divide-y divide-border-dark">
-          {ordenes.map((orden) => (
+        {loading ? (
+          <div className="p-8 text-center text-text-muted">Cargando órdenes...</div>
+        ) : ordenes.length === 0 ? (
+          <div className="p-8 text-center text-text-muted">
+            <span className="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
+            <p className="text-sm">No hay órdenes de producción asignadas</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border-dark">
+            {ordenes.map((orden) => (
             <div
               key={orden.id}
               className="p-4 hover:bg-border-dark/50 cursor-pointer"
@@ -107,7 +145,8 @@ const Produccion = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Dispensación */}

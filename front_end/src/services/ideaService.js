@@ -106,6 +106,15 @@ class IdeaService {
     }
   }
 
+  async getOrdenesProduccion() {
+    try {
+      const response = await api.get('/ideas/ordenes-produccion');
+      return response.data.data.ordenes || [];
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async changeEstado(id, nuevoEstado, analistaId = null) {
     try {
       let url = `/ideas/${id}/change-estado?nuevoEstado=${nuevoEstado}`;

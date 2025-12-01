@@ -189,6 +189,14 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<IdeaDTO> getOrdenesProduccionAsignadas(Integer supervisorCalidadId) {
+        return ideaRepository.findByAsignadoAIdAndEstado(supervisorCalidadId, EstadoIdea.EN_PRODUCCION).stream()
+                .map(Idea::getDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public IdeaDTO confirmarProduccion(Integer id, Integer supervisorCalidadId, Integer cantidad, Integer userId) {
         Idea idea = ideaRepository.findById(id)

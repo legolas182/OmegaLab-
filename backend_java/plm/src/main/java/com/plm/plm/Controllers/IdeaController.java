@@ -595,6 +595,17 @@ public class IdeaController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/ordenes-produccion")
+    public ResponseEntity<Map<String, Object>> getOrdenesProduccion(HttpServletRequest request) {
+        Integer userId = getUserIdFromRequest(request);
+        List<IdeaDTO> ordenes = ideaService.getOrdenesProduccionAsignadas(userId);
+        Map<String, Object> response = new HashMap<>();
+        Map<String, List<IdeaDTO>> data = new HashMap<>();
+        data.put("ordenes", ordenes);
+        response.put("data", data);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getIdeaById(@PathVariable Integer id) {
         IdeaDTO idea = ideaService.getIdeaById(id);
