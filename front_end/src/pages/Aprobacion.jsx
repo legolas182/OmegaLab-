@@ -101,6 +101,11 @@ const Aprobacion = () => {
       setSelectedSupervisorId(null)
       setCantidadProduccion('')
       loadFormulas()
+      
+      // Disparar evento para actualizar el Kanban en Ideas.jsx
+      window.dispatchEvent(new CustomEvent('ideaEstadoChanged', {
+        detail: { ideaId: selectedFormula.id, nuevoEstado: 'EN_PRODUCCION' }
+      }))
     } catch (error) {
       console.error('Error al confirmar producción:', error)
       alert('Error al confirmar producción: ' + (error.message || 'Error desconocido'))
@@ -118,6 +123,11 @@ const Aprobacion = () => {
       setShowRechazarModal(false)
       setSelectedFormula(null)
       loadFormulas()
+      
+      // Disparar evento para actualizar el Kanban en Ideas.jsx
+      window.dispatchEvent(new CustomEvent('ideaEstadoChanged', {
+        detail: { ideaId: selectedFormula.id, nuevoEstado: 'RECHAZADA' }
+      }))
     } catch (error) {
       console.error('Error al rechazar fórmula:', error)
       alert('Error al rechazar fórmula: ' + (error.message || 'Error desconocido'))
@@ -337,10 +347,10 @@ const Aprobacion = () => {
                 return (
                   <div>
                     <h3 className="text-text-light font-semibold text-lg mb-3">Pruebas Realizadas</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {pruebas.map((prueba) => (
                         <div key={prueba.id} className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <p className="text-text-light font-medium">{prueba.codigoMuestra}</p>
                               <p className="text-text-muted text-sm">{prueba.tipoPrueba}</p>
@@ -355,7 +365,61 @@ const Aprobacion = () => {
                             </span>
                           </div>
                           {prueba.descripcion && (
-                            <p className="text-text-muted text-sm mt-2">{prueba.descripcion}</p>
+                            <p className="text-text-muted text-sm mb-3">{prueba.descripcion}</p>
+                          )}
+                          
+                          {/* Pruebas Requeridas de esta prueba específica */}
+                          {prueba.pruebasRequeridas && (
+                            <div className="mt-3 pt-3 border-t border-border-dark">
+                              <h4 className="text-text-light font-semibold text-sm mb-2">Protocolo de Análisis Ejecutado</h4>
+                              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                                <div className="whitespace-pre-line text-text-light text-sm leading-relaxed">
+                                  {prueba.pruebasRequeridas}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Resultados de la prueba */}
+                          {prueba.resultados && prueba.resultados.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-border-dark">
+                              <h4 className="text-text-light font-semibold text-sm mb-2">Resultados Registrados</h4>
+                              <div className="space-y-2">
+                                {prueba.resultados.map((resultado, idx) => (
+                                  <div key={idx} className={`p-3 rounded-lg border ${
+                                    resultado.cumpleEspecificacion === false
+                                      ? 'bg-danger/10 border-danger/30'
+                                      : 'bg-success/10 border-success/30'
+                                  }`}>
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <p className="text-text-light font-medium text-sm">{resultado.parametro}</p>
+                                        <p className="text-text-light text-sm mt-1">
+                                          Resultado: <span className="text-primary">{resultado.resultado}</span> {resultado.unidad || ''}
+                                        </p>
+                                        {resultado.especificacion && (
+                                          <p className="text-text-muted text-xs mt-1">
+                                            Especificación: {resultado.especificacion}
+                                          </p>
+                                        )}
+                                        {resultado.observaciones && (
+                                          <p className="text-text-muted text-xs mt-1 italic">
+                                            {resultado.observaciones}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        resultado.cumpleEspecificacion === false
+                                          ? 'bg-danger/20 text-danger'
+                                          : 'bg-success/20 text-success'
+                                      }`}>
+                                        {resultado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
                         </div>
                       ))}
@@ -363,18 +427,6 @@ const Aprobacion = () => {
                   </div>
                 )
               })()}
-
-              {/* Pruebas Requeridas */}
-              {selectedFormula.pruebasRequeridas && (
-                <div>
-                  <h3 className="text-text-light font-semibold text-lg mb-3">Pruebas Requeridas (Generadas por IA)</h3>
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="whitespace-pre-line text-text-light text-sm leading-relaxed bg-card-dark p-3 rounded-lg border border-border-dark">
-                      {selectedFormula.pruebasRequeridas}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Detalles de IA */}
               {selectedFormula.detallesIA && (

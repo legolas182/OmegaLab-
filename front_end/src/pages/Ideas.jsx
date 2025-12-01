@@ -41,6 +41,19 @@ const Ideas = () => {
   // Cargar ideas solo una vez al inicio
   useEffect(() => {
     loadIdeas()
+    
+    // Escuchar eventos de cambio de estado desde otros módulos (Aprobacion, etc.)
+    const handleEstadoChanged = (event) => {
+      const { ideaId, nuevoEstado } = event.detail
+      // Recargar ideas para reflejar el cambio de estado
+      loadIdeas()
+    }
+    
+    window.addEventListener('ideaEstadoChanged', handleEstadoChanged)
+    
+    return () => {
+      window.removeEventListener('ideaEstadoChanged', handleEstadoChanged)
+    }
   }, [])
 
   // Cargar pruebas solo cuando se cargan las ideas inicialmente, no en cada cambio
@@ -197,21 +210,21 @@ const Ideas = () => {
     }
   }
 
-  // Definir columnas del kanban (sin incluir RECHAZADA - las fórmulas rechazadas se archivan)
+  // Definir columnas del kanban (sin incluir RECHAZADA ni PRUEBA_APROBADA - se gestionan en Aprobación / QA)
   const kanbanColumns = [
     { id: 'GENERADA', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
     { id: 'EN_REVISION', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
     { id: 'APROBADA', label: 'Aprobada', borderClass: 'border-green-500/30', bgClass: 'bg-green-500/10', dotClass: 'bg-green-500', badgeClass: 'bg-green-500/20 text-green-400' },
     { id: 'EN_PRUEBA', label: 'En Prueba', borderClass: 'border-purple-500/30', bgClass: 'bg-purple-500/10', dotClass: 'bg-purple-500', badgeClass: 'bg-purple-500/20 text-purple-400' },
-    { id: 'PRUEBA_APROBADA', label: 'Aprobación Final', borderClass: 'border-emerald-500/30', bgClass: 'bg-emerald-500/10', dotClass: 'bg-emerald-500', badgeClass: 'bg-emerald-500/20 text-emerald-400' },
     { id: 'EN_PRODUCCION', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
   ]
 
-  // Agrupar fórmulas por estado (excluyendo RECHAZADA del kanban - se archivan)
+  // Agrupar fórmulas por estado (excluyendo RECHAZADA y PRUEBA_APROBADA del kanban)
+  // RECHAZADA se archiva, PRUEBA_APROBADA se gestiona en Aprobación / QA
   const formulasByEstado = ideas.reduce((acc, idea) => {
     const estado = idea.estado || 'GENERADA'
-    // Las fórmulas rechazadas no aparecen en el kanban, se archivan
-    if (estado === 'RECHAZADA') {
+    // Las fórmulas rechazadas y las que pasaron pruebas no aparecen en el kanban
+    if (estado === 'RECHAZADA' || estado === 'PRUEBA_APROBADA') {
       return acc
     }
     if (!acc[estado]) {
@@ -1486,19 +1499,6 @@ const Ideas = () => {
                       >
                         <span className="material-symbols-outlined text-sm mr-1">science</span>
                         Enviar a Pruebas
-                      </button>
-                    )}
-                    {selectedFormula.estado === 'PRUEBA_APROBADA' && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleChangeEstado(selectedFormula, 'en_produccion')
-                          setSelectedFormula(null)
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 text-sm font-medium hover:bg-indigo-500/30"
-                      >
-                        <span className="material-symbols-outlined text-sm mr-1">precision_manufacturing</span>
-                        Enviar a Producción
                       </button>
                     )}
                   </>
