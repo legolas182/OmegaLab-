@@ -40,8 +40,7 @@ const Produccion = () => {
           <h1 className="text-text-light text-3xl font-bold tracking-tight">Producción / Proceso</h1>
           <p className="text-text-muted text-sm mt-1">Órdenes de Lote, Dispensación y Despeje de Línea</p>
         </div>
-        <button className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2">
-          <span className="material-symbols-outlined">add</span>
+        <button className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90">
           Nueva Orden
         </button>
       </div>

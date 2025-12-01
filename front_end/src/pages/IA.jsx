@@ -290,9 +290,8 @@ const IA = () => {
               <h3 className="text-text-light text-lg font-semibold">Materias Primas</h3>
               <button
                 onClick={() => setShowMaterialSelector(true)}
-                className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
               >
-                <span className="material-symbols-outlined text-sm">add</span>
                 Seleccionar del Inventario
               </button>
             </div>

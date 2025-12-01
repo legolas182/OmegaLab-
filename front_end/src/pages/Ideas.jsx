@@ -1402,15 +1402,13 @@ const Ideas = () => {
 
                         {/* Materiales Nuevos - Siempre visible */}
                         <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                          <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">add_circle</span>
+                          <h4 className="text-text-light font-semibold mb-3">
                             Materiales Nuevos Agregados
                           </h4>
                           {aiDetails.materialesNuevos && Array.isArray(aiDetails.materialesNuevos) && aiDetails.materialesNuevos.length > 0 ? (
                             <ul className="space-y-2">
                               {aiDetails.materialesNuevos.map((material, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-text-light text-sm">
-                                  <span className="material-symbols-outlined text-emerald-400 text-sm mt-0.5">add</span>
+                                <li key={idx} className="text-text-light text-sm">
                                   <span>{material}</span>
                                 </li>
                               ))}

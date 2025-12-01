@@ -272,9 +272,8 @@ const Productos = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
+          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
         >
-          <span className="material-symbols-outlined">add</span>
           Nuevo Producto
         </button>
       </div>
@@ -431,9 +430,8 @@ const Productos = () => {
                         onClick={() => {
                           setShowAddMaterial(true)
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90"
                       >
-                        <span className="material-symbols-outlined text-sm">add</span>
                         Agregar Material
                       </button>
                     </div>

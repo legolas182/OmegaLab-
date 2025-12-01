@@ -388,9 +388,8 @@ const Pruebas = () => {
         {isAnalista && ideasAsignadas.length > 0 && (
           <button 
             onClick={() => setShowCreateDialog(true)}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
           >
-          <span className="material-symbols-outlined">add</span>
             Nueva Prueba
         </button>
         )}
@@ -580,9 +579,8 @@ const Pruebas = () => {
                           {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
                             <button
                               onClick={() => setShowAddResultadoDialog(true)}
-                              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 flex items-center gap-1.5"
+                              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90"
                             >
-                              <span className="material-symbols-outlined text-sm">add</span>
                               Agregar Resultado
                             </button>
                           )}
@@ -963,9 +961,8 @@ const Pruebas = () => {
                 <button
                   onClick={handleAddResultado}
                   disabled={!nuevoResultado.parametro || !nuevoResultado.resultado}
-                  className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <span className="material-symbols-outlined text-sm">add_circle</span>
                   Agregar Resultado
                 </button>
               </div>
