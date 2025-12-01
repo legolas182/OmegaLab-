@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
-import productService from '../services/productService'
 import materialService from '../services/materialService'
 import ideaService from '../services/ideaService'
 import chemicalDatabaseService from '../services/chemicalDatabaseService'
 
 const IA = () => {
   const { user } = useAuth()
-  
-  // Estados para modo: crear desde MP o modificar producto
-  const [modo, setModo] = useState('materias-primas') // 'materias-primas' o 'producto'
   
   // Estados para crear desde materias primas
   const [materials, setMaterials] = useState([])
@@ -21,10 +17,6 @@ const IA = () => {
   const [showMaterialSelector, setShowMaterialSelector] = useState(false)
   const [materialSearchTerm, setMaterialSearchTerm] = useState('')
   const [materialFilterTipo, setMaterialFilterTipo] = useState('')
-  
-  // Estados para modificar producto (actual)
-  const [products, setProducts] = useState([])
-  const [selectedProduct, setSelectedProduct] = useState(null)
   
   // Estados para búsqueda en BD químicas
   const [showChemicalSearch, setShowChemicalSearch] = useState(false) // Para pestaña dentro del modal
@@ -54,7 +46,6 @@ const IA = () => {
 
   useEffect(() => {
     loadMaterials()
-    loadProducts()
   }, [])
 
   const loadMaterials = async () => {
@@ -66,14 +57,6 @@ const IA = () => {
     }
   }
 
-  const loadProducts = async () => {
-    try {
-      const data = await productService.getProducts({})
-      setProducts(data || [])
-    } catch (error) {
-      console.error('Error cargando productos:', error)
-    }
-  }
 
   const handleSearchChemical = async () => {
     if (!searchQuery.trim()) return
@@ -129,48 +112,9 @@ const IA = () => {
   })
 
   const handleGenerateFormula = async () => {
-    if (modo === 'materias-primas') {
-      // Ya no requerimos que seleccionen materiales - la IA los seleccionará automáticamente
-      if (!objetivo.trim()) {
-        setMessage({ type: 'error', text: 'Debes especificar el objetivo de la fórmula' })
-        return
-      }
-
-      setGenerating(true)
-      setMessage({ type: '', text: '' })
-
-      try {
-        // Si hay materiales seleccionados manualmente, los enviamos
-        // Si no hay ninguno, enviamos array vacío y la IA seleccionará automáticamente
-        const materialIdsToSend = selectedMaterials.length > 0 ? selectedMaterials : []
-        
-        // Filtrar compuestos que tienen ID (los de BD químicas pueden no tener ID hasta que se guarden)
-        const compoundIds = selectedCompounds
-          .map(c => c.id)
-          .filter(id => id != null)
-        
-        const idea = await ideaService.generateFromMaterials(objetivo, materialIdsToSend, compoundIds)
-        setMessage({ type: 'success', text: 'Fórmula generada exitosamente. La IA ha seleccionado automáticamente las materias primas del inventario. Revisa el módulo de Ideas para ver los detalles completos.' })
-      
-        // Limpiar formulario
-        setSelectedMaterials([])
-        setSelectedCompounds([])
-        setObjetivo('')
-        setRendimiento(100)
-      } catch (error) {
-        console.error('Error generando fórmula:', error)
-        setMessage({ type: 'error', text: error.message || 'Error al generar fórmula' })
-      } finally {
-        setGenerating(false)
-      }
-    } else {
-      // Modo modificar producto (código actual)
-    if (!selectedProduct) {
-      setMessage({ type: 'error', text: 'Debes seleccionar un producto del inventario' })
-      return
-    }
+    // Ya no requerimos que seleccionen materiales - la IA los seleccionará automáticamente
     if (!objetivo.trim()) {
-        setMessage({ type: 'error', text: 'Debes especificar qué quieres lograr' })
+      setMessage({ type: 'error', text: 'Debes especificar el objetivo de la fórmula' })
       return
     }
 
@@ -178,16 +122,28 @@ const IA = () => {
     setMessage({ type: '', text: '' })
 
     try {
-        const idea = await ideaService.generateFromProduct(selectedProduct.id, objetivo)
-        setMessage({ type: 'success', text: 'Idea generada exitosamente con IA. Revisa el módulo de Ideas para ver los detalles completos.' })
-      setSelectedProduct(null)
+      // Si hay materiales seleccionados manualmente, los enviamos
+      // Si no hay ninguno, enviamos array vacío y la IA seleccionará automáticamente
+      const materialIdsToSend = selectedMaterials.length > 0 ? selectedMaterials : []
+      
+      // Filtrar compuestos que tienen ID (los de BD químicas pueden no tener ID hasta que se guarden)
+      const compoundIds = selectedCompounds
+        .map(c => c.id)
+        .filter(id => id != null)
+      
+      const idea = await ideaService.generateFromMaterials(objetivo, materialIdsToSend, compoundIds)
+      setMessage({ type: 'success', text: 'Fórmula generada exitosamente. La IA ha seleccionado automáticamente las materias primas del inventario. Revisa el módulo de Ideas para ver los detalles completos.' })
+    
+      // Limpiar formulario
+      setSelectedMaterials([])
+      setSelectedCompounds([])
       setObjetivo('')
+      setRendimiento(100)
     } catch (error) {
-      console.error('Error generando ideas:', error)
-        setMessage({ type: 'error', text: error.message || 'Error al generar ideas' })
+      console.error('Error generando fórmula:', error)
+      setMessage({ type: 'error', text: error.message || 'Error al generar fórmula' })
     } finally {
       setGenerating(false)
-      }
     }
   }
 
@@ -209,35 +165,8 @@ const IA = () => {
         </div>
       )}
 
-      {/* Selector de Modo */}
-      <div className="mb-6 flex gap-4">
-        <button
-          onClick={() => setModo('materias-primas')}
-          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors ${
-            modo === 'materias-primas'
-              ? 'bg-primary text-white'
-              : 'bg-card-dark border border-border-dark text-text-light hover:bg-border-dark'
-          }`}
-        >
-          <span className="material-symbols-outlined align-middle mr-2">science</span>
-          Crear Fórmula Experimental
-        </button>
-        <button
-          onClick={() => setModo('producto')}
-          className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors ${
-            modo === 'producto'
-              ? 'bg-primary text-white'
-              : 'bg-card-dark border border-border-dark text-text-light hover:bg-border-dark'
-          }`}
-        >
-          <span className="material-symbols-outlined align-middle mr-2">edit</span>
-          Modificar Producto Existente
-        </button>
-      </div>
-
-      {modo === 'materias-primas' ? (
-        /* MODO: Crear Fórmula Experimental */
-        <div className="space-y-6">
+      {/* Formulación Experimental */}
+      <div className="space-y-6">
           {/* Información de la Fórmula */}
           <div className="rounded-lg bg-card-dark border border-border-dark p-6">
             <h2 className="text-text-light text-xl font-semibold mb-4 flex items-center gap-2">
@@ -323,73 +252,6 @@ const IA = () => {
             </div>
           </div>
         </div>
-      ) : (
-        /* MODO: Modificar Producto Existente */
-        <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-        <h2 className="text-text-light text-xl font-semibold mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined">auto_awesome</span>
-            Modificar Producto Existente
-        </h2>
-        <p className="text-text-muted text-sm mb-6">
-          Selecciona un producto del inventario y especifica qué quieres lograr. 
-          La IA analizará el producto completo (incluyendo su BOM) y generará nuevas fórmulas sugeridas.
-        </p>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-text-light text-sm font-medium mb-2">
-              Seleccionar Producto del Inventario
-            </label>
-            <select
-              value={selectedProduct?.id || ''}
-              onChange={(e) => {
-                const product = products.find(p => p.id === parseInt(e.target.value))
-                setSelectedProduct(product || null)
-              }}
-              className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="">-- Selecciona un producto --</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.codigo} - {product.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-text-light text-sm font-medium mb-2">
-              ¿Qué quieres lograr? <span className="text-text-muted">(Objetivo)</span>
-            </label>
-            <textarea
-              value={objetivo}
-              onChange={(e) => setObjetivo(e.target.value)}
-              rows={3}
-                placeholder='Ejemplo: "quiero crear una proteína para diabéticos"'
-              className="w-full px-4 py-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-
-          <button
-              onClick={handleGenerateFormula}
-            disabled={generating || !selectedProduct || !objetivo.trim()}
-            className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {generating ? (
-              <>
-                <span className="material-symbols-outlined animate-spin">sync</span>
-                Analizando producto y generando ideas...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined">psychology</span>
-                Generar Ideas con IA
-              </>
-            )}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Modal de Selección de Materias Primas e Inventario */}
       {showMaterialSelector && (
