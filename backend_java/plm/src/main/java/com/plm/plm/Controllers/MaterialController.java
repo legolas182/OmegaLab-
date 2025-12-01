@@ -1,6 +1,7 @@
 package com.plm.plm.Controllers;
 
 import com.plm.plm.dto.MaterialDTO;
+import com.plm.plm.dto.MaterialCompoundDTO;
 import com.plm.plm.services.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,6 +80,17 @@ public class MaterialController {
         Map<String, Object> response = new HashMap<>();
         Map<String, String> data = new HashMap<>();
         data.put("message", "Material eliminado correctamente");
+        response.put("data", data);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/compounds")
+    public ResponseEntity<Map<String, Object>> getMaterialCompounds(
+            @PathVariable Integer id) {
+        List<MaterialCompoundDTO> compounds = materialService.getMaterialCompounds(id);
+        Map<String, Object> response = new HashMap<>();
+        Map<String, List<MaterialCompoundDTO>> data = new HashMap<>();
+        data.put("compounds", compounds);
         response.put("data", data);
         return ResponseEntity.ok(response);
     }

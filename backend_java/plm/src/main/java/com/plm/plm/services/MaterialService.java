@@ -1,6 +1,7 @@
 package com.plm.plm.services;
 
 import com.plm.plm.dto.MaterialDTO;
+import com.plm.plm.dto.MaterialCompoundDTO;
 
 import java.util.List;
 
@@ -12,5 +13,6 @@ public interface MaterialService {
     MaterialDTO updateMaterial(Integer id, MaterialDTO materialDTO);
     void deleteMaterial(Integer id);
     List<MaterialDTO> searchMaterials(String search);
+    List<MaterialCompoundDTO> getMaterialCompounds(Integer materialId);
 }
 

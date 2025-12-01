@@ -6,9 +6,12 @@ import com.plm.plm.Config.exception.ResourceNotFoundException;
 import com.plm.plm.Enums.EstadoUsuario;
 import com.plm.plm.Models.Category;
 import com.plm.plm.Models.Material;
+import com.plm.plm.Models.MaterialCompound;
 import com.plm.plm.Reposotory.CategoryRepository;
+import com.plm.plm.Reposotory.MaterialCompoundRepository;
 import com.plm.plm.Reposotory.MaterialRepository;
 import com.plm.plm.dto.MaterialDTO;
+import com.plm.plm.dto.MaterialCompoundDTO;
 import com.plm.plm.services.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,9 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private MaterialCompoundRepository materialCompoundRepository;
 
     @Override
     @Transactional
@@ -124,6 +130,21 @@ public class MaterialServiceImpl implements MaterialService {
                 search.trim(), EstadoUsuario.ACTIVO)
                 .stream()
                 .map(Material::getDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MaterialCompoundDTO> getMaterialCompounds(Integer materialId) {
+        // Verificar que el material existe
+        materialRepository.findById(materialId)
+                .orElseThrow(() -> new ResourceNotFoundException("Material no encontrado"));
+        
+        // Obtener todos los compuestos del material
+        List<MaterialCompound> compounds = materialCompoundRepository.findByMaterialId(materialId);
+        
+        return compounds.stream()
+                .map(MaterialCompound::getDTO)
                 .collect(Collectors.toList());
     }
 

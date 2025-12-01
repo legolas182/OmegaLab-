@@ -11,6 +11,7 @@ const Categorias = () => {
   const [editingCategory, setEditingCategory] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [filterTipoProducto, setFilterTipoProducto] = useState('')
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -27,13 +28,14 @@ const Categorias = () => {
 
   useEffect(() => {
     loadCategories()
-  }, [searchTerm])
+  }, [searchTerm, filterTipoProducto])
 
   const loadCategories = async () => {
     try {
       setLoading(true)
       const filters = { all: true } // Obtener todas las categorías (activas e inactivas) para administración
       if (searchTerm) filters.search = searchTerm
+      if (filterTipoProducto) filters.tipoProducto = filterTipoProducto
       const data = await categoryService.getCategories(filters)
       setCategories(data)
     } catch (err) {
@@ -166,14 +168,24 @@ const Categorias = () => {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex-1 min-w-[200px] flex items-center gap-3">
+        <div className="flex-1 min-w-[200px] flex flex-wrap items-center gap-3">
           <input
             type="text"
             placeholder="Buscar categorías..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="flex-1 min-w-[200px] h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
           />
+          <select
+            value={filterTipoProducto}
+            onChange={(e) => setFilterTipoProducto(e.target.value)}
+            className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="PRODUCTO_TERMINADO">Producto Terminado</option>
+            <option value="MATERIA_PRIMA">Materia Prima</option>
+            <option value="COMPONENTE">Componente</option>
+          </select>
           <label className="flex items-center gap-2 text-text-light text-sm cursor-pointer whitespace-nowrap">
             <input
               type="checkbox"
@@ -313,6 +325,9 @@ const Categorias = () => {
                   className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
                   placeholder="Nombre de la categoría"
                 />
+                <p className="text-text-muted text-xs mt-1">
+                  Nota: Puedes usar el mismo nombre para diferentes tipos de producto (ej: "Saborizantes" como Materia Prima y como Componente)
+                </p>
               </div>
               <div>
                 <label className="block text-text-light text-sm font-medium mb-2">Descripción</label>

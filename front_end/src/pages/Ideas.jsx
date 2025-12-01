@@ -745,6 +745,54 @@ const Ideas = () => {
                                       </div>
                                     )}
                                   </div>
+                                  {/* Fórmula Molecular */}
+                                  {ingrediente.formulaMolecular && (
+                                    <div className="mt-2 pt-2 border-t border-border-dark">
+                                      <p className="text-text-muted text-xs mb-1">Fórmula Molecular:</p>
+                                      <p className="text-text-light text-sm font-mono">{ingrediente.formulaMolecular}</p>
+                                      {ingrediente.pesoMolecular && (
+                                        <p className="text-text-muted text-xs mt-1">Peso Molecular: {ingrediente.pesoMolecular} g/mol</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {/* Especificaciones Técnicas */}
+                                  {ingrediente.especificacionesTecnicas && (
+                                    <div className="mt-2 pt-2 border-t border-border-dark">
+                                      <p className="text-text-muted text-xs mb-2">Especificaciones Técnicas:</p>
+                                      <div className="space-y-1 text-xs">
+                                        {ingrediente.especificacionesTecnicas.requiereSDS && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-xs text-primary">description</span>
+                                            <span className="text-text-light">Requiere SDS (Safety Data Sheet)</span>
+                                          </div>
+                                        )}
+                                        {ingrediente.especificacionesTecnicas.requiereCOA && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-xs text-primary">verified</span>
+                                            <span className="text-text-light">Requiere COA (Certificate of Analysis)</span>
+                                          </div>
+                                        )}
+                                        {ingrediente.especificacionesTecnicas.purezaMinima && (
+                                          <div>
+                                            <span className="text-text-muted">Pureza Mínima: </span>
+                                            <span className="text-text-light font-medium">{ingrediente.especificacionesTecnicas.purezaMinima}</span>
+                                          </div>
+                                        )}
+                                        {ingrediente.especificacionesTecnicas.humedadMaxima && (
+                                          <div>
+                                            <span className="text-text-muted">Humedad Máxima: </span>
+                                            <span className="text-text-light font-medium">{ingrediente.especificacionesTecnicas.humedadMaxima}</span>
+                                          </div>
+                                        )}
+                                        {ingrediente.especificacionesTecnicas.condicionesAlmacenamiento && (
+                                          <div>
+                                            <span className="text-text-muted">Almacenamiento: </span>
+                                            <span className="text-text-light">{ingrediente.especificacionesTecnicas.condicionesAlmacenamiento}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                   {/* Contenido nutricional del ingrediente */}
                                   {(ingrediente.contenidoProteina !== undefined || ingrediente.contenidoCarbohidratos !== undefined || ingrediente.contenidoGrasas !== undefined) && (
                                     <div className="mt-2 pt-2 border-t border-border-dark">
@@ -797,7 +845,39 @@ const Ideas = () => {
                               <span className="material-symbols-outlined text-sm">nutrition</span>
                               Perfil Nutricional
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* Por Batch */}
+                              {aiDetails.perfilNutricional.porBatch && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Por Batch Completo</h5>
+                                  <div className="space-y-1 text-sm">
+                                    {aiDetails.perfilNutricional.porBatch.proteina !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Proteína:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.proteina} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porBatch.carbohidratos !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Carbohidratos:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.carbohidratos} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porBatch.grasas !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Grasas:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.grasas} g</span>
+                                      </div>
+                                    )}
+                                    {aiDetails.perfilNutricional.porBatch.calorias !== undefined && (
+                                      <div className="flex justify-between">
+                                        <span className="text-text-muted">Calorías:</span>
+                                        <span className="text-text-light font-medium">{aiDetails.perfilNutricional.porBatch.calorias} kcal</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                               {/* Por 100g */}
                               {aiDetails.perfilNutricional.por100g && (
                                 <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
@@ -864,6 +944,21 @@ const Ideas = () => {
                                   </div>
                                 </div>
                               )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Fórmula Química General */}
+                        {aiDetails.formulaQuimicaGeneral && (
+                          <div className="p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">science</span>
+                              Fórmula Química General
+                            </h4>
+                            <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                              <p className="text-text-light text-sm leading-relaxed whitespace-pre-line font-mono">
+                                {aiDetails.formulaQuimicaGeneral.replace(/\\n/g, '\n')}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -955,6 +1050,242 @@ const Ideas = () => {
                                 <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
                                   <p className="text-text-muted text-xs mb-1">Biodisponibilidad</p>
                                   <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.biodisponibilidad}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Protocolo de Análisis Completo */}
+                        {aiDetails.protocoloAnalisis && (
+                          <div className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">biotech</span>
+                              Protocolo de Análisis Completo
+                            </h4>
+                            <div className="space-y-4">
+                              {/* Pruebas Físicas */}
+                              {aiDetails.protocoloAnalisis.pruebasFisicas && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">straighten</span>
+                                    Pruebas Físicas
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {aiDetails.protocoloAnalisis.pruebasFisicas.apariencia && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Apariencia:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasFisicas.apariencia}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasFisicas.olor && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Olor:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasFisicas.olor}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasFisicas.solubilidad && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Solubilidad:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasFisicas.solubilidad}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasFisicas.humedad && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Humedad:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasFisicas.humedad}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasFisicas.densidadAparente && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Densidad Aparente:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasFisicas.densidadAparente}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Pruebas Químicas */}
+                              {aiDetails.protocoloAnalisis.pruebasQuimicas && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">science</span>
+                                    Pruebas Químicas
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.proteina && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Proteína:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.proteina}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.grasa && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Grasa:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.grasa}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.carbohidratos && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Carbohidratos:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.carbohidratos}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.creatina && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Creatina:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.creatina}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.perfilAminoacidos && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Perfil de Aminoácidos:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.perfilAminoacidos}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.metalesPesados && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Metales Pesados:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.metalesPesados}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.pH && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">pH:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.pH}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasQuimicas.cenizas && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Cenizas:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasQuimicas.cenizas}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Pruebas Microbiológicas */}
+                              {aiDetails.protocoloAnalisis.pruebasMicrobiologicas && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">bug_report</span>
+                                    Pruebas Microbiológicas
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {aiDetails.protocoloAnalisis.pruebasMicrobiologicas.bacteriasAerobias && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Bacterias Aerobias:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasMicrobiologicas.bacteriasAerobias}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasMicrobiologicas.mohosLevaduras && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Mohos y Levaduras:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasMicrobiologicas.mohosLevaduras}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasMicrobiologicas.eColi && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">E. coli:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasMicrobiologicas.eColi}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasMicrobiologicas.salmonella && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Salmonella:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasMicrobiologicas.salmonella}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.pruebasMicrobiologicas.coliformes && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Coliformes:</span>
+                                        <p className="text-text-light">{aiDetails.protocoloAnalisis.pruebasMicrobiologicas.coliformes}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Directrices para el Analista */}
+                              {aiDetails.protocoloAnalisis.directricesAnalista && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">person</span>
+                                    Directrices para el Analista
+                                  </h5>
+                                  <div className="space-y-2 text-sm">
+                                    {aiDetails.protocoloAnalisis.directricesAnalista.preparacionMuestras && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Preparación de Muestras:</span>
+                                        <p className="text-text-light whitespace-pre-line">{aiDetails.protocoloAnalisis.directricesAnalista.preparacionMuestras.replace(/\\n/g, '\n')}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.directricesAnalista.calibracionEquipos && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Calibración de Equipos:</span>
+                                        <p className="text-text-light whitespace-pre-line">{aiDetails.protocoloAnalisis.directricesAnalista.calibracionEquipos.replace(/\\n/g, '\n')}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.directricesAnalista.controlCalidad && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Control de Calidad:</span>
+                                        <p className="text-text-light whitespace-pre-line">{aiDetails.protocoloAnalisis.directricesAnalista.controlCalidad.replace(/\\n/g, '\n')}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.directricesAnalista.interpretacionResultados && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Interpretación de Resultados:</span>
+                                        <p className="text-text-light whitespace-pre-line">{aiDetails.protocoloAnalisis.directricesAnalista.interpretacionResultados.replace(/\\n/g, '\n')}</p>
+                                      </div>
+                                    )}
+                                    {aiDetails.protocoloAnalisis.directricesAnalista.documentacion && (
+                                      <div>
+                                        <span className="text-text-muted text-xs">Documentación:</span>
+                                        <p className="text-text-light whitespace-pre-line">{aiDetails.protocoloAnalisis.directricesAnalista.documentacion.replace(/\\n/g, '\n')}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Recomendaciones Adicionales */}
+                        {aiDetails.recomendacionesAdicionales && (
+                          <div className="p-4 rounded-lg bg-lime-500/10 border border-lime-500/20">
+                            <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">recommend</span>
+                              Recomendaciones Adicionales
+                            </h4>
+                            <div className="space-y-3">
+                              {aiDetails.recomendacionesAdicionales.bcaasHmb && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">BCAAs y HMB</h5>
+                                  <p className="text-text-light text-sm whitespace-pre-line">{aiDetails.recomendacionesAdicionales.bcaasHmb.replace(/\\n/g, '\n')}</p>
+                                </div>
+                              )}
+                              {aiDetails.recomendacionesAdicionales.carbohidratos && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Carbohidratos</h5>
+                                  <p className="text-text-light text-sm whitespace-pre-line">{aiDetails.recomendacionesAdicionales.carbohidratos.replace(/\\n/g, '\n')}</p>
+                                </div>
+                              )}
+                              {aiDetails.recomendacionesAdicionales.vitaminasMinerales && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Vitaminas y Minerales</h5>
+                                  <p className="text-text-light text-sm whitespace-pre-line">{aiDetails.recomendacionesAdicionales.vitaminasMinerales.replace(/\\n/g, '\n')}</p>
+                                </div>
+                              )}
+                              {aiDetails.recomendacionesAdicionales.optimizacion && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Optimización</h5>
+                                  <p className="text-text-light text-sm whitespace-pre-line">{aiDetails.recomendacionesAdicionales.optimizacion.replace(/\\n/g, '\n')}</p>
+                                </div>
+                              )}
+                              {aiDetails.recomendacionesAdicionales.consideracionesRegulatorias && (
+                                <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
+                                  <h5 className="text-text-light font-medium mb-2">Consideraciones Regulatorias</h5>
+                                  <p className="text-text-light text-sm whitespace-pre-line">{aiDetails.recomendacionesAdicionales.consideracionesRegulatorias.replace(/\\n/g, '\n')}</p>
                                 </div>
                               )}
                             </div>

@@ -11,6 +11,11 @@ const MateriaPrima = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
   const [categories, setCategories] = useState([])
+  const [selectedMaterial, setSelectedMaterial] = useState(null)
+  const [materialCompounds, setMaterialCompounds] = useState([])
+  const [loadingCompounds, setLoadingCompounds] = useState(false)
+  const [showCompoundsModal, setShowCompoundsModal] = useState(false)
+  const [compoundsCount, setCompoundsCount] = useState({}) // { materialId: count }
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -41,6 +46,18 @@ const MateriaPrima = () => {
       if (filterTipo) filters.tipo = filterTipo
       const data = await materialService.getMaterials(filters)
       setMaterials(data)
+      
+      // Cargar conteo de compuestos para cada material
+      const counts = {}
+      for (const material of data) {
+        try {
+          const compounds = await materialService.getMaterialCompounds(material.id)
+          counts[material.id] = compounds.length
+        } catch (err) {
+          counts[material.id] = 0
+        }
+      }
+      setCompoundsCount(counts)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -120,6 +137,21 @@ const MateriaPrima = () => {
     })
   }
 
+  const handleViewCompounds = async (material) => {
+    setSelectedMaterial(material)
+    setShowCompoundsModal(true)
+    setLoadingCompounds(true)
+    try {
+      const compounds = await materialService.getMaterialCompounds(material.id)
+      setMaterialCompounds(compounds)
+    } catch (err) {
+      setError('Error al cargar compuestos moleculares: ' + err.message)
+      setMaterialCompounds([])
+    } finally {
+      setLoadingCompounds(false)
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -187,7 +219,17 @@ const MateriaPrima = () => {
                   materials.map((material) => (
                     <tr key={material.id} className="border-b border-border-dark hover:bg-border-dark/30">
                       <td className="p-4 text-text-light font-medium">{material.codigo}</td>
-                      <td className="p-4 text-text-light">{material.nombre}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-text-light">{material.nombre}</span>
+                          {compoundsCount[material.id] > 0 && (
+                            <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400 flex items-center gap-1" title={`${compoundsCount[material.id]} compuesto(s) molecular(es)`}>
+                              <span className="material-symbols-outlined text-xs">science</span>
+                              {compoundsCount[material.id]}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-4">
                         <span className="px-2 py-1 rounded text-xs bg-primary/20 text-primary">
                           {material.tipo}
@@ -205,12 +247,22 @@ const MateriaPrima = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => handleDeleteMaterial(material.id)}
-                          className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
-                        >
-                          Eliminar
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleViewCompounds(material)}
+                            className="px-3 py-1 rounded text-sm text-primary hover:bg-primary/10 flex items-center gap-1"
+                            title="Ver compuestos moleculares"
+                          >
+                            <span className="material-symbols-outlined text-sm">science</span>
+                            Compuestos
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMaterial(material.id)}
+                            className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -340,6 +392,86 @@ const MateriaPrima = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Compuestos Moleculares */}
+      {showCompoundsModal && selectedMaterial && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card-dark rounded-lg border border-border-dark max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-border-dark flex items-center justify-between sticky top-0 bg-card-dark">
+              <div>
+                <h2 className="text-text-light text-xl font-semibold">Compuestos Moleculares</h2>
+                <p className="text-text-muted text-sm mt-1">{selectedMaterial.nombre} ({selectedMaterial.codigo})</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCompoundsModal(false)
+                  setSelectedMaterial(null)
+                  setMaterialCompounds([])
+                }}
+                className="text-text-muted hover:text-text-light"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-6">
+              {loadingCompounds ? (
+                <div className="text-center py-12 text-text-muted">Cargando compuestos...</div>
+              ) : materialCompounds.length === 0 ? (
+                <div className="text-center py-12 rounded-lg bg-input-dark border border-border-dark">
+                  <span className="material-symbols-outlined text-4xl text-text-muted mb-2">science</span>
+                  <p className="text-text-muted text-sm">No hay compuestos moleculares registrados para este material</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {materialCompounds.map((compound) => (
+                    <div
+                      key={compound.id}
+                      className="p-4 rounded-lg bg-input-dark border border-border-dark hover:border-primary/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-text-light font-semibold text-lg mb-2">{compound.nombreCompuesto}</h3>
+                          {compound.tipoCompuesto && (
+                            <span className="inline-block px-2 py-1 rounded bg-primary/20 text-primary text-xs mb-2">
+                              {compound.tipoCompuesto}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                        {compound.formulaMolecular && (
+                          <div>
+                            <p className="text-text-muted text-xs mb-1">Fórmula Molecular</p>
+                            <p className="text-text-light font-mono text-sm">{compound.formulaMolecular}</p>
+                          </div>
+                        )}
+                        {compound.pesoMolecular && (
+                          <div>
+                            <p className="text-text-muted text-xs mb-1">Peso Molecular</p>
+                            <p className="text-text-light text-sm">{compound.pesoMolecular} g/mol</p>
+                          </div>
+                        )}
+                        {compound.porcentajeConcentracion && (
+                          <div>
+                            <p className="text-text-muted text-xs mb-1">Concentración</p>
+                            <p className="text-text-light text-sm">{compound.porcentajeConcentracion}%</p>
+                          </div>
+                        )}
+                      </div>
+                      {compound.descripcion && (
+                        <div className="mt-3 pt-3 border-t border-border-dark">
+                          <p className="text-text-muted text-xs mb-1">Descripción</p>
+                          <p className="text-text-light text-sm">{compound.descripcion}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
