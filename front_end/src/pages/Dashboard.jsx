@@ -65,12 +65,12 @@ const Dashboard = () => {
 
       {/* Contenido del Dashboard - Listo para llenar con datos reales */}
       <div className="rounded-lg bg-card-dark border border-border-dark p-12">
-        <div className="text-center">
+                    <div className="text-center">
           <span className="material-symbols-outlined text-6xl text-text-muted mb-4">dashboard</span>
           <p className="text-text-light text-lg font-semibold mb-2">Dashboard en construcción</p>
           <p className="text-text-muted text-sm">Este espacio está listo para mostrar datos reales del sistema.</p>
-        </div>
-      </div>
+                </div>
+              </div>
     </div>
   )
 }

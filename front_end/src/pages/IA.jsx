@@ -165,23 +165,23 @@ const IA = () => {
       }
     } else {
       // Modo modificar producto (código actual)
-      if (!selectedProduct) {
-        setMessage({ type: 'error', text: 'Debes seleccionar un producto del inventario' })
-        return
-      }
-      if (!objetivo.trim()) {
+    if (!selectedProduct) {
+      setMessage({ type: 'error', text: 'Debes seleccionar un producto del inventario' })
+      return
+    }
+    if (!objetivo.trim()) {
         setMessage({ type: 'error', text: 'Debes especificar qué quieres lograr' })
-        return
-      }
+      return
+    }
 
-      setGenerating(true)
-        setMessage({ type: '', text: '' })
+    setGenerating(true)
+    setMessage({ type: '', text: '' })
 
-      try {
+    try {
         const idea = await ideaService.generateFromProduct(selectedProduct.id, objetivo)
         setMessage({ type: 'success', text: 'Idea generada exitosamente con IA. Revisa el módulo de Ideas para ver los detalles completos.' })
-        setSelectedProduct(null)
-        setObjetivo('')
+      setSelectedProduct(null)
+      setObjetivo('')
     } catch (error) {
       console.error('Error generando ideas:', error)
         setMessage({ type: 'error', text: error.message || 'Error al generar ideas' })
@@ -436,12 +436,12 @@ const IA = () => {
                 >
                   <span className="material-symbols-outlined align-middle mr-2 text-sm">science</span>
                   Bases de Datos Químicas
-                </button>
-              </div>
+          </button>
+        </div>
 
               {!showChemicalSearch ? (
                 /* Pestaña: Inventario */
-                <div>
+              <div>
                   {/* Búsqueda y Filtros */}
                   <div className="mb-4 space-y-3">
                     <div className="flex gap-3">
@@ -470,9 +470,9 @@ const IA = () => {
                       </p>
                       <p className="text-primary font-medium">
                         {selectedMaterials.length} seleccionada{selectedMaterials.length !== 1 ? 's' : ''}
-                      </p>
+                </p>
+              </div>
             </div>
-          </div>
 
                   {/* Checklist de Materias Primas */}
                   <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -518,9 +518,9 @@ const IA = () => {
                     <div className="text-center py-12">
                       <span className="material-symbols-outlined text-4xl text-text-muted mb-2">search_off</span>
                       <p className="text-text-muted text-sm">No se encontraron materias primas</p>
-                    </div>
-                  )}
-                </div>
+          </div>
+        )}
+      </div>
               ) : (
                 /* Pestaña: Bases de Datos Químicas */
         <div>
@@ -539,7 +539,7 @@ const IA = () => {
                         {source === 'all' ? 'Todas' : source}
                       </button>
                     ))}
-                  </div>
+        </div>
 
                   {/* Tipo de Búsqueda */}
                   <div className="mb-4">
@@ -554,7 +554,7 @@ const IA = () => {
                       <option value="SMILES">Por SMILES</option>
                       <option value="CAS">Por Número CAS</option>
                     </select>
-                  </div>
+      </div>
 
                   {/* Campo de Búsqueda */}
                   <div className="flex gap-2 mb-4">
@@ -573,7 +573,7 @@ const IA = () => {
                     >
                       <span className="material-symbols-outlined">search</span>
                       {searching ? 'Buscando...' : 'Buscar'}
-                    </button>
+            </button>
                   </div>
 
                   {/* Resultados */}
@@ -609,8 +609,8 @@ const IA = () => {
                                 className="px-3 py-1 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
                               >
                                 Agregar
-                              </button>
-                            </div>
+            </button>
+          </div>
         </div>
       </div>
                       ))}
@@ -653,10 +653,10 @@ const IA = () => {
                             ) : null
                           })}
                         </div>
-                      </div>
+            </div>
                     )}
                     {selectedCompounds.length > 0 && (
-                      <div>
+            <div>
                         <p className="text-text-muted text-xs mb-2">
                           Compuestos BD Químicas ({selectedCompounds.length})
                         </p>
@@ -665,9 +665,9 @@ const IA = () => {
                             <span key={compound.id || idx} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs">
                               {compound.name}
                             </span>
-                          ))}
-                        </div>
-                      </div>
+                ))}
+              </div>
+            </div>
                     )}
                   </div>
                 </div>
@@ -690,8 +690,8 @@ const IA = () => {
                 >
                   Confirmar Selección
             </button>
-              </div>
-            </div>
+          </div>
+        </div>
           </div>
         </div>
       )}
@@ -716,21 +716,21 @@ const IA = () => {
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
-              </div>
+      </div>
 
               <div className="space-y-4">
                 {selectedCompound.formula && (
-                  <div>
+                <div>
                     <span className="text-text-muted text-sm">Fórmula Molecular:</span>
                     <p className="text-text-light font-medium">{selectedCompound.formula}</p>
-                  </div>
+                </div>
                 )}
 
                 {selectedCompound.molecularWeight && (
                 <div>
                     <span className="text-text-muted text-sm">Peso Molecular:</span>
                     <p className="text-text-light font-medium">{selectedCompound.molecularWeight} g/mol</p>
-                </div>
+              </div>
                 )}
 
                 {selectedCompound.logP !== null && selectedCompound.logP !== undefined && (
@@ -751,7 +751,7 @@ const IA = () => {
                 <div>
                     <span className="text-text-muted text-sm">Bioactividad:</span>
                     <p className="text-text-light font-medium">{selectedCompound.bioactivity}</p>
-                  </div>
+                </div>
                 )}
 
                 <div className="flex gap-3 pt-4 border-t border-border-dark">
@@ -773,8 +773,8 @@ const IA = () => {
                 </div>
               </div>
             </div>
-          </div>
         </div>
+      </div>
       )}
     </div>
   )

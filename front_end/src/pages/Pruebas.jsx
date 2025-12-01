@@ -12,7 +12,6 @@ const Pruebas = () => {
   const [loadingPruebas, setLoadingPruebas] = useState(false)
   const [selectedPrueba, setSelectedPrueba] = useState(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showAddResultadoDialog, setShowAddResultadoDialog] = useState(false)
   const [ideasAsignadas, setIdeasAsignadas] = useState([])
   const [updatingEstado, setUpdatingEstado] = useState(false)
   
@@ -24,16 +23,6 @@ const Pruebas = () => {
     descripcion: '',
     equiposUtilizados: '',
     pruebasRequeridas: ''
-  })
-
-  // Formulario para nuevo resultado
-  const [nuevoResultado, setNuevoResultado] = useState({
-    parametro: '',
-    especificacion: '',
-    resultado: '',
-    unidad: '',
-    cumpleEspecificacion: true,
-    observaciones: ''
   })
 
   useEffect(() => {
@@ -151,77 +140,89 @@ const Pruebas = () => {
     }
   }
 
-  const handleAddResultado = async () => {
-    if (!selectedPrueba || !nuevoResultado.parametro || !nuevoResultado.resultado) {
-      alert('Por favor completa los campos requeridos (Parámetro y Resultado)')
-      return
+  // Función para agregar resultado de checklist directamente (Sí/No)
+  const handleAgregarResultadoChecklist = async (parametro, especificacion, valor) => {
+    if (!selectedPrueba) return
+    
+    const ahora = new Date()
+    const fechaHora = ahora.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+    
+    const resultadoChecklist = {
+      parametro: parametro,
+      especificacion: especificacion || '',
+      resultado: valor === 'si' ? 'Sí' : 'No',
+      unidad: '',
+      tipoResultado: 'checklist',
+      valorChecklist: valor,
+      cumpleEspecificacion: valor === 'si',
+      observaciones: `Registrado el ${fechaHora}`
     }
-
+    
     try {
-      const pruebaActualizada = await pruebaService.addResultado(selectedPrueba.id, nuevoResultado)
+      const pruebaActualizada = await pruebaService.addResultado(selectedPrueba.id, resultadoChecklist)
       // Recargar la prueba completa para obtener los resultados actualizados
       const pruebaCompleta = await pruebaService.getPruebaById(pruebaActualizada.id)
       setSelectedPrueba(pruebaCompleta)
+      loadPruebas()
       
       // Evaluar automáticamente el estado de la prueba basado en los resultados
-      // Solo cambiar a COMPLETADA si TODAS las pruebas requeridas tienen resultados
-      if (pruebaCompleta.resultados && pruebaCompleta.resultados.length > 0 && pruebaCompleta.pruebasRequeridas) {
-        const pruebasRequeridas = parsePruebasRequeridas(pruebaCompleta.pruebasRequeridas)
-        
-        // Verificar que todas las pruebas requeridas tengan resultados registrados
-        const todasLasPruebasTienenResultados = pruebasRequeridas.every(pruebaReq => {
-          return pruebaCompleta.resultados.some(resultado => {
-            const parametroLower = resultado.parametro.toLowerCase().trim()
-            const pruebaReqLower = pruebaReq.parametro.toLowerCase().trim()
-            return parametroLower.includes(pruebaReqLower) || pruebaReqLower.includes(parametroLower)
-          })
-        })
-        
-        if (todasLasPruebasTienenResultados) {
-          // Todas las pruebas requeridas tienen resultados, ahora evaluar cumplimiento
-          const todosCumplen = pruebaCompleta.resultados.every(r => r.cumpleEspecificacion !== false)
-          const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
-          
-          // Solo cambiar estado si todas las pruebas requeridas están completas
-          if (todosCumplen && pruebaCompleta.estado === 'EN_PROCESO') {
-            await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'COMPLETADA' })
-            const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
-            setSelectedPrueba(pruebaActualizadaEstado)
-            loadPruebas()
-            // El backend sincronizará automáticamente el estado de la idea
-            // Recargar ideas asignadas si es analista para reflejar el cambio de estado
-            if (isAnalista) {
-              loadIdeasAsignadas()
-            }
-          } else if (hayOOS && pruebaCompleta.estado === 'EN_PROCESO') {
-            await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'OOS' })
-            const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
-            setSelectedPrueba(pruebaActualizadaEstado)
-            loadPruebas()
-            // El backend sincronizará automáticamente el estado de la idea
-            // Recargar ideas asignadas si es analista para reflejar el cambio de estado
-            if (isAnalista) {
-              loadIdeasAsignadas()
-            }
-          }
-        }
-        // Si no todas las pruebas requeridas tienen resultados, mantener EN_PROCESO
-      }
-      
-      setShowAddResultadoDialog(false)
-      setNuevoResultado({
-        parametro: '',
-        especificacion: '',
-        resultado: '',
-        unidad: '',
-        cumpleEspecificacion: true,
-        observaciones: ''
-      })
+      await evaluarEstadoPrueba(pruebaCompleta)
     } catch (error) {
-      console.error('Error al agregar resultado:', error)
+      console.error('Error al agregar resultado de checklist:', error)
       alert('Error al agregar resultado: ' + (error.message || 'Error desconocido'))
     }
   }
+
+  // Función auxiliar para evaluar el estado de la prueba
+  const evaluarEstadoPrueba = async (pruebaCompleta) => {
+    if (!pruebaCompleta.resultados || pruebaCompleta.resultados.length === 0 || !pruebaCompleta.pruebasRequeridas) {
+      return
+    }
+    
+    const pruebasRequeridas = parsePruebasRequeridas(pruebaCompleta.pruebasRequeridas)
+    
+    // Verificar que todas las pruebas requeridas tengan resultados registrados
+    const todasLasPruebasTienenResultados = pruebasRequeridas.every(pruebaReq => {
+      return pruebaCompleta.resultados.some(resultado => {
+        const parametroLower = resultado.parametro.toLowerCase().trim()
+        const pruebaReqLower = pruebaReq.parametro.toLowerCase().trim()
+        return parametroLower.includes(pruebaReqLower) || pruebaReqLower.includes(parametroLower)
+      })
+    })
+    
+    if (todasLasPruebasTienenResultados) {
+      // Todas las pruebas requeridas tienen resultados, ahora evaluar cumplimiento
+      const todosCumplen = pruebaCompleta.resultados.every(r => r.cumpleEspecificacion !== false)
+      const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
+      
+      // Solo cambiar estado si todas las pruebas requeridas están completas
+      if (todosCumplen && pruebaCompleta.estado === 'EN_PROCESO') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'COMPLETADA' })
+        const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
+        setSelectedPrueba(pruebaActualizadaEstado)
+        loadPruebas()
+        if (isAnalista) {
+          loadIdeasAsignadas()
+        }
+      } else if (hayOOS && pruebaCompleta.estado === 'EN_PROCESO') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'OOS' })
+        const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
+        setSelectedPrueba(pruebaActualizadaEstado)
+        loadPruebas()
+        if (isAnalista) {
+          loadIdeasAsignadas()
+        }
+      }
+    }
+  }
+
 
   const handleVerDetalle = async (prueba) => {
     try {
@@ -570,22 +571,14 @@ const Pruebas = () => {
               )}
               {selectedPrueba.pruebasRequeridas && (
                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-2 flex-1">
-                      <span className="material-symbols-outlined text-primary text-lg">assignment</span>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
-                          {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
-                            <button
-                              onClick={() => setShowAddResultadoDialog(true)}
-                              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90"
-                            >
-                              Agregar Resultado
-                            </button>
-                          )}
-                        </div>
-                        <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-2 flex-1">
+                            <span className="material-symbols-outlined text-primary text-lg">assignment</span>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
+                              </div>
+                              <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
                         <div className="space-y-2">
                           {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
                             // Verificar si ya se registró un resultado para este parámetro
@@ -615,17 +608,46 @@ const Pruebas = () => {
                                     )}
                                   </div>
                                   {resultadoRegistrado ? (
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                      resultadoRegistrado.cumpleEspecificacion === false
-                                        ? 'bg-danger/20 text-danger'
-                                        : 'bg-success/20 text-success'
-                                    }`}>
-                                      {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-1">
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        resultadoRegistrado.cumpleEspecificacion === false
+                                          ? 'bg-danger/20 text-danger'
+                                          : 'bg-success/20 text-success'
+                                      }`}>
+                                        {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
+                                      </span>
+                                      {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
+                                        <span className="text-text-muted text-xs">
+                                          {resultadoRegistrado.observaciones.replace('Registrado el ', '')}
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : (
-                                    <span className="px-2 py-1 rounded text-xs bg-warning/20 text-warning font-medium">
-                                      Pendiente
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
+                                        <>
+                                          <button
+                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'si')}
+                                            className="px-4 py-2 rounded-lg bg-success text-white text-sm font-medium hover:bg-success/90 transition-colors flex items-center gap-1"
+                                          >
+                                            <span className="material-symbols-outlined text-sm">check_circle</span>
+                                            Sí
+                                          </button>
+                                          <button
+                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'no')}
+                                            className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90 transition-colors flex items-center gap-1"
+                                          >
+                                            <span className="material-symbols-outlined text-sm">cancel</span>
+                                            No
+                                          </button>
+                                        </>
+                                      )}
+                                      {(!isAnalista || selectedPrueba.estado !== 'EN_PROCESO') && (
+                                        <span className="px-2 py-1 rounded text-xs bg-warning/20 text-warning font-medium">
+                                          Pendiente
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                                 
@@ -634,13 +656,35 @@ const Pruebas = () => {
                                   <div className="mt-3 pt-3 border-t border-border-dark">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
-                                        <p className="text-text-light font-semibold text-sm">
-                                          Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span> {resultadoRegistrado.unidad || ''}
-                                        </p>
-                                        {resultadoRegistrado.observaciones && (
-                                          <p className="text-text-muted text-xs mt-1 italic">
-                                            {resultadoRegistrado.observaciones}
-                                          </p>
+                                        {resultadoRegistrado.tipoResultado === 'checklist' ? (
+                                          <div className="flex items-center gap-3">
+                                            <span className={`material-symbols-outlined text-2xl ${
+                                              resultadoRegistrado.cumpleEspecificacion ? 'text-success' : 'text-danger'
+                                            }`}>
+                                              {resultadoRegistrado.cumpleEspecificacion ? 'check_circle' : 'cancel'}
+                                            </span>
+                                            <div>
+                                              <p className="text-text-light font-semibold text-sm">
+                                                Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span>
+                                              </p>
+                                              {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
+                                                <p className="text-text-muted text-xs mt-0.5">
+                                                  {resultadoRegistrado.observaciones}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <p className="text-text-light font-semibold text-sm">
+                                              Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span> {resultadoRegistrado.unidad || ''}
+                                            </p>
+                                            {resultadoRegistrado.observaciones && (
+                                              <p className="text-text-muted text-xs mt-2 italic">
+                                                {resultadoRegistrado.observaciones}
+                                              </p>
+                                            )}
+                                          </>
                                         )}
                                       </div>
                                     </div>
@@ -661,315 +705,6 @@ const Pruebas = () => {
         </div>
       )}
 
-      {/* Diálogo para agregar resultado */}
-      {showAddResultadoDialog && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowAddResultadoDialog(false)
-            }
-          }}
-        >
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-5xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h3 className="text-text-light text-xl font-semibold mb-1">Agregar Resultado Analítico</h3>
-                  <p className="text-text-muted text-sm">Registra los resultados de los análisis de laboratorio para esta prueba</p>
-                </div>
-                <button
-                  onClick={() => setShowAddResultadoDialog(false)}
-                  className="text-text-muted hover:text-text-light transition-colors"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Información de la Prueba */}
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-muted text-xs mb-2">Prueba Asociada</p>
-                  <div className="grid grid-cols-2 gap-4">
-          <div>
-                      <p className="text-text-light font-medium">{selectedPrueba?.codigoMuestra}</p>
-                      <p className="text-text-muted text-xs">{selectedPrueba?.tipoPrueba}</p>
-                    </div>
-                    <div>
-                      <p className="text-text-muted text-xs">Idea #{selectedPrueba?.ideaId}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lista de pruebas requeridas para selección rápida */}
-                {selectedPrueba?.pruebasRequeridas && parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).length > 0 && (
-                  <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                    <p className="text-text-light text-sm font-medium mb-3">Selecciona un parámetro de la lista:</p>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                      {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
-                        const yaRegistrado = selectedPrueba.resultados?.some(r => 
-                          r.parametro.toLowerCase().includes(prueba.parametro.toLowerCase()) ||
-                          prueba.parametro.toLowerCase().includes(r.parametro.toLowerCase())
-                        )
-                        
-                        return (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setNuevoResultado({
-                                ...nuevoResultado,
-                                parametro: prueba.parametro,
-                                especificacion: prueba.especificacion || ''
-                              })
-                            }}
-                            disabled={yaRegistrado}
-                            className={`p-2 rounded-lg border text-left text-sm transition-colors ${
-                              yaRegistrado
-                                ? 'bg-input-dark/50 border-border-dark text-text-muted cursor-not-allowed'
-                                : nuevoResultado.parametro.toLowerCase() === prueba.parametro.toLowerCase()
-                                ? 'bg-primary/20 border-primary/50 text-text-light'
-                                : 'bg-input-dark border-border-dark text-text-light hover:bg-border-dark'
-                            }`}
-                          >
-                            <p className="font-medium">{prueba.parametro}</p>
-                            {prueba.especificacion && (
-                              <p className="text-xs text-text-muted mt-0.5">{prueba.especificacion}</p>
-                            )}
-                            {yaRegistrado && (
-                              <p className="text-xs text-warning mt-1">✓ Ya registrado</p>
-                            )}
-                      </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Campos principales en grid horizontal */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Parámetro Analizado <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.parametro}
-                      onChange={(e) => {
-                        const parametro = e.target.value
-                        const detectado = detectarParametro(parametro)
-                        setNuevoResultado({ 
-                          ...nuevoResultado, 
-                          parametro,
-                          especificacion: detectado?.especificacion || nuevoResultado.especificacion
-                        })
-                      }}
-                      placeholder="Ej: pH, Humedad, Proteína, Grasa, Cenizas"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Nombre del parámetro que se está analizando</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Especificación
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.especificacion}
-                      onChange={(e) => {
-                        const especificacion = e.target.value
-                        setNuevoResultado({ ...nuevoResultado, especificacion })
-                        // Re-evaluar cumplimiento si hay resultado
-                        if (nuevoResultado.resultado) {
-                          const cumple = evaluarCumplimiento(nuevoResultado.resultado, especificacion)
-                          if (cumple !== null) {
-                            setNuevoResultado(prev => ({ ...prev, especificacion, cumpleEspecificacion: cumple }))
-                          }
-                        }
-                      }}
-                      placeholder="Ej: 6.5 - 7.5, ≤ 5%, ≥ 80%"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Rango o límite aceptable según especificaciones</p>
-                  </div>
-                </div>
-
-                {/* Resultado y Unidad en grid horizontal */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Resultado Obtenido <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.resultado}
-                      onChange={(e) => {
-                        const resultado = e.target.value
-                        // Si hay especificación, evaluar automáticamente
-                        let cumpleEspecificacion = nuevoResultado.cumpleEspecificacion
-                        if (nuevoResultado.especificacion && resultado) {
-                          const evaluacion = evaluarCumplimiento(resultado, nuevoResultado.especificacion)
-                          if (evaluacion !== null) {
-                            cumpleEspecificacion = evaluacion
-                          }
-                        }
-                        setNuevoResultado({ ...nuevoResultado, resultado, cumpleEspecificacion })
-                      }}
-                      placeholder="Ej: 7.2, 4.5, 82.3"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Valor numérico o cualitativo obtenido en el análisis</p>
-                    {nuevoResultado.especificacion && nuevoResultado.resultado && evaluarCumplimiento(nuevoResultado.resultado, nuevoResultado.especificacion) !== null && (
-                      <p className={`text-xs mt-1 font-medium ${
-                        nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? '✓ Cumple con la especificación' : '✗ No cumple con la especificación (OOS)'}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Unidad de Medida
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.unidad}
-                      onChange={(e) => setNuevoResultado({ ...nuevoResultado, unidad: e.target.value })}
-                      placeholder="Ej: %, mg/L, g/100g, pH"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Unidad del resultado</p>
-                  </div>
-                </div>
-
-                {/* Estado de cumplimiento - Calculado automáticamente */}
-                {nuevoResultado.especificacion && nuevoResultado.resultado && evaluarCumplimiento(nuevoResultado.resultado, nuevoResultado.especificacion) !== null ? (
-                  <div className={`p-4 rounded-lg border ${
-                    nuevoResultado.cumpleEspecificacion 
-                      ? 'bg-success/10 border-success/30' 
-                      : 'bg-danger/10 border-danger/30'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <span className={`material-symbols-outlined text-xl ${
-                        nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? 'check_circle' : 'error'}
-                      </span>
-                      <div className="flex-1">
-                        <p className={`text-sm font-semibold ${
-                          nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                        }`}>
-                          {nuevoResultado.cumpleEspecificacion ? '✓ Cumple con la especificación' : '✗ No cumple con la especificación (OOS)'}
-                        </p>
-                        <p className="text-text-muted text-xs mt-1">
-                          {nuevoResultado.cumpleEspecificacion 
-                            ? 'El resultado está dentro del rango aceptable según la especificación' 
-                            : 'El resultado está fuera de especificación. Requiere investigación.'}
-                        </p>
-                      </div>
-                    </div>
-                    <label className="flex items-center gap-2 mt-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={nuevoResultado.cumpleEspecificacion}
-                        onChange={(e) => setNuevoResultado({ ...nuevoResultado, cumpleEspecificacion: e.target.checked })}
-                        className="w-4 h-4 rounded border-border-dark bg-card-dark text-primary focus:ring-2 focus:ring-primary/50"
-                      />
-                      <span className="text-text-muted text-xs">Puedes ajustar manualmente si es necesario</span>
-                    </label>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={nuevoResultado.cumpleEspecificacion}
-                        onChange={(e) => setNuevoResultado({ ...nuevoResultado, cumpleEspecificacion: e.target.checked })}
-                        className="w-5 h-5 rounded border-border-dark bg-card-dark text-primary focus:ring-2 focus:ring-primary/50"
-                      />
-                      <div>
-                        <span className="text-text-light text-sm font-medium">Cumple con la especificación</span>
-                        <p className="text-text-muted text-xs mt-0.5">
-                          {nuevoResultado.cumpleEspecificacion 
-                            ? 'El resultado está dentro del rango aceptable' 
-                            : 'El resultado está fuera de especificación (OOS)'}
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {/* Observaciones */}
-                <div>
-                  <label className="block text-text-light text-sm font-medium mb-2">
-                    Observaciones y Notas
-                  </label>
-                  <textarea
-                    value={nuevoResultado.observaciones}
-                    onChange={(e) => setNuevoResultado({ ...nuevoResultado, observaciones: e.target.value })}
-                    placeholder="Agrega observaciones adicionales, condiciones del análisis, desviaciones, metodología utilizada, etc."
-                    rows="4"
-                    className="w-full px-4 py-3 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 resize-none"
-                  />
-                  <p className="text-text-muted text-xs mt-1">Información adicional relevante sobre el resultado del análisis</p>
-                </div>
-
-                {/* Resumen del resultado */}
-                {nuevoResultado.parametro && nuevoResultado.resultado && (
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <p className="text-text-muted text-xs mb-2">Resumen del Resultado:</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-text-light font-medium">
-                        {nuevoResultado.parametro}: {nuevoResultado.resultado} {nuevoResultado.unidad || ''}
-                      </span>
-                      {nuevoResultado.especificacion && (
-                        <span className="text-text-muted text-sm">
-                          (Especificación: {nuevoResultado.especificacion})
-                        </span>
-                      )}
-                      <span className={`ml-auto px-2 py-1 rounded text-xs ${
-                        nuevoResultado.cumpleEspecificacion 
-                          ? 'bg-success/20 text-success' 
-                          : 'bg-danger/20 text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? '✓ Cumple' : '✗ OOS'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-border-dark">
-                <button
-                  onClick={() => {
-                    setShowAddResultadoDialog(false)
-                    setNuevoResultado({
-                      parametro: '',
-                      especificacion: '',
-                      resultado: '',
-                      unidad: '',
-                      cumpleEspecificacion: true,
-                      observaciones: ''
-                    })
-                  }}
-                  className="px-6 py-2.5 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleAddResultado}
-                  disabled={!nuevoResultado.parametro || !nuevoResultado.resultado}
-                  className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Agregar Resultado
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Diálogo para crear nueva prueba */}
       {showCreateDialog && (
