@@ -610,6 +610,30 @@ public class DataInitializer implements CommandLineRunner {
             categoriasMap.put(cat.getNombre(), cat);
         }
 
+        // Cantidades de stock iniciales para productos (en unidades)
+        BigDecimal[] stockProductos = {
+            new BigDecimal("150"),  // BEST WHEY 2.04 LB
+            new BigDecimal("120"),  // BEST WHEY 4 LB
+            new BigDecimal("200"),  // BEST PROTEIN 2.04 LB
+            new BigDecimal("80"),   // BEST VEGAN
+            new BigDecimal("180"),  // SMART 3.25 LB
+            new BigDecimal("100"),  // SMART 6 LB
+            new BigDecimal("60"),   // SMART BOLSA 13.01 LB
+            new BigDecimal("250"),  // LA WEY 1.72 LB
+            new BigDecimal("300"),  // LEGACY 30S CREATINA HCL
+            new BigDecimal("250"),  // LEGACY 50S CREATINA HCL
+            new BigDecimal("200"),  // LEGACY PLUS 50S
+            new BigDecimal("350"),  // LEGEND CON CREAPURE®
+            new BigDecimal("280"),  // LEGEND CON CREAPURE® 50s
+            new BigDecimal("400"),  // EEA'S (ARMY) 30 SERVICIOS
+            new BigDecimal("320"),  // INTENZE 30 SERVICIOS
+            new BigDecimal("150"),  // THE ONE
+            new BigDecimal("500"),  // OMEGA 3
+            new BigDecimal("75"),   // KIT GYMBRO
+            new BigDecimal("60"),   // KIT GYM RAT
+            new BigDecimal("90")    // KIT ESSENTIAL
+        };
+
         for (int i = 0; i < 20; i++) {
             String codigo = "PT-" + String.format("%03d", i + 1);
             // Solo crear si no existe
@@ -623,8 +647,16 @@ public class DataInitializer implements CommandLineRunner {
                     product.setCategoriaEntity(categoriaEntity);
                 }
                 product.setUnidadMedida("un");
+                product.setCantidadStock(stockProductos[i]);
                 product.setEstado(EstadoUsuario.ACTIVO);
                 productsToCreate.add(product);
+            } else {
+                // Si el producto ya existe, actualizar el stock si es 0 o null
+                Product existingProduct = existingProductsMap.get(codigo);
+                if (existingProduct.getCantidadStock() == null || existingProduct.getCantidadStock().compareTo(BigDecimal.ZERO) == 0) {
+                    existingProduct.setCantidadStock(stockProductos[i]);
+                    productRepository.save(existingProduct);
+                }
             }
         }
 
@@ -701,6 +733,35 @@ public class DataInitializer implements CommandLineRunner {
             categoriasMap.put(cat.getNombre(), cat);
         }
 
+        // Cantidades de stock iniciales para materias primas (en kg)
+        BigDecimal[] stockMateriales = {
+            new BigDecimal("500.0"),   // MP-001: Aislado de Suero de Leche (CFM)
+            new BigDecimal("300.0"),   // MP-002: Soja XT
+            new BigDecimal("200.0"),   // MP-003: Huevo Entero Orgánico en Polvo
+            new BigDecimal("150.0"),   // MP-004: Suero Bovino
+            new BigDecimal("400.0"),   // MP-005: Hidrolizado 360
+            new BigDecimal("600.0"),   // MP-006: Creatina P-12
+            new BigDecimal("450.0"),   // MP-007: Proteína de Suero Concentrada (WPC 80%)
+            new BigDecimal("350.0"),   // MP-008: Proteína de Suero Aislada (WPI 90%)
+            new BigDecimal("250.0"),   // MP-009: Caseína Micelar
+            new BigDecimal("280.0"),   // MP-010: Proteína de Guisante
+            new BigDecimal("220.0"),   // MP-011: Proteína de Arroz
+            new BigDecimal("800.0"),   // MP-012: Creatina Monohidrato
+            new BigDecimal("750.0"),   // MP-013: Creatina HCL
+            new BigDecimal("500.0"),   // MP-014: BCAA (2:1:1)
+            new BigDecimal("400.0"),   // MP-015: Aminoácidos Esenciales (EEA)
+            new BigDecimal("600.0"),   // MP-016: L-Glutamina
+            new BigDecimal("550.0"),   // MP-017: Beta Alanina
+            new BigDecimal("300.0"),   // MP-018: Cafeína Anhidra
+            new BigDecimal("250.0"),   // MP-019: Citrulina Malato
+            new BigDecimal("350.0"),   // MP-020: Taurina
+            new BigDecimal("1000.0"),  // MP-021: Dextrosa
+            new BigDecimal("900.0"),   // MP-022: Maltodextrina
+            new BigDecimal("200.0"),   // MP-023: Cacao en Polvo
+            new BigDecimal("150.0"),   // MP-024: Stevia
+            new BigDecimal("180.0")    // MP-025: Sucralosa
+        };
+
         for (int i = 0; i < materiasPrimas.length; i++) {
             String codigo = "MP-" + String.format("%03d", i + 1);
             // Solo crear si no existe
@@ -714,8 +775,16 @@ public class DataInitializer implements CommandLineRunner {
                     material.setCategoriaEntity(categoriaEntity);
                 }
                 material.setUnidadMedida("kg");
+                material.setCantidadStock(i < stockMateriales.length ? stockMateriales[i] : new BigDecimal("100.0"));
                 material.setEstado(EstadoUsuario.ACTIVO);
                 materialsToCreate.add(material);
+            } else {
+                // Si el material ya existe, actualizar el stock si es 0 o null
+                Material existingMaterial = existingMaterialsMap.get(codigo);
+                if (existingMaterial.getCantidadStock() == null || existingMaterial.getCantidadStock().compareTo(BigDecimal.ZERO) == 0) {
+                    existingMaterial.setCantidadStock(i < stockMateriales.length ? stockMateriales[i] : new BigDecimal("100.0"));
+                    materialRepository.save(existingMaterial);
+                }
             }
         }
 

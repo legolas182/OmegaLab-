@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { hasAnyRole } from '../../utils/rolePermissions'
 import productService from '../../services/productService'
 import materialService from '../../services/materialService'
 import categoryService from '../../services/categoryService'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
 const Productos = () => {
+  const { user } = useAuth()
+  const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
+  const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
+  const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [bom, setBom] = useState(null)
@@ -270,12 +276,14 @@ const Productos = () => {
             className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
           />
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
-        >
-          Nuevo Producto
-        </button>
+        {!isSupervisorCalidad && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+          >
+            Nuevo Producto
+          </button>
+        )}
       </div>
 
       {error && (
@@ -306,7 +314,12 @@ const Productos = () => {
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Nombre</th>
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Categoría</th>
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Unidad</th>
-                  <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                  {isSupervisorCalidad && (
+                    <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Cantidad en Stock</th>
+                  )}
+                  {!isSupervisorCalidad && (
+                    <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark">
@@ -321,9 +334,8 @@ const Productos = () => {
                       <span className="text-text-light text-xs font-medium">{product.codigo}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span 
-                        className="text-text-light text-xs cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => setSelectedProduct(product)}
+                      <span className={`text-text-light text-xs ${!isSupervisorCalidad ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                        onClick={!isSupervisorCalidad ? () => setSelectedProduct(product) : undefined}
                       >
                         {product.nombre}
                       </span>
@@ -334,27 +346,38 @@ const Productos = () => {
                     <td className="px-3 py-2.5">
                       <span className="text-text-muted text-xs">{product.unidadMedida || '-'}</span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => {
-                            setSelectedProduct(product)
-                            setShowDetailsModal(true)
-                          }}
-                          className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                          title="Ver detalles"
-                        >
-                          <span className="material-symbols-outlined text-sm">visibility</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
-                          title="Eliminar"
-                        >
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                      </div>
-                    </td>
+                    {isSupervisorCalidad && (
+                      <td className="px-3 py-2.5">
+                        <span className="text-text-light text-xs font-medium">
+                          {product.cantidadStock !== null && product.cantidadStock !== undefined 
+                            ? Math.round(parseFloat(product.cantidadStock))
+                            : '0'}
+                        </span>
+                      </td>
+                    )}
+                    {!isSupervisorCalidad && (
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              setSelectedProduct(product)
+                              setShowDetailsModal(true)
+                            }}
+                            className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            title="Ver detalles"
+                          >
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
+                            title="Eliminar"
+                          >
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -363,8 +386,8 @@ const Productos = () => {
         )}
       </div>
 
-      {/* Modal de Detalles del Producto */}
-      {showDetailsModal && selectedProduct && (
+      {/* Modal de Detalles del Producto - Solo para Admin y Supervisor QA */}
+      {showDetailsModal && selectedProduct && !isSupervisorCalidad && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={(e) => {
@@ -520,7 +543,7 @@ const Productos = () => {
         </div>
       )}
 
-      {showCreateModal && (
+      {showCreateModal && !isSupervisorCalidad && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card-dark rounded-lg border border-border-dark max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border-dark flex items-center justify-between">

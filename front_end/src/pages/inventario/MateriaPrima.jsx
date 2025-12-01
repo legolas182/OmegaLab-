@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { hasAnyRole } from '../../utils/rolePermissions'
 import materialService from '../../services/materialService'
 import categoryService from '../../services/categoryService'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
 const MateriaPrima = () => {
+  const { user } = useAuth()
+  const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
+  const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
+  const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
   const [materials, setMaterials] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -267,12 +273,14 @@ const MateriaPrima = () => {
             <option value="COMPONENTE">Componente</option>
           </select>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
-        >
-          Nuevo Material
-        </button>
+        {!isSupervisorCalidad && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+          >
+            Nuevo Material
+          </button>
+        )}
       </div>
 
       {error && (
@@ -295,14 +303,19 @@ const MateriaPrima = () => {
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo</th>
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Categoría</th>
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Unidad</th>
+                  {isSupervisorCalidad && (
+                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Cantidad en Stock</th>
+                  )}
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                  <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
+                  {!isSupervisorCalidad && (
+                    <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {materials.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="p-8 text-center text-text-muted">
+                    <td colSpan={isSupervisorCalidad ? 7 : 8} className="p-8 text-center text-text-muted">
                       No hay materiales registrados
                     </td>
                   </tr>
@@ -313,7 +326,7 @@ const MateriaPrima = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <span className="text-text-light">{material.nombre}</span>
-                          {compoundsCount[material.id] > 0 && (
+                          {!isSupervisorCalidad && compoundsCount[material.id] > 0 && (
                             <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400 flex items-center gap-1" title={`${compoundsCount[material.id]} compuesto(s) molecular(es)`}>
                               <span className="material-symbols-outlined text-xs">science</span>
                               {compoundsCount[material.id]}
@@ -328,6 +341,15 @@ const MateriaPrima = () => {
                       </td>
                       <td className="p-4 text-text-muted">{getCategoryName(material.categoriaId)}</td>
                       <td className="p-4 text-text-muted">{material.unidadMedida}</td>
+                      {isSupervisorCalidad && (
+                        <td className="p-4">
+                          <span className="text-text-light text-sm font-medium">
+                            {material.cantidadStock !== null && material.cantidadStock !== undefined 
+                              ? Math.round(parseFloat(material.cantidadStock))
+                              : '0'}
+                          </span>
+                        </td>
+                      )}
                       <td className="p-4">
                         <span className={`px-2 py-1 rounded text-xs ${
                           material.estado === 'ACTIVO' 
@@ -337,24 +359,26 @@ const MateriaPrima = () => {
                           {material.estado}
                         </span>
                       </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleViewCompounds(material)}
-                            className="px-3 py-1 rounded text-sm text-primary hover:bg-primary/10 flex items-center gap-1"
-                            title="Ver compuestos moleculares"
-                          >
-                            <span className="material-symbols-outlined text-sm">science</span>
-                            Compuestos
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMaterial(material.id)}
-                            className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
+                      {!isSupervisorCalidad && (
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleViewCompounds(material)}
+                              className="px-3 py-1 rounded text-sm text-primary hover:bg-primary/10 flex items-center gap-1"
+                              title="Ver compuestos moleculares"
+                            >
+                              <span className="material-symbols-outlined text-sm">science</span>
+                              Compuestos
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMaterial(material.id)}
+                              className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -364,7 +388,7 @@ const MateriaPrima = () => {
         </div>
       )}
 
-      {showCreateModal && (
+      {showCreateModal && !isSupervisorCalidad && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card-dark rounded-lg border border-border-dark max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border-dark flex items-center justify-between">
@@ -621,8 +645,8 @@ const MateriaPrima = () => {
         </div>
       )}
 
-      {/* Modal de Compuestos Moleculares */}
-      {showCompoundsModal && selectedMaterial && (
+      {/* Modal de Compuestos Moleculares - Solo para Admin y Supervisor QA */}
+      {showCompoundsModal && selectedMaterial && !isSupervisorCalidad && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card-dark rounded-lg border border-border-dark max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border-dark flex items-center justify-between sticky top-0 bg-card-dark">

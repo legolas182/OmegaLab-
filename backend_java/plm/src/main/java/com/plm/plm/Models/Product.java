@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,9 @@ public class Product {
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private String unidadMedida = "un";
 
+    @Column(name = "cantidad_stock", precision = 15, scale = 4)
+    private BigDecimal cantidadStock = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoUsuario estado = EstadoUsuario.ACTIVO;
@@ -79,6 +83,7 @@ public class Product {
         dto.setCategoriaId(categoriaEntity != null ? categoriaEntity.getId() : null);
         dto.setTipo(categoriaEntity != null ? categoriaEntity.getTipoProducto() : null);
         dto.setUnidadMedida(unidadMedida);
+        dto.setCantidadStock(cantidadStock);
         dto.setEstado(estado);
         dto.setCreatedAt(createdAt);
         dto.setUpdatedAt(updatedAt);
