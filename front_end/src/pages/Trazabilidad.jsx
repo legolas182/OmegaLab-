@@ -1,6 +1,22 @@
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { hasAnyRole } from '../utils/rolePermissions'
 
 const Trazabilidad = () => {
+  const { user } = useAuth()
+
+  // Verificar permisos - Solo Supervisor QA y Administrador
+  if (!user || (!hasAnyRole(user, 'SUPERVISOR_QA') && !hasAnyRole(user, 'ADMINISTRADOR'))) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <span className="material-symbols-outlined text-6xl text-danger mb-4">lock</span>
+          <p className="text-text-light text-lg font-semibold mb-2">Acceso Restringido</p>
+          <p className="text-text-muted text-sm">Solo Supervisor QA y Administrador pueden acceder a Trazabilidad Lote</p>
+        </div>
+      </div>
+    )
+  }
   const [loteId, setLoteId] = useState('LOTE-2024-001')
   const [trazabilidad, setTrazabilidad] = useState({
     lote: 'LOTE-2024-001',

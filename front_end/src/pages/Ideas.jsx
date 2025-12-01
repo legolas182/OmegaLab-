@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
 import ideaService from '../services/ideaService'
 import pruebaService from '../services/pruebaService'
-import chemicalDatabaseService from '../services/chemicalDatabaseService'
 
 const Ideas = () => {
   const { user } = useAuth()
@@ -333,135 +332,9 @@ const Ideas = () => {
     }
   }
 
-  // Estados para búsqueda en BD químicas
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchType, setSearchType] = useState('NAME')
-  const [searchSource, setSearchSource] = useState('all')
-  const [results, setResults] = useState([])
-  const [loading, setLoading] = useState(false)
-
-  const searchDatabases = async () => {
-    if (!searchQuery.trim()) return
-
-    setLoading(true)
-    try {
-      let searchResults = []
-      
-      if (searchSource === 'all') {
-        const allResults = await chemicalDatabaseService.searchAll(searchQuery, searchType)
-        searchResults = Object.values(allResults).flat()
-      } else if (searchSource === 'PubChem') {
-        searchResults = await chemicalDatabaseService.searchPubChem(searchQuery, searchType)
-      } else if (searchSource === 'ChEMBL') {
-        searchResults = await chemicalDatabaseService.searchChEMBL(searchQuery, searchType)
-      }
-      
-      setResults(searchResults)
-    } catch (error) {
-      console.error('Error en búsqueda:', error)
-      setResults([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="w-full h-full">
-      {/* Búsqueda en Bases de Datos Químicas */}
-      <div className="rounded-lg bg-card-dark border border-border-dark p-6 mb-6">
-        <h2 className="text-text-light text-xl font-semibold mb-4">Búsqueda en Bases de Datos Moleculares</h2>
-        
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex gap-2">
-            {['PubChem', 'ChEMBL', 'all'].map((source) => (
-              <button
-                key={source}
-                onClick={() => setSearchSource(source)}
-                className={`px-4 py-2 rounded-lg font-medium ${
-                  searchSource === source
-                    ? 'bg-primary text-white'
-                    : 'bg-input-dark text-text-light hover:bg-border-dark'
-                }`}
-              >
-                {source === 'all' ? 'Todas' : source}
-              </button>
-            ))}
-          </div>
-
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-            className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-          >
-            <option value="NAME">Por Nombre</option>
-            <option value="FORMULA">Por Fórmula Molecular</option>
-            <option value="SMILES">Por SMILES</option>
-            <option value="CAS">Por Número CAS</option>
-          </select>
-
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && searchDatabases()}
-            placeholder="Buscar en PubChem, ChEMBL, DrugBank, ZINC..."
-            className="flex-1 h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-          />
-
-          <button
-            onClick={searchDatabases}
-            disabled={loading}
-            className="h-12 px-6 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined">search</span>
-            {loading ? 'Buscando...' : 'Buscar'}
-          </button>
-        </div>
-
-        {/* Resultados */}
-        {results.length > 0 && (
-          <div className="mt-4 space-y-3">
-            <h3 className="text-text-light font-semibold">Resultados ({results.length})</h3>
-            {results.map((result, index) => (
-              <div key={result.id || index} className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="text-text-light font-semibold">{result.name}</h4>
-                    {result.formula && (
-                      <p className="text-text-muted text-sm">Fórmula: {result.formula}</p>
-                    )}
-                    {result.molecularWeight && (
-                      <p className="text-text-muted text-sm">Peso Molecular: {result.molecularWeight} g/mol</p>
-                    )}
-                  </div>
-                  <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">{result.source}</span>
-                </div>
-                {result.logP !== null && result.logP !== undefined && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <div>
-                      <p className="text-text-muted text-xs mb-1">LogP</p>
-                      <p className="text-text-light">{result.logP}</p>
-                    </div>
-                    {result.solubility && (
-                      <div>
-                        <p className="text-text-muted text-xs mb-1">Solubilidad</p>
-                        <p className="text-text-light">{result.solubility}</p>
-                      </div>
-                    )}
-                    {result.bioactivity && (
-                      <div>
-                        <p className="text-text-muted text-xs mb-1">Bioactividad</p>
-                        <p className="text-text-light">{result.bioactivity}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Lista de Ideas */}
       {loadingIdeas ? (
         <div className="flex items-center justify-center py-8">

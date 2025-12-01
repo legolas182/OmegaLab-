@@ -15,7 +15,6 @@ import Pruebas from './pages/Pruebas'
 import Historial from './pages/Historial'
 import Aprobacion from './pages/Aprobacion'
 import Trazabilidad from './pages/Trazabilidad'
-import Conocimiento from './pages/Conocimiento'
 import Configuracion from './pages/Configuracion'
 import Login from './pages/Login'
 
@@ -48,7 +47,6 @@ function App() {
             <Route path="historial" element={<Historial />} />
             <Route path="aprobacion" element={<Aprobacion />} />
             <Route path="trazabilidad" element={<Trazabilidad />} />
-            <Route path="conocimiento" element={<Conocimiento />} />
             <Route path="configuracion" element={<Configuracion />} />
           </Route>
         </Routes>

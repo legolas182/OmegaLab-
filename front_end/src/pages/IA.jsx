@@ -5,7 +5,6 @@ import productService from '../services/productService'
 import materialService from '../services/materialService'
 import ideaService from '../services/ideaService'
 import chemicalDatabaseService from '../services/chemicalDatabaseService'
-import formulaService from '../services/formulaService'
 
 const IA = () => {
   const { user } = useAuth()
@@ -36,8 +35,6 @@ const IA = () => {
   // Estados generales
   const [generating, setGenerating] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
-  const [showFormulaEditor, setShowFormulaEditor] = useState(false)
-  const [formulaData, setFormulaData] = useState(null)
 
   // Verificar permisos
   if (!user || (!hasAnyRole(user, 'SUPERVISOR_QA') && !hasAnyRole(user, 'ADMINISTRADOR'))) {
@@ -177,11 +174,6 @@ const IA = () => {
         setGenerating(false)
       }
     }
-  }
-
-  const calculateTotalPercentage = () => {
-    // Esto se calculará cuando se implemente el editor de fórmula
-    return 0
   }
 
   return (
