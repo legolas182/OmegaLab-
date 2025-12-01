@@ -16,6 +16,7 @@ public class MaterialDTO {
     private String nombre;
     private String descripcion;
     private Integer categoriaId;
+    private String tipo; // MATERIA_PRIMA o COMPONENTE (derivado de la categoría)
     private String unidadMedida;
     private EstadoUsuario estado;
     private LocalDateTime createdAt;

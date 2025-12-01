@@ -77,6 +77,24 @@ public class Material {
         dto.setNombre(nombre);
         dto.setDescripcion(descripcion);
         dto.setCategoriaId(categoriaEntity != null ? categoriaEntity.getId() : null);
+        
+        // Determinar el tipo basado en la categoría
+        if (categoriaEntity != null && categoriaEntity.getTipoProducto() != null) {
+            String tipoProducto = categoriaEntity.getTipoProducto().name();
+            // Si la categoría es MATERIA_PRIMA, el material es MATERIA_PRIMA
+            // Si la categoría es COMPONENTE, el material es COMPONENTE
+            // Si la categoría es PRODUCTO_TERMINADO, no debería estar aquí, pero por seguridad
+            if (tipoProducto.equals("MATERIA_PRIMA")) {
+                dto.setTipo("MATERIA_PRIMA");
+            } else if (tipoProducto.equals("COMPONENTE")) {
+                dto.setTipo("COMPONENTE");
+            } else {
+                dto.setTipo("MATERIA_PRIMA"); // Por defecto
+            }
+        } else {
+            dto.setTipo("MATERIA_PRIMA"); // Por defecto si no tiene categoría
+        }
+        
         dto.setUnidadMedida(unidadMedida);
         dto.setEstado(estado);
         dto.setCreatedAt(createdAt);

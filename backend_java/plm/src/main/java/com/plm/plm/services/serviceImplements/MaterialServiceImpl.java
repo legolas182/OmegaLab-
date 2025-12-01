@@ -51,7 +51,10 @@ public class MaterialServiceImpl implements MaterialService {
         if (materialDTO.getCategoriaId() != null) {
             Category category = categoryRepository.findById(materialDTO.getCategoriaId())
                 .orElse(null);
-            if (category != null && category.getTipoProducto().name().contains("MATERIA_PRIMA")) {
+            // Permitir categorías de tipo MATERIA_PRIMA o COMPONENTE
+            if (category != null && 
+                (category.getTipoProducto().name().equals("MATERIA_PRIMA") || 
+                 category.getTipoProducto().name().equals("COMPONENTE"))) {
                 material.setCategoriaEntity(category);
             }
         }
@@ -75,6 +78,22 @@ public class MaterialServiceImpl implements MaterialService {
                 .stream()
                 .filter(m -> m.getCategoriaEntity() != null && 
                             m.getCategoriaEntity().getNombre().equalsIgnoreCase(categoria))
+                .map(Material::getDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MaterialDTO> getMaterialsByTipo(String tipo) {
+        return materialRepository.findByEstado(EstadoUsuario.ACTIVO)
+                .stream()
+                .filter(m -> {
+                    if (m.getCategoriaEntity() == null || m.getCategoriaEntity().getTipoProducto() == null) {
+                        return tipo.equals("MATERIA_PRIMA"); // Por defecto si no tiene categoría
+                    }
+                    String tipoProducto = m.getCategoriaEntity().getTipoProducto().name();
+                    return tipoProducto.equals(tipo);
+                })
                 .map(Material::getDTO)
                 .collect(Collectors.toList());
     }
@@ -146,6 +165,38 @@ public class MaterialServiceImpl implements MaterialService {
         return compounds.stream()
                 .map(MaterialCompound::getDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public MaterialCompoundDTO createMaterialCompound(Integer materialId, MaterialCompoundDTO compoundDTO) {
+        // Verificar que el material existe
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new ResourceNotFoundException("Material no encontrado"));
+
+        // Validar datos del compuesto
+        if (compoundDTO.getNombreCompuesto() == null || compoundDTO.getNombreCompuesto().trim().isEmpty()) {
+            throw new BadRequestException("El nombre del compuesto es requerido");
+        }
+
+        // Verificar si ya existe un compuesto con el mismo nombre para este material
+        materialCompoundRepository.findByMaterialIdAndNombreCompuesto(materialId, compoundDTO.getNombreCompuesto())
+                .ifPresent(existing -> {
+                    throw new DuplicateResourceException("Ya existe un compuesto con el nombre '" + 
+                        compoundDTO.getNombreCompuesto() + "' para este material");
+                });
+
+        // Crear el compuesto
+        MaterialCompound compound = new MaterialCompound();
+        compound.setMaterial(material);
+        compound.setNombreCompuesto(compoundDTO.getNombreCompuesto().trim());
+        compound.setFormulaMolecular(compoundDTO.getFormulaMolecular());
+        compound.setPesoMolecular(compoundDTO.getPesoMolecular());
+        compound.setPorcentajeConcentracion(compoundDTO.getPorcentajeConcentracion());
+        compound.setTipoCompuesto(compoundDTO.getTipoCompuesto());
+        compound.setDescripcion(compoundDTO.getDescripcion());
+
+        return materialCompoundRepository.save(compound).getDTO();
     }
 
     private void validateMaterialData(String codigo, String nombre) {

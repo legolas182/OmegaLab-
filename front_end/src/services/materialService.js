@@ -60,6 +60,15 @@ class MaterialService {
     }
   }
 
+  async createMaterialCompound(materialId, compoundData) {
+    try {
+      const response = await api.post(`/materials/${materialId}/compounds`, compoundData);
+      return response.data.data.compound;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   handleError(error) {
     if (error.response) {
       const message = error.response.data?.error?.message || error.response.data?.message || 'Error en la petición';
