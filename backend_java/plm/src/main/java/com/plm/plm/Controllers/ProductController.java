@@ -152,6 +152,32 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/boms/{bomId}/validar")
+    public ResponseEntity<Map<String, Object>> validateBOM(@PathVariable Integer bomId) {
+        Map<String, Object> validacion = productService.validateBOM(bomId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", validacion);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/boms/{bomId}/totales")
+    public ResponseEntity<Map<String, Object>> calculateBOMTotals(@PathVariable Integer bomId) {
+        Map<String, Object> totales = productService.calculateBOMTotals(bomId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", totales);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/verificar-stock")
+    public ResponseEntity<Map<String, Object>> verifyStock(
+            @PathVariable Integer id,
+            @RequestParam BigDecimal cantidad) {
+        Map<String, Object> verificacion = productService.verifyStockProduction(id, cantidad);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", verificacion);
+        return ResponseEntity.ok(response);
+    }
+
     private Integer getUserIdFromRequest(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

@@ -169,6 +169,51 @@ class ProductService {
   }
 
   /**
+   * Valida los porcentajes de un BOM usando procedimiento almacenado
+   * @param {number} bomId - ID del BOM
+   * @returns {Promise<Object>} - { valido, sumaTotal, mensaje }
+   */
+  async validateBOM(bomId) {
+    try {
+      const response = await api.get(`/products/boms/${bomId}/validar`);
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Calcula los totales de un BOM usando procedimiento almacenado
+   * @param {number} bomId - ID del BOM
+   * @returns {Promise<Object>} - { totalPorcentaje, totalCantidad, numItems, detalle }
+   */
+  async calculateBOMTotals(bomId) {
+    try {
+      const response = await api.get(`/products/boms/${bomId}/totales`);
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Verifica si hay stock suficiente para producir un producto usando procedimiento almacenado
+   * @param {number} productoId - ID del producto
+   * @param {number} cantidad - Cantidad a producir
+   * @returns {Promise<Object>} - { disponible, mensaje }
+   */
+  async verifyStockProduction(productoId, cantidad) {
+    try {
+      const response = await api.get(`/products/${productoId}/verificar-stock`, {
+        params: { cantidad }
+      });
+      return response.data.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Maneja errores de la API
    * @param {Error} error - Error de axios
    * @returns {Error}

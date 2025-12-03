@@ -19,5 +19,10 @@ public interface ProductService {
     BOMItemDTO updateBOMItem(Integer itemId, Integer materialId, BigDecimal cantidad, String unidad, BigDecimal porcentaje);
     void deleteBOMItem(Integer itemId);
     List<BOMDTO> getBOMHistory(Integer productoId);
+    
+    // Métodos que usan procedimientos almacenados
+    Map<String, Object> validateBOM(Integer bomId);
+    Map<String, Object> verifyStockProduction(Integer productoId, BigDecimal cantidad);
+    Map<String, Object> calculateBOMTotals(Integer bomId);
 }
 
