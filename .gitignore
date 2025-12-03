@@ -5,5 +5,3 @@ backend_java/plm/src/main/resources/application-secrets.properties
 # Application properties (contains API keys - DO NOT COMMIT)
 backend_java/plm/src/main/resources/application.properties
 
-# IDE configuration files
-**/.idea/
