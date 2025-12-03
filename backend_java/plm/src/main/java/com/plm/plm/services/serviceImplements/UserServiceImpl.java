@@ -1,13 +1,9 @@
 package com.plm.plm.services.serviceImplements;
 
-import com.plm.plm.Config.Exception.BadRequestException;
-import com.plm.plm.Config.Exception.DuplicateResourceException;
+
 import com.plm.plm.Config.exception.ResourceNotFoundException;
 import com.plm.plm.Enums.EstadoUsuario;
-<<<<<<< HEAD
 import com.plm.plm.Enums.Rol;
-=======
->>>>>>> origin/main
 import com.plm.plm.Models.User;
 import com.plm.plm.Reposotory.UserRepository;
 import com.plm.plm.dto.UserDTO;
@@ -75,15 +71,13 @@ public class UserServiceImpl implements UserService {
                 .getDTO();
     }
 
-<<<<<<< HEAD
+
     @Override
     public List<UserDTO> getUsersByRol(Rol rol) {
         return userRepository.findByRolAndEstado(rol, EstadoUsuario.ACTIVO).stream()
                 .map(User::getDTO)
                 .toList();
     }
-=======
->>>>>>> origin/main
 
 }
 

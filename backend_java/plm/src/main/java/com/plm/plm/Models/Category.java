@@ -23,7 +23,7 @@ import java.util.List;
         @Index(name = "idx_estado", columnList = "estado")
     },
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_nombre", columnNames = "nombre")
+        @UniqueConstraint(name = "uk_nombre_tipo", columnNames = {"nombre", "tipo_producto"})
     }
 )
 @EntityListeners(AuditingEntityListener.class)
@@ -36,7 +36,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
     @Column(columnDefinition = "TEXT")

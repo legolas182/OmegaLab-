@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +19,7 @@ import java.util.List;
 @Table(name = "materiales",
     indexes = {
         @Index(name = "idx_codigo", columnList = "codigo"),
-<<<<<<< HEAD
         @Index(name = "idx_categoria_id", columnList = "categoria_id"),
-=======
-        @Index(name = "idx_categoria", columnList = "categoria"),
->>>>>>> origin/main
         @Index(name = "idx_estado", columnList = "estado")
     },
     uniqueConstraints = {
@@ -52,14 +49,11 @@ public class Material {
     @JoinColumn(name = "categoria_id", foreignKey = @ForeignKey(name = "fk_material_categoria"))
     private Category categoriaEntity;
 
-<<<<<<< HEAD
-=======
-    @Column(length = 100)
-    private String categoria;
-
->>>>>>> origin/main
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private String unidadMedida = "kg";
+
+    @Column(name = "cantidad_stock", precision = 15, scale = 4)
+    private BigDecimal cantidadStock = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -77,11 +71,7 @@ public class Material {
     private List<BOMItem> usadoEnBOMs = new ArrayList<>();
 
     public String getCategoriaNombre() {
-<<<<<<< HEAD
         return categoriaEntity != null ? categoriaEntity.getNombre() : null;
-=======
-        return categoriaEntity != null ? categoriaEntity.getNombre() : categoria;
->>>>>>> origin/main
     }
 
     public MaterialDTO getDTO() {
@@ -90,12 +80,27 @@ public class Material {
         dto.setCodigo(codigo);
         dto.setNombre(nombre);
         dto.setDescripcion(descripcion);
-<<<<<<< HEAD
-=======
-        dto.setCategoria(categoria);
->>>>>>> origin/main
         dto.setCategoriaId(categoriaEntity != null ? categoriaEntity.getId() : null);
+        
+        // Determinar el tipo basado en la categoría
+        if (categoriaEntity != null && categoriaEntity.getTipoProducto() != null) {
+            String tipoProducto = categoriaEntity.getTipoProducto().name();
+            // Si la categoría es MATERIA_PRIMA, el material es MATERIA_PRIMA
+            // Si la categoría es COMPONENTE, el material es COMPONENTE
+            // Si la categoría es PRODUCTO_TERMINADO, no debería estar aquí, pero por seguridad
+            if (tipoProducto.equals("MATERIA_PRIMA")) {
+                dto.setTipo("MATERIA_PRIMA");
+            } else if (tipoProducto.equals("COMPONENTE")) {
+                dto.setTipo("COMPONENTE");
+            } else {
+                dto.setTipo("MATERIA_PRIMA"); // Por defecto
+            }
+        } else {
+            dto.setTipo("MATERIA_PRIMA"); // Por defecto si no tiene categoría
+        }
+        
         dto.setUnidadMedida(unidadMedida);
+        dto.setCantidadStock(cantidadStock);
         dto.setEstado(estado);
         dto.setCreatedAt(createdAt);
         dto.setUpdatedAt(updatedAt);

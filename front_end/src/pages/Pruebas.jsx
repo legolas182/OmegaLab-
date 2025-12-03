@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
@@ -13,7 +12,6 @@ const Pruebas = () => {
   const [loadingPruebas, setLoadingPruebas] = useState(false)
   const [selectedPrueba, setSelectedPrueba] = useState(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showAddResultadoDialog, setShowAddResultadoDialog] = useState(false)
   const [ideasAsignadas, setIdeasAsignadas] = useState([])
   const [updatingEstado, setUpdatingEstado] = useState(false)
   
@@ -25,16 +23,6 @@ const Pruebas = () => {
     descripcion: '',
     equiposUtilizados: '',
     pruebasRequeridas: ''
-  })
-
-  // Formulario para nuevo resultado
-  const [nuevoResultado, setNuevoResultado] = useState({
-    parametro: '',
-    especificacion: '',
-    resultado: '',
-    unidad: '',
-    cumpleEspecificacion: true,
-    observaciones: ''
   })
 
   useEffect(() => {
@@ -152,77 +140,89 @@ const Pruebas = () => {
     }
   }
 
-  const handleAddResultado = async () => {
-    if (!selectedPrueba || !nuevoResultado.parametro || !nuevoResultado.resultado) {
-      alert('Por favor completa los campos requeridos (Parámetro y Resultado)')
-      return
+  // Función para agregar resultado de checklist directamente (Sí/No)
+  const handleAgregarResultadoChecklist = async (parametro, especificacion, valor) => {
+    if (!selectedPrueba) return
+    
+    const ahora = new Date()
+    const fechaHora = ahora.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+    
+    const resultadoChecklist = {
+      parametro: parametro,
+      especificacion: especificacion || '',
+      resultado: valor === 'si' ? 'Sí' : 'No',
+      unidad: '',
+      tipoResultado: 'checklist',
+      valorChecklist: valor,
+      cumpleEspecificacion: valor === 'si',
+      observaciones: `Registrado el ${fechaHora}`
     }
-
+    
     try {
-      const pruebaActualizada = await pruebaService.addResultado(selectedPrueba.id, nuevoResultado)
+      const pruebaActualizada = await pruebaService.addResultado(selectedPrueba.id, resultadoChecklist)
       // Recargar la prueba completa para obtener los resultados actualizados
       const pruebaCompleta = await pruebaService.getPruebaById(pruebaActualizada.id)
       setSelectedPrueba(pruebaCompleta)
+      loadPruebas()
       
       // Evaluar automáticamente el estado de la prueba basado en los resultados
-      // Solo cambiar a COMPLETADA si TODAS las pruebas requeridas tienen resultados
-      if (pruebaCompleta.resultados && pruebaCompleta.resultados.length > 0 && pruebaCompleta.pruebasRequeridas) {
-        const pruebasRequeridas = parsePruebasRequeridas(pruebaCompleta.pruebasRequeridas)
-        
-        // Verificar que todas las pruebas requeridas tengan resultados registrados
-        const todasLasPruebasTienenResultados = pruebasRequeridas.every(pruebaReq => {
-          return pruebaCompleta.resultados.some(resultado => {
-            const parametroLower = resultado.parametro.toLowerCase().trim()
-            const pruebaReqLower = pruebaReq.parametro.toLowerCase().trim()
-            return parametroLower.includes(pruebaReqLower) || pruebaReqLower.includes(parametroLower)
-          })
-        })
-        
-        if (todasLasPruebasTienenResultados) {
-          // Todas las pruebas requeridas tienen resultados, ahora evaluar cumplimiento
-          const todosCumplen = pruebaCompleta.resultados.every(r => r.cumpleEspecificacion !== false)
-          const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
-          
-          // Solo cambiar estado si todas las pruebas requeridas están completas
-          if (todosCumplen && pruebaCompleta.estado === 'EN_PROCESO') {
-            await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'COMPLETADA' })
-            const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
-            setSelectedPrueba(pruebaActualizadaEstado)
-            loadPruebas()
-            // El backend sincronizará automáticamente el estado de la idea
-            // Recargar ideas asignadas si es analista para reflejar el cambio de estado
-            if (isAnalista) {
-              loadIdeasAsignadas()
-            }
-          } else if (hayOOS && pruebaCompleta.estado === 'EN_PROCESO') {
-            await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'OOS' })
-            const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
-            setSelectedPrueba(pruebaActualizadaEstado)
-            loadPruebas()
-            // El backend sincronizará automáticamente el estado de la idea
-            // Recargar ideas asignadas si es analista para reflejar el cambio de estado
-            if (isAnalista) {
-              loadIdeasAsignadas()
-            }
-          }
-        }
-        // Si no todas las pruebas requeridas tienen resultados, mantener EN_PROCESO
-      }
-      
-      setShowAddResultadoDialog(false)
-      setNuevoResultado({
-        parametro: '',
-        especificacion: '',
-        resultado: '',
-        unidad: '',
-        cumpleEspecificacion: true,
-        observaciones: ''
-      })
+      await evaluarEstadoPrueba(pruebaCompleta)
     } catch (error) {
-      console.error('Error al agregar resultado:', error)
+      console.error('Error al agregar resultado de checklist:', error)
       alert('Error al agregar resultado: ' + (error.message || 'Error desconocido'))
     }
   }
+
+  // Función auxiliar para evaluar el estado de la prueba
+  const evaluarEstadoPrueba = async (pruebaCompleta) => {
+    if (!pruebaCompleta.resultados || pruebaCompleta.resultados.length === 0 || !pruebaCompleta.pruebasRequeridas) {
+      return
+    }
+    
+    const pruebasRequeridas = parsePruebasRequeridas(pruebaCompleta.pruebasRequeridas)
+    
+    // Verificar que todas las pruebas requeridas tengan resultados registrados
+    const todasLasPruebasTienenResultados = pruebasRequeridas.every(pruebaReq => {
+      return pruebaCompleta.resultados.some(resultado => {
+        const parametroLower = resultado.parametro.toLowerCase().trim()
+        const pruebaReqLower = pruebaReq.parametro.toLowerCase().trim()
+        return parametroLower.includes(pruebaReqLower) || pruebaReqLower.includes(parametroLower)
+      })
+    })
+    
+    if (todasLasPruebasTienenResultados) {
+      // Todas las pruebas requeridas tienen resultados, ahora evaluar cumplimiento
+      const todosCumplen = pruebaCompleta.resultados.every(r => r.cumpleEspecificacion !== false)
+      const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
+      
+      // Solo cambiar estado si todas las pruebas requeridas están completas
+      if (todosCumplen && pruebaCompleta.estado === 'EN_PROCESO') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'COMPLETADA' })
+        const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
+        setSelectedPrueba(pruebaActualizadaEstado)
+        loadPruebas()
+        if (isAnalista) {
+          loadIdeasAsignadas()
+        }
+      } else if (hayOOS && pruebaCompleta.estado === 'EN_PROCESO') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'OOS' })
+        const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
+        setSelectedPrueba(pruebaActualizadaEstado)
+        loadPruebas()
+        if (isAnalista) {
+          loadIdeasAsignadas()
+        }
+      }
+    }
+  }
+
 
   const handleVerDetalle = async (prueba) => {
     try {
@@ -374,33 +374,12 @@ const Pruebas = () => {
     
     return coincidencia || null
   }
-=======
-import { useState } from 'react'
-
-const Pruebas = () => {
-  const [muestras, setMuestras] = useState([
-    {
-      id: 'MU-2024-001',
-      lote: 'LOTE-2024-001',
-      producto: 'Vitamina D3 2000UI',
-      tipo: 'Control de Calidad',
-      estado: 'En Análisis',
-      fechaMuestreo: '15/01/2024',
-      analista: 'Ana García',
-      equipos: ['HPLC-001', 'BAL-002']
-    }
-  ])
-
-  const [selectedMuestra, setSelectedMuestra] = useState(null)
-  const [showOOS, setShowOOS] = useState(false)
->>>>>>> origin/main
 
   return (
     <div className="w-full h-full">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-text-light text-3xl font-bold tracking-tight">Pruebas / Control de Calidad (LIMS)</h1>
-<<<<<<< HEAD
           <p className="text-text-muted text-sm mt-1">
             {isAnalista 
               ? 'Pruebas de laboratorio vinculadas a ideas asignadas' 
@@ -410,9 +389,8 @@ const Pruebas = () => {
         {isAnalista && ideasAsignadas.length > 0 && (
           <button 
             onClick={() => setShowCreateDialog(true)}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
           >
-          <span className="material-symbols-outlined">add</span>
             Nueva Prueba
         </button>
         )}
@@ -452,59 +430,19 @@ const Pruebas = () => {
             </p>
           </div>
         ) : (
-=======
-          <p className="text-text-muted text-sm mt-1">Trazabilidad completa de muestras y resultados analíticos</p>
-        </div>
-        <button className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2">
-          <span className="material-symbols-outlined">add</span>
-          Nueva Muestra
-        </button>
-      </div>
-
-      {/* Alertas OOS */}
-      <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
-        <span className="material-symbols-outlined text-danger text-2xl">error</span>
-        <div className="flex-1">
-          <p className="text-text-light font-semibold">5 Resultados Fuera de Especificación (OOS) en Investigación</p>
-          <p className="text-text-muted text-sm">Requieren investigación y documentación</p>
-        </div>
-        <button
-          onClick={() => setShowOOS(true)}
-          className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90"
-        >
-          Ver OOS
-        </button>
-      </div>
-
-      {/* Lista de Muestras */}
-      <div className="rounded-lg bg-card-dark border border-border-dark mb-6">
-        <div className="p-4 border-b border-border-dark">
-          <h2 className="text-text-light font-semibold">Muestras en Análisis</h2>
-        </div>
->>>>>>> origin/main
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border-dark">
-<<<<<<< HEAD
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border-dark">
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Código Muestra</th>
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Idea</th>
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo Prueba</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
+                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
                   <th className="text-left p-4 text-text-muted text-sm font-semibold">Fecha Muestreo</th>
-=======
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">ID Muestra</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Lote</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Producto</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                <th className="text-left p-4 text-text-muted text-sm font-semibold">Equipos</th>
->>>>>>> origin/main
-                <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-<<<<<<< HEAD
+                  <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
                 {pruebas.map((prueba) => (
                   <tr key={prueba.id} className="border-b border-border-dark hover:bg-border-dark/50">
                     <td className="p-4 text-text-light font-medium">{prueba.codigoMuestra}</td>
@@ -512,55 +450,27 @@ const Pruebas = () => {
                       {prueba.ideaId ? `Idea #${prueba.ideaId}` : 'N/A'}
                     </td>
                     <td className="p-4 text-text-muted text-sm">{prueba.tipoPrueba}</td>
-                  <td className="p-4">
+                    <td className="p-4">
                       <span className={`inline-block px-2 py-1 rounded text-xs ${getEstadoColor(prueba.estado)}`}>
                         {getEstadoLabel(prueba.estado)}
-                    </span>
-                  </td>
+                      </span>
+                    </td>
                     <td className="p-4 text-text-muted text-sm">
                       {prueba.fechaMuestreo ? new Date(prueba.fechaMuestreo).toLocaleDateString('es-ES') : 'N/A'}
-                  </td>
-                  <td className="p-4 text-right">
-                    <button
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
                         onClick={() => handleVerDetalle(prueba)}
-=======
-              {muestras.map((muestra) => (
-                <tr key={muestra.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                  <td className="p-4 text-text-light font-medium">{muestra.id}</td>
-                  <td className="p-4 text-text-light">{muestra.lote}</td>
-                  <td className="p-4 text-text-muted text-sm">{muestra.producto}</td>
-                  <td className="p-4 text-text-muted text-sm">{muestra.tipo}</td>
-                  <td className="p-4">
-                    <span className={`inline-block px-2 py-1 rounded text-xs ${
-                      muestra.estado === 'En Análisis' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'
-                    }`}>
-                      {muestra.estado}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-1">
-                      {muestra.equipos.map((eq, idx) => (
-                        <span key={idx} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                          {eq}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-4 text-right">
-                    <button
-                      onClick={() => setSelectedMuestra(muestra)}
->>>>>>> origin/main
-                      className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30"
-                    >
-                      Ver Detalle
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-<<<<<<< HEAD
+                        className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30"
+                      >
+                        Ver Detalle
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -574,27 +484,12 @@ const Pruebas = () => {
             </div>
             <button
               onClick={() => setSelectedPrueba(null)}
-=======
-      </div>
-
-      {/* Detalle de Muestra */}
-      {selectedMuestra && (
-        <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h2 className="text-text-light text-2xl font-bold">{selectedMuestra.id}</h2>
-              <p className="text-text-muted text-sm">{selectedMuestra.producto} - {selectedMuestra.lote}</p>
-            </div>
-            <button
-              onClick={() => setSelectedMuestra(null)}
->>>>>>> origin/main
               className="text-text-muted hover:text-text-light"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
 
-<<<<<<< HEAD
           {/* Acciones de Estado - Solo para analistas */}
           {isAnalista && (
             <div className="mb-6 p-4 rounded-lg bg-input-dark border border-border-dark">
@@ -676,23 +571,14 @@ const Pruebas = () => {
               )}
               {selectedPrueba.pruebasRequeridas && (
                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-2 flex-1">
-                      <span className="material-symbols-outlined text-primary text-lg">assignment</span>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
-                          {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
-                            <button
-                              onClick={() => setShowAddResultadoDialog(true)}
-                              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 flex items-center gap-1.5"
-                            >
-                              <span className="material-symbols-outlined text-sm">add</span>
-                              Agregar Resultado
-                            </button>
-                          )}
-                        </div>
-                        <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-2 flex-1">
+                            <span className="material-symbols-outlined text-primary text-lg">assignment</span>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
+                              </div>
+                              <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
                         <div className="space-y-2">
                           {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
                             // Verificar si ya se registró un resultado para este parámetro
@@ -722,17 +608,46 @@ const Pruebas = () => {
                                     )}
                                   </div>
                                   {resultadoRegistrado ? (
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                      resultadoRegistrado.cumpleEspecificacion === false
-                                        ? 'bg-danger/20 text-danger'
-                                        : 'bg-success/20 text-success'
-                                    }`}>
-                                      {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-1">
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        resultadoRegistrado.cumpleEspecificacion === false
+                                          ? 'bg-danger/20 text-danger'
+                                          : 'bg-success/20 text-success'
+                                      }`}>
+                                        {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
+                                      </span>
+                                      {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
+                                        <span className="text-text-muted text-xs">
+                                          {resultadoRegistrado.observaciones.replace('Registrado el ', '')}
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : (
-                                    <span className="px-2 py-1 rounded text-xs bg-warning/20 text-warning font-medium">
-                                      Pendiente
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
+                                        <>
+                                          <button
+                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'si')}
+                                            className="px-4 py-2 rounded-lg bg-success text-white text-sm font-medium hover:bg-success/90 transition-colors flex items-center gap-1"
+                                          >
+                                            <span className="material-symbols-outlined text-sm">check_circle</span>
+                                            Sí
+                                          </button>
+                                          <button
+                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'no')}
+                                            className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90 transition-colors flex items-center gap-1"
+                                          >
+                                            <span className="material-symbols-outlined text-sm">cancel</span>
+                                            No
+                                          </button>
+                                        </>
+                                      )}
+                                      {(!isAnalista || selectedPrueba.estado !== 'EN_PROCESO') && (
+                                        <span className="px-2 py-1 rounded text-xs bg-warning/20 text-warning font-medium">
+                                          Pendiente
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                                 
@@ -741,13 +656,35 @@ const Pruebas = () => {
                                   <div className="mt-3 pt-3 border-t border-border-dark">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
-                                        <p className="text-text-light font-semibold text-sm">
-                                          Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span> {resultadoRegistrado.unidad || ''}
-                                        </p>
-                                        {resultadoRegistrado.observaciones && (
-                                          <p className="text-text-muted text-xs mt-1 italic">
-                                            {resultadoRegistrado.observaciones}
-                                          </p>
+                                        {resultadoRegistrado.tipoResultado === 'checklist' ? (
+                                          <div className="flex items-center gap-3">
+                                            <span className={`material-symbols-outlined text-2xl ${
+                                              resultadoRegistrado.cumpleEspecificacion ? 'text-success' : 'text-danger'
+                                            }`}>
+                                              {resultadoRegistrado.cumpleEspecificacion ? 'check_circle' : 'cancel'}
+                                            </span>
+                                            <div>
+                                              <p className="text-text-light font-semibold text-sm">
+                                                Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span>
+                                              </p>
+                                              {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
+                                                <p className="text-text-muted text-xs mt-0.5">
+                                                  {resultadoRegistrado.observaciones}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <p className="text-text-light font-semibold text-sm">
+                                              Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span> {resultadoRegistrado.unidad || ''}
+                                            </p>
+                                            {resultadoRegistrado.observaciones && (
+                                              <p className="text-text-muted text-xs mt-2 italic">
+                                                {resultadoRegistrado.observaciones}
+                                              </p>
+                                            )}
+                                          </>
                                         )}
                                       </div>
                                     </div>
@@ -768,375 +705,7 @@ const Pruebas = () => {
         </div>
       )}
 
-      {/* Diálogo para agregar resultado */}
-      {showAddResultadoDialog && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowAddResultadoDialog(false)
-            }
-          }}
-        >
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-5xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h3 className="text-text-light text-xl font-semibold mb-1">Agregar Resultado Analítico</h3>
-                  <p className="text-text-muted text-sm">Registra los resultados de los análisis de laboratorio para esta prueba</p>
-                </div>
-                <button
-                  onClick={() => setShowAddResultadoDialog(false)}
-                  className="text-text-muted hover:text-text-light transition-colors"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
 
-              <div className="space-y-6">
-                {/* Información de la Prueba */}
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-muted text-xs mb-2">Prueba Asociada</p>
-                  <div className="grid grid-cols-2 gap-4">
-          <div>
-                      <p className="text-text-light font-medium">{selectedPrueba?.codigoMuestra}</p>
-                      <p className="text-text-muted text-xs">{selectedPrueba?.tipoPrueba}</p>
-                    </div>
-                    <div>
-                      <p className="text-text-muted text-xs">Idea #{selectedPrueba?.ideaId}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lista de pruebas requeridas para selección rápida */}
-                {selectedPrueba?.pruebasRequeridas && parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).length > 0 && (
-                  <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                    <p className="text-text-light text-sm font-medium mb-3">Selecciona un parámetro de la lista:</p>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                      {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
-                        const yaRegistrado = selectedPrueba.resultados?.some(r => 
-                          r.parametro.toLowerCase().includes(prueba.parametro.toLowerCase()) ||
-                          prueba.parametro.toLowerCase().includes(r.parametro.toLowerCase())
-                        )
-                        
-                        return (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setNuevoResultado({
-                                ...nuevoResultado,
-                                parametro: prueba.parametro,
-                                especificacion: prueba.especificacion || ''
-                              })
-                            }}
-                            disabled={yaRegistrado}
-                            className={`p-2 rounded-lg border text-left text-sm transition-colors ${
-                              yaRegistrado
-                                ? 'bg-input-dark/50 border-border-dark text-text-muted cursor-not-allowed'
-                                : nuevoResultado.parametro.toLowerCase() === prueba.parametro.toLowerCase()
-                                ? 'bg-primary/20 border-primary/50 text-text-light'
-                                : 'bg-input-dark border-border-dark text-text-light hover:bg-border-dark'
-                            }`}
-                          >
-                            <p className="font-medium">{prueba.parametro}</p>
-                            {prueba.especificacion && (
-                              <p className="text-xs text-text-muted mt-0.5">{prueba.especificacion}</p>
-                            )}
-                            {yaRegistrado && (
-                              <p className="text-xs text-warning mt-1">✓ Ya registrado</p>
-                            )}
-                      </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Campos principales en grid horizontal */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Parámetro Analizado <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.parametro}
-                      onChange={(e) => {
-                        const parametro = e.target.value
-                        const detectado = detectarParametro(parametro)
-                        setNuevoResultado({ 
-                          ...nuevoResultado, 
-                          parametro,
-                          especificacion: detectado?.especificacion || nuevoResultado.especificacion
-                        })
-                      }}
-                      placeholder="Ej: pH, Humedad, Proteína, Grasa, Cenizas"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Nombre del parámetro que se está analizando</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Especificación
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.especificacion}
-                      onChange={(e) => {
-                        const especificacion = e.target.value
-                        setNuevoResultado({ ...nuevoResultado, especificacion })
-                        // Re-evaluar cumplimiento si hay resultado
-                        if (nuevoResultado.resultado) {
-                          const cumple = evaluarCumplimiento(nuevoResultado.resultado, especificacion)
-                          if (cumple !== null) {
-                            setNuevoResultado(prev => ({ ...prev, especificacion, cumpleEspecificacion: cumple }))
-                          }
-                        }
-                      }}
-                      placeholder="Ej: 6.5 - 7.5, ≤ 5%, ≥ 80%"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Rango o límite aceptable según especificaciones</p>
-                  </div>
-                </div>
-
-                {/* Resultado y Unidad en grid horizontal */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Resultado Obtenido <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.resultado}
-                      onChange={(e) => {
-                        const resultado = e.target.value
-                        // Si hay especificación, evaluar automáticamente
-                        let cumpleEspecificacion = nuevoResultado.cumpleEspecificacion
-                        if (nuevoResultado.especificacion && resultado) {
-                          const evaluacion = evaluarCumplimiento(resultado, nuevoResultado.especificacion)
-                          if (evaluacion !== null) {
-                            cumpleEspecificacion = evaluacion
-                          }
-                        }
-                        setNuevoResultado({ ...nuevoResultado, resultado, cumpleEspecificacion })
-                      }}
-                      placeholder="Ej: 7.2, 4.5, 82.3"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Valor numérico o cualitativo obtenido en el análisis</p>
-                    {nuevoResultado.especificacion && nuevoResultado.resultado && evaluarCumplimiento(nuevoResultado.resultado, nuevoResultado.especificacion) !== null && (
-                      <p className={`text-xs mt-1 font-medium ${
-                        nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? '✓ Cumple con la especificación' : '✗ No cumple con la especificación (OOS)'}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-text-light text-sm font-medium mb-2">
-                      Unidad de Medida
-                    </label>
-                    <input
-                      type="text"
-                      value={nuevoResultado.unidad}
-                      onChange={(e) => setNuevoResultado({ ...nuevoResultado, unidad: e.target.value })}
-                      placeholder="Ej: %, mg/L, g/100g, pH"
-                      className="w-full h-11 px-4 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
-                    />
-                    <p className="text-text-muted text-xs mt-1">Unidad del resultado</p>
-                  </div>
-                </div>
-
-                {/* Estado de cumplimiento - Calculado automáticamente */}
-                {nuevoResultado.especificacion && nuevoResultado.resultado && evaluarCumplimiento(nuevoResultado.resultado, nuevoResultado.especificacion) !== null ? (
-                  <div className={`p-4 rounded-lg border ${
-                    nuevoResultado.cumpleEspecificacion 
-                      ? 'bg-success/10 border-success/30' 
-                      : 'bg-danger/10 border-danger/30'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <span className={`material-symbols-outlined text-xl ${
-                        nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? 'check_circle' : 'error'}
-                      </span>
-                      <div className="flex-1">
-                        <p className={`text-sm font-semibold ${
-                          nuevoResultado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                        }`}>
-                          {nuevoResultado.cumpleEspecificacion ? '✓ Cumple con la especificación' : '✗ No cumple con la especificación (OOS)'}
-                        </p>
-                        <p className="text-text-muted text-xs mt-1">
-                          {nuevoResultado.cumpleEspecificacion 
-                            ? 'El resultado está dentro del rango aceptable según la especificación' 
-                            : 'El resultado está fuera de especificación. Requiere investigación.'}
-                        </p>
-                      </div>
-                    </div>
-                    <label className="flex items-center gap-2 mt-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={nuevoResultado.cumpleEspecificacion}
-                        onChange={(e) => setNuevoResultado({ ...nuevoResultado, cumpleEspecificacion: e.target.checked })}
-                        className="w-4 h-4 rounded border-border-dark bg-card-dark text-primary focus:ring-2 focus:ring-primary/50"
-                      />
-                      <span className="text-text-muted text-xs">Puedes ajustar manualmente si es necesario</span>
-                    </label>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={nuevoResultado.cumpleEspecificacion}
-                        onChange={(e) => setNuevoResultado({ ...nuevoResultado, cumpleEspecificacion: e.target.checked })}
-                        className="w-5 h-5 rounded border-border-dark bg-card-dark text-primary focus:ring-2 focus:ring-primary/50"
-                      />
-                      <div>
-                        <span className="text-text-light text-sm font-medium">Cumple con la especificación</span>
-                        <p className="text-text-muted text-xs mt-0.5">
-                          {nuevoResultado.cumpleEspecificacion 
-                            ? 'El resultado está dentro del rango aceptable' 
-                            : 'El resultado está fuera de especificación (OOS)'}
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {/* Observaciones */}
-                <div>
-                  <label className="block text-text-light text-sm font-medium mb-2">
-                    Observaciones y Notas
-                  </label>
-                  <textarea
-                    value={nuevoResultado.observaciones}
-                    onChange={(e) => setNuevoResultado({ ...nuevoResultado, observaciones: e.target.value })}
-                    placeholder="Agrega observaciones adicionales, condiciones del análisis, desviaciones, metodología utilizada, etc."
-                    rows="4"
-                    className="w-full px-4 py-3 rounded-lg bg-input-dark border border-border-dark text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 resize-none"
-                  />
-                  <p className="text-text-muted text-xs mt-1">Información adicional relevante sobre el resultado del análisis</p>
-                </div>
-
-                {/* Resumen del resultado */}
-                {nuevoResultado.parametro && nuevoResultado.resultado && (
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <p className="text-text-muted text-xs mb-2">Resumen del Resultado:</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-text-light font-medium">
-                        {nuevoResultado.parametro}: {nuevoResultado.resultado} {nuevoResultado.unidad || ''}
-                      </span>
-                      {nuevoResultado.especificacion && (
-                        <span className="text-text-muted text-sm">
-                          (Especificación: {nuevoResultado.especificacion})
-                        </span>
-                      )}
-                      <span className={`ml-auto px-2 py-1 rounded text-xs ${
-                        nuevoResultado.cumpleEspecificacion 
-                          ? 'bg-success/20 text-success' 
-                          : 'bg-danger/20 text-danger'
-                      }`}>
-                        {nuevoResultado.cumpleEspecificacion ? '✓ Cumple' : '✗ OOS'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-border-dark">
-                <button
-                  onClick={() => {
-                    setShowAddResultadoDialog(false)
-                    setNuevoResultado({
-                      parametro: '',
-                      especificacion: '',
-                      resultado: '',
-                      unidad: '',
-                      cumpleEspecificacion: true,
-                      observaciones: ''
-                    })
-                  }}
-                  className="px-6 py-2.5 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleAddResultado}
-                  disabled={!nuevoResultado.parametro || !nuevoResultado.resultado}
-                  className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">add_circle</span>
-                  Agregar Resultado
-                </button>
-              </div>
-=======
-          {/* Trazabilidad */}
-          <div className="mb-6">
-            <h3 className="text-text-light font-semibold mb-4">Trazabilidad Completa</h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-muted text-xs mb-1">Fecha de Muestreo</p>
-                <p className="text-text-light">{selectedMuestra.fechaMuestreo} - {selectedMuestra.analista}</p>
-              </div>
-              <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-muted text-xs mb-1">Equipos Utilizados (Calibración Vigente)</p>
-                <div className="flex gap-2 mt-2">
-                  {selectedMuestra.equipos.map((eq, idx) => (
-                    <div key={idx} className="px-3 py-2 rounded bg-success/10 border border-success/30">
-                      <p className="text-text-light text-sm font-medium">{eq}</p>
-                      <p className="text-success text-xs">Calibrado hasta 30/06/2024</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Resultados Analíticos */}
-          <div>
-            <h3 className="text-text-light font-semibold mb-4">Resultados Analíticos</h3>
-            <div className="space-y-4">
-              {[
-                { parametro: 'Contenido de Vitamina D3', especificacion: '1900-2100 UI', resultado: '2050 UI', estado: 'Cumple' },
-                { parametro: 'Pureza', especificacion: '≥98%', resultado: '99.2%', estado: 'Cumple' },
-                { parametro: 'Humedad', especificacion: '≤5%', resultado: '6.2%', estado: 'OOS', isOOS: true }
-              ].map((result, idx) => (
-                <div key={idx} className={`p-4 rounded-lg border ${
-                  result.isOOS ? 'bg-danger/10 border-danger/50' : 'bg-input-dark border-border-dark'
-                }`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="text-text-light font-medium">{result.parametro}</p>
-                      <p className="text-text-muted text-xs">Especificación: {result.especificacion}</p>
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      result.isOOS ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'
-                    }`}>
-                      {result.estado}
-                    </span>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-text-light font-semibold">Resultado: {result.resultado}</p>
-                    {result.isOOS && (
-                      <button className="mt-2 px-3 py-1 rounded bg-danger/20 text-danger text-xs hover:bg-danger/30">
-                        Iniciar Investigación OOS
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
->>>>>>> origin/main
-            </div>
-          </div>
-        </div>
-      )}
-
-<<<<<<< HEAD
       {/* Diálogo para crear nueva prueba */}
       {showCreateDialog && (
         <div
@@ -1153,22 +722,11 @@ const Pruebas = () => {
                 <h3 className="text-text-light text-lg font-semibold">Nueva Prueba</h3>
               <button
                   onClick={() => setShowCreateDialog(false)}
-=======
-      {/* Modal OOS */}
-      {showOOS && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border-dark flex items-center justify-between">
-              <h2 className="text-text-light text-xl font-semibold">Investigación de Resultados OOS</h2>
-              <button
-                onClick={() => setShowOOS(false)}
->>>>>>> origin/main
                 className="text-text-muted hover:text-text-light"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-<<<<<<< HEAD
 
               <div className="space-y-4">
                 <div>
@@ -1260,21 +818,10 @@ const Pruebas = () => {
                   Crear Prueba
                 </button>
               </div>
-=======
-            <div className="p-6">
-              <p className="text-text-muted text-sm mb-4">
-                Flujo de investigación para resultados fuera de especificación según BPM.
-              </p>
-              {/* TODO: Implementar formulario completo de investigación OOS */}
->>>>>>> origin/main
             </div>
           </div>
         </div>
       )}
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
     </div>
   )
 }

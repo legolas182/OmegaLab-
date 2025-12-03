@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { hasAnyRole } from '../../utils/rolePermissions'
 import productService from '../../services/productService'
 import materialService from '../../services/materialService'
-<<<<<<< HEAD
 import categoryService from '../../services/categoryService'
 import ConfirmDialog from '../../components/ConfirmDialog'
-=======
->>>>>>> origin/main
 
 const Productos = () => {
+  const { user } = useAuth()
+  const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
+  const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
+  const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [bom, setBom] = useState(null)
   const [materials, setMaterials] = useState([])
-<<<<<<< HEAD
   const [categories, setCategories] = useState([])
-=======
->>>>>>> origin/main
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showAddMaterial, setShowAddMaterial] = useState(false)
-<<<<<<< HEAD
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [confirmDialog, setConfirmDialog] = useState({
@@ -30,19 +29,12 @@ const Productos = () => {
     onConfirm: null,
     type: 'danger'
   })
-=======
-  const [searchTerm, setSearchTerm] = useState('')
->>>>>>> origin/main
 
   const [newProduct, setNewProduct] = useState({
     codigo: '',
     nombre: '',
     descripcion: '',
-    categoria: '',
-<<<<<<< HEAD
     categoriaId: null,
-=======
->>>>>>> origin/main
     unidadMedida: 'un'
   })
 
@@ -56,10 +48,7 @@ const Productos = () => {
   useEffect(() => {
     loadProducts()
     loadMaterials()
-<<<<<<< HEAD
     loadCategories()
-=======
->>>>>>> origin/main
   }, [searchTerm])
 
   useEffect(() => {
@@ -91,51 +80,36 @@ const Productos = () => {
     }
   }
 
-<<<<<<< HEAD
   const loadCategories = async () => {
     try {
-      // Primero intentamos cargar todas las categorías
-      const allCategories = await categoryService.getCategories()
-      console.log('Todas las categorías cargadas:', allCategories)
-      console.log('Número de categorías:', allCategories?.length || 0)
-      
+      const allCategories = await categoryService.getCategories({ tipoProducto: 'PRODUCTO_TERMINADO' })
       if (!allCategories || allCategories.length === 0) {
-        console.warn('No se encontraron categorías en la base de datos')
-        setCategories([])
-        return
+        // Si no hay filtradas, intentar cargar todas
+        const all = await categoryService.getCategories({ all: true })
+        const filtered = all.filter(cat => {
+          const tipo = cat.tipoProducto
+          const tipoStr = typeof tipo === 'string' ? tipo : (tipo?.name || tipo?.toString() || '')
+          return tipoStr === 'PRODUCTO_TERMINADO' || 
+                 tipoStr === 'producto_terminado' ||
+                 tipoStr.toUpperCase() === 'PRODUCTO_TERMINADO'
+        })
+        setCategories(filtered)
+      } else {
+        setCategories(allCategories)
       }
-      
-      // Filtrar solo las de tipo PRODUCTO_TERMINADO en el frontend
-      // El tipoProducto puede venir como enum (objeto) o como string
-      const filteredCategories = allCategories.filter(cat => {
-        const tipo = cat.tipoProducto
-        // Puede ser string "PRODUCTO_TERMINADO" o el nombre del enum
-        const tipoStr = typeof tipo === 'string' ? tipo : (tipo?.name || tipo?.toString() || '')
-        return tipoStr === 'PRODUCTO_TERMINADO' || 
-               tipoStr === 'producto_terminado' ||
-               tipoStr.toUpperCase() === 'PRODUCTO_TERMINADO'
-      })
-      
-      console.log('Categorías filtradas (PRODUCTO_TERMINADO):', filteredCategories)
-      console.log('Número de categorías filtradas:', filteredCategories.length)
-      
-      // Si no hay filtradas, mostrar todas para debug
-      if (filteredCategories.length === 0) {
-        console.warn('No se encontraron categorías de tipo PRODUCTO_TERMINADO')
-        console.log('Tipos de categorías encontradas:', allCategories.map(c => ({ nombre: c.nombre, tipo: c.tipoProducto })))
-      }
-      
-      setCategories(filteredCategories)
     } catch (err) {
       console.error('Error cargando categorías:', err)
-      console.error('Detalles del error:', err.response?.data || err.message)
-      console.error('Stack:', err.stack)
       setCategories([])
     }
   }
 
-=======
->>>>>>> origin/main
+  // Helper para obtener el nombre de la categoría desde categoriaId
+  const getCategoryName = (categoriaId) => {
+    if (!categoriaId) return 'Sin categoría'
+    const category = categories.find(cat => cat.id === categoriaId)
+    return category ? category.nombre : 'Sin categoría'
+  }
+
   const loadProductBOM = async (productId) => {
     try {
       setLoading(true)
@@ -165,11 +139,7 @@ const Productos = () => {
         codigo: '',
         nombre: '',
         descripcion: '',
-        categoria: '',
-<<<<<<< HEAD
         categoriaId: null,
-=======
->>>>>>> origin/main
         unidadMedida: 'un'
       })
     } catch (err) {
@@ -179,7 +149,6 @@ const Productos = () => {
     }
   }
 
-<<<<<<< HEAD
   const handleDeleteProduct = (id) => {
     setConfirmDialog({
       isOpen: true,
@@ -202,23 +171,6 @@ const Productos = () => {
       },
       type: 'danger'
     })
-=======
-  const handleDeleteProduct = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return
-    try {
-      setLoading(true)
-      await productService.deleteProduct(id)
-      if (selectedProduct?.id === id) {
-        setSelectedProduct(null)
-        setBom(null)
-      }
-      await loadProducts()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
->>>>>>> origin/main
   }
 
   const handleCreateBOM = async () => {
@@ -284,13 +236,6 @@ const Productos = () => {
         unidad: 'mg',
         porcentaje: ''
       })
-<<<<<<< HEAD
-      // Si el modal de detalles está abierto, mantenerlo abierto
-      if (showDetailsModal) {
-        // El BOM ya se recargó arriba, no necesitamos hacer nada más
-      }
-=======
->>>>>>> origin/main
     } catch (err) {
       setError(err.message)
     } finally {
@@ -298,7 +243,6 @@ const Productos = () => {
     }
   }
 
-<<<<<<< HEAD
   const handleDeleteMaterial = (itemId) => {
     setConfirmDialog({
       isOpen: true,
@@ -318,20 +262,6 @@ const Productos = () => {
       },
       type: 'danger'
     })
-=======
-  const handleDeleteMaterial = async (itemId) => {
-    if (!confirm('¿Estás seguro de eliminar este material de la lista?')) return
-    try {
-      setLoading(true)
-      setError('')
-      await productService.deleteBOMItem(itemId)
-      await loadProductBOM(selectedProduct.id)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
->>>>>>> origin/main
   }
 
   return (
@@ -346,13 +276,14 @@ const Productos = () => {
             className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
           />
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined">add</span>
-          Nuevo Producto
-        </button>
+        {!isSupervisorCalidad && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+          >
+            Nuevo Producto
+          </button>
+        )}
       </div>
 
       {error && (
@@ -362,7 +293,6 @@ const Productos = () => {
         </div>
       )}
 
-<<<<<<< HEAD
       {/* Tabla de Productos Horizontal */}
       <div className="bg-card-dark rounded-lg border border-border-dark overflow-hidden mb-6">
         <div className="p-4 border-b border-border-dark flex items-center justify-between">
@@ -384,7 +314,12 @@ const Productos = () => {
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Nombre</th>
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Categoría</th>
                   <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Unidad</th>
-                  <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                  {isSupervisorCalidad && (
+                    <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Cantidad en Stock</th>
+                  )}
+                  {!isSupervisorCalidad && (
+                    <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark">
@@ -399,40 +334,50 @@ const Productos = () => {
                       <span className="text-text-light text-xs font-medium">{product.codigo}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span 
-                        className="text-text-light text-xs cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => setSelectedProduct(product)}
+                      <span className={`text-text-light text-xs ${!isSupervisorCalidad ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                        onClick={!isSupervisorCalidad ? () => setSelectedProduct(product) : undefined}
                       >
                         {product.nombre}
                       </span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className="text-text-muted text-xs">{product.categoria || '-'}</span>
+                      <span className="text-text-muted text-xs">{getCategoryName(product.categoriaId)}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       <span className="text-text-muted text-xs">{product.unidadMedida || '-'}</span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => {
-                            setSelectedProduct(product)
-                            setShowDetailsModal(true)
-                          }}
-                          className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                          title="Ver detalles"
-                        >
-                          <span className="material-symbols-outlined text-sm">visibility</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
-                          title="Eliminar"
-                        >
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                      </div>
-                    </td>
+                    {isSupervisorCalidad && (
+                      <td className="px-3 py-2.5">
+                        <span className="text-text-light text-xs font-medium">
+                          {product.cantidadStock !== null && product.cantidadStock !== undefined 
+                            ? Math.round(parseFloat(product.cantidadStock))
+                            : '0'}
+                        </span>
+                      </td>
+                    )}
+                    {!isSupervisorCalidad && (
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              setSelectedProduct(product)
+                              setShowDetailsModal(true)
+                            }}
+                            className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            title="Ver detalles"
+                          >
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
+                            title="Eliminar"
+                          >
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -441,8 +386,8 @@ const Productos = () => {
         )}
       </div>
 
-      {/* Modal de Detalles del Producto */}
-      {showDetailsModal && selectedProduct && (
+      {/* Modal de Detalles del Producto - Solo para Admin y Supervisor QA */}
+      {showDetailsModal && selectedProduct && !isSupervisorCalidad && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={(e) => {
@@ -477,7 +422,7 @@ const Productos = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-text-muted text-xs mb-1">Categoría</p>
-                  <p className="text-text-light text-sm">{selectedProduct.categoria || 'Sin categoría'}</p>
+                  <p className="text-text-light text-sm">{getCategoryName(selectedProduct.categoriaId)}</p>
                 </div>
                 <div>
                   <p className="text-text-muted text-xs mb-1">Unidad de Medida</p>
@@ -493,94 +438,6 @@ const Productos = () => {
 
               {/* Lista de Materiales (BOM) */}
               <div>
-=======
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <div className="rounded-lg bg-card-dark border border-border-dark overflow-hidden">
-            <div className="p-4 border-b border-border-dark">
-              <h2 className="text-text-light font-semibold">Lista de Productos</h2>
-            </div>
-            {loading && !products.length ? (
-              <div className="p-4 text-center text-text-muted">Cargando...</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border-dark">
-                      <th className="text-left p-3 text-text-muted text-xs font-semibold">Código</th>
-                      <th className="text-left p-3 text-text-muted text-xs font-semibold">Nombre</th>
-                      <th className="text-right p-3 text-text-muted text-xs font-semibold">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.length === 0 ? (
-                      <tr>
-                        <td colSpan="3" className="p-4 text-center text-text-muted text-sm">
-                          No hay productos registrados
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map((product) => (
-                        <tr 
-                          key={product.id} 
-                          className={`border-b border-border-dark hover:bg-border-dark/30 cursor-pointer ${
-                            selectedProduct?.id === product.id ? 'bg-primary/10' : ''
-                          }`}
-                          onClick={() => setSelectedProduct(product)}
-                        >
-                          <td className="p-3 text-text-light font-medium text-sm">{product.codigo}</td>
-                          <td className="p-3 text-text-light text-sm">{product.nombre}</td>
-                          <td className="p-3 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteProduct(product.id)
-                              }}
-                              className="px-2 py-1 rounded text-xs text-danger hover:bg-danger/10"
-                            >
-                              Eliminar
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
-          {selectedProduct ? (
-            <div className="space-y-6">
-              <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className="text-text-light text-2xl font-bold">{selectedProduct.nombre}</h2>
-                    <p className="text-text-muted text-sm">{selectedProduct.codigo}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-text-muted text-xs mb-1">Categoría</p>
-                    <p className="text-text-light">{selectedProduct.categoria || 'Sin categoría'}</p>
-                  </div>
-                  <div>
-                    <p className="text-text-muted text-xs mb-1">Unidad de Medida</p>
-                    <p className="text-text-light">{selectedProduct.unidadMedida}</p>
-                  </div>
-                  {selectedProduct.descripcion && (
-                    <div className="col-span-2">
-                      <p className="text-text-muted text-xs mb-1">Descripción</p>
-                      <p className="text-text-light">{selectedProduct.descripcion}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-card-dark border border-border-dark p-6">
->>>>>>> origin/main
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-text-light font-semibold">Lista de Materiales (BOM)</h3>
                   {bom ? (
@@ -593,19 +450,11 @@ const Productos = () => {
                         {bom.version} - {bom.estado}
                       </span>
                       <button
-<<<<<<< HEAD
                         onClick={() => {
                           setShowAddMaterial(true)
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90"
                       >
-                        <span className="material-symbols-outlined text-sm">add</span>
-=======
-                        onClick={() => setShowAddMaterial(true)}
-                        className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-base">add</span>
->>>>>>> origin/main
                         Agregar Material
                       </button>
                     </div>
@@ -613,11 +462,7 @@ const Productos = () => {
                     <button
                       onClick={handleCreateBOM}
                       disabled={loading}
-<<<<<<< HEAD
                       className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 disabled:opacity-50"
-=======
-                      className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
->>>>>>> origin/main
                     >
                       Crear BOM
                     </button>
@@ -627,7 +472,6 @@ const Productos = () => {
                 {bom && bom.items && bom.items.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
-<<<<<<< HEAD
                       <thead className="bg-input-dark/50 border-b border-border-dark">
                         <tr>
                           <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Material</th>
@@ -667,34 +511,6 @@ const Productos = () => {
                                   <span className="material-symbols-outlined text-sm">delete</span>
                                 </button>
                               </div>
-=======
-                      <thead>
-                        <tr className="border-b border-border-dark">
-                          <th className="text-left p-3 text-text-muted text-sm font-semibold">Material</th>
-                          <th className="text-left p-3 text-text-muted text-sm font-semibold">Cantidad</th>
-                          <th className="text-left p-3 text-text-muted text-sm font-semibold">Unidad</th>
-                          <th className="text-left p-3 text-text-muted text-sm font-semibold">%</th>
-                          <th className="text-right p-3 text-text-muted text-sm font-semibold">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bom.items.map((item) => (
-                          <tr key={item.id} className="border-b border-border-dark">
-                            <td className="p-3 text-text-light">
-                              {item.materialNombre || item.material?.nombre || `Material ${item.materialId || item.material_id}`}
-                              <p className="text-text-muted text-xs">{item.materialCodigo || item.material?.codigo || ''}</p>
-                            </td>
-                            <td className="p-3 text-text-light">{item.cantidad}</td>
-                            <td className="p-3 text-text-muted">{item.unidad}</td>
-                            <td className="p-3 text-text-muted">{item.porcentaje}%</td>
-                            <td className="p-3 text-right">
-                              <button
-                                onClick={() => handleDeleteMaterial(item.id)}
-                                className="text-danger hover:text-danger/80 text-sm"
-                              >
-                                Eliminar
-                              </button>
->>>>>>> origin/main
                             </td>
                           </tr>
                         ))}
@@ -702,20 +518,13 @@ const Productos = () => {
                     </table>
                   </div>
                 ) : (
-<<<<<<< HEAD
                   <div className="text-center py-8 text-text-muted bg-input-dark rounded-lg border border-border-dark">
                     <span className="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
                     <p className="text-sm">No hay materiales en la lista. Agrega materiales para crear la fórmula.</p>
-=======
-                  <div className="text-center py-8 text-text-muted">
-                    <span className="material-symbols-outlined text-4xl mb-2">inventory_2</span>
-                    <p>No hay materiales en la lista. Agrega materiales para crear la fórmula.</p>
->>>>>>> origin/main
                   </div>
                 )}
               </div>
 
-<<<<<<< HEAD
               {/* Botón Cerrar */}
               <div className="flex justify-end pt-4 border-t border-border-dark">
                 <button
@@ -733,29 +542,8 @@ const Productos = () => {
           </div>
         </div>
       )}
-=======
-              {bom && (
-                <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-                  <h3 className="text-text-light font-semibold mb-4">Justificación Técnica de Sinergia</h3>
-                  <div className="p-4 rounded-lg bg-input-dark min-h-[100px]">
-                    <p className="text-text-light text-sm leading-relaxed">
-                      {bom.justificacion || 'Sin justificación técnica aún.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-lg bg-card-dark border border-border-dark p-12 text-center">
-              <span className="material-symbols-outlined text-6xl text-text-muted mb-4">inventory_2</span>
-              <p className="text-text-muted">Selecciona un producto para ver su lista de materiales</p>
-            </div>
-          )}
-        </div>
-      </div>
->>>>>>> origin/main
 
-      {showCreateModal && (
+      {showCreateModal && !isSupervisorCalidad && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card-dark rounded-lg border border-border-dark max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-border-dark flex items-center justify-between">
@@ -803,15 +591,12 @@ const Productos = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-text-light text-sm font-medium mb-2">Categoría</label>
-<<<<<<< HEAD
                   <select
                     value={newProduct.categoriaId || ''}
                     onChange={(e) => {
-                      const selectedCategory = categories.find(cat => cat.id === parseInt(e.target.value))
                       setNewProduct({ 
                         ...newProduct, 
-                        categoriaId: e.target.value ? parseInt(e.target.value) : null,
-                        categoria: selectedCategory ? selectedCategory.nombre : ''
+                        categoriaId: e.target.value ? parseInt(e.target.value) : null
                       })
                     }}
                     className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
@@ -831,15 +616,6 @@ const Productos = () => {
                       No hay categorías disponibles. Crea categorías en la sección de Categorías.
                     </p>
                   )}
-=======
-                  <input
-                    type="text"
-                    value={newProduct.categoria}
-                    onChange={(e) => setNewProduct({ ...newProduct, categoria: e.target.value })}
-                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                    placeholder="Categoría"
-                  />
->>>>>>> origin/main
                 </div>
                 <div>
                   <label className="block text-text-light text-sm font-medium mb-2">Unidad de Medida</label>
@@ -884,13 +660,9 @@ const Productos = () => {
             <div className="p-6 border-b border-border-dark flex items-center justify-between">
               <h2 className="text-text-light text-xl font-semibold">Agregar Material al BOM</h2>
               <button
-<<<<<<< HEAD
                 onClick={() => {
                   setShowAddMaterial(false)
                 }}
-=======
-                onClick={() => setShowAddMaterial(false)}
->>>>>>> origin/main
                 className="text-text-muted hover:text-text-light"
               >
                 <span className="material-symbols-outlined">close</span>
@@ -973,7 +745,6 @@ const Productos = () => {
           </div>
         </div>
       )}
-<<<<<<< HEAD
 
       {/* Dialog de confirmación */}
       <ConfirmDialog
@@ -984,8 +755,6 @@ const Productos = () => {
         message={confirmDialog.message}
         type={confirmDialog.type}
       />
-=======
->>>>>>> origin/main
     </div>
   )
 }

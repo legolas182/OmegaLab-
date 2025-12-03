@@ -63,10 +63,6 @@ public class ProductServiceImpl implements ProductService {
         product.setCodigo(productDTO.getCodigo());
         product.setNombre(productDTO.getNombre());
         product.setDescripcion(productDTO.getDescripcion() != null ? productDTO.getDescripcion() : "");
-<<<<<<< HEAD
-=======
-        product.setCategoria(productDTO.getCategoria() != null ? productDTO.getCategoria() : "");
->>>>>>> origin/main
         product.setUnidadMedida(productDTO.getUnidadMedida() != null ? productDTO.getUnidadMedida() : "un");
         
         if (productDTO.getCategoriaId() != null) {
@@ -103,7 +99,6 @@ public class ProductServiceImpl implements ProductService {
                 EstadoUsuario.ACTIVO
             );
         } else if (categoria != null) {
-<<<<<<< HEAD
             // Buscar por nombre de categoría a través de la relación
             products = productRepository.findAll()
                 .stream()
@@ -111,9 +106,6 @@ public class ProductServiceImpl implements ProductService {
                             p.getCategoriaEntity() != null && 
                             p.getCategoriaEntity().getNombre().equalsIgnoreCase(categoria))
                 .collect(Collectors.toList());
-=======
-            products = productRepository.findByCategoriaAndEstado(categoria, EstadoUsuario.ACTIVO);
->>>>>>> origin/main
         } else {
             products = productRepository.findAll()
                 .stream()
@@ -193,13 +185,6 @@ public class ProductServiceImpl implements ProductService {
             product.setDescripcion(productDTO.getDescripcion());
         }
         
-<<<<<<< HEAD
-=======
-        if (productDTO.getCategoria() != null) {
-            product.setCategoria(productDTO.getCategoria());
-        }
-        
->>>>>>> origin/main
         if (productDTO.getUnidadMedida() != null && !productDTO.getUnidadMedida().trim().isEmpty()) {
             product.setUnidadMedida(productDTO.getUnidadMedida());
         }

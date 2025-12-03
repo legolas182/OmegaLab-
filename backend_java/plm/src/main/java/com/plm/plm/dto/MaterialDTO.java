@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,12 +16,10 @@ public class MaterialDTO {
     private String codigo;
     private String nombre;
     private String descripcion;
-<<<<<<< HEAD
-=======
-    private String categoria;
->>>>>>> origin/main
     private Integer categoriaId;
+    private String tipo; // MATERIA_PRIMA o COMPONENTE (derivado de la categoría)
     private String unidadMedida;
+    private BigDecimal cantidadStock;
     private EstadoUsuario estado;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

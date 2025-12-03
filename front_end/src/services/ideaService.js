@@ -106,6 +106,15 @@ class IdeaService {
     }
   }
 
+  async getOrdenesProduccion() {
+    try {
+      const response = await api.get('/ideas/ordenes-produccion');
+      return response.data.data.ordenes || [];
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async changeEstado(id, nuevoEstado, analistaId = null) {
     try {
       let url = `/ideas/${id}/change-estado?nuevoEstado=${nuevoEstado}`;
@@ -122,6 +131,19 @@ class IdeaService {
   async generateFromProduct(productoId, objetivo) {
     try {
       const response = await api.post(`/ideas/generate-from-product?productoId=${productoId}&objetivo=${encodeURIComponent(objetivo)}`);
+      return response.data.data.idea;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async generateFromMaterials(objetivo, materialIds, compoundIds = []) {
+    try {
+      const response = await api.post('/ideas/generate-from-materials', {
+        objetivo,
+        materialIds,
+        compoundIds
+      });
       return response.data.data.idea;
     } catch (error) {
       throw this.handleError(error);

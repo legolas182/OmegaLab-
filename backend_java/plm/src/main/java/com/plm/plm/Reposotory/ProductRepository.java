@@ -19,11 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     
     boolean existsByNombre(String nombre);
     
-<<<<<<< HEAD
-=======
-    List<Product> findByCategoriaAndEstado(String categoria, EstadoUsuario estado);
-    
->>>>>>> origin/main
     @Query("SELECT p FROM Product p WHERE p.estado = :estado AND " +
            "(LOWER(p.nombre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.codigo) LIKE LOWER(CONCAT('%', :search, '%')))")

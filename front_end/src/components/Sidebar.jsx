@@ -1,10 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-<<<<<<< HEAD
 import { getRoleName, hasAnyRole } from '../utils/rolePermissions'
-=======
-import { getRoleName } from '../utils/rolePermissions'
->>>>>>> origin/main
 
 const Sidebar = ({ isOpen, onToggle, currentPath }) => {
   const navigate = useNavigate()
@@ -15,19 +11,17 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
     navigate('/login')
   }
 
-<<<<<<< HEAD
   // Todos los módulos disponibles
   const allModules = [
     { key: 'dashboard', name: 'Dashboard', icon: 'dashboard', path: '/', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD', 'ANALISTA_LABORATORIO'] },
+    { key: 'aprobacion', name: 'Aprobaciones', icon: 'verified', path: '/aprobacion', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA'] },
+    { key: 'ia', name: 'IA / Simulación', icon: 'psychology', path: '/ia', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA'] },
     { key: 'ideas', name: 'Nuevas Fórmulas', icon: 'lightbulb', path: '/ideas', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'ANALISTA_LABORATORIO'], nameForAnalista: 'Asignado' },
     { key: 'inventario', name: 'Inventario', icon: 'inventory_2', path: '/inventario', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD'] },
-    { key: 'ia', name: 'IA / Simulación', icon: 'psychology', path: '/ia', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA'] },
-    { key: 'produccion', name: 'Producción / Proceso', icon: 'precision_manufacturing', path: '/produccion', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA'] },
-    { key: 'pruebas', name: 'Pruebas / C. Calidad', icon: 'biotech', path: '/pruebas', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD', 'ANALISTA_LABORATORIO'] },
+    { key: 'produccion', name: 'Producción / Proceso', icon: 'precision_manufacturing', path: '/produccion', roles: ['ADMINISTRADOR', 'SUPERVISOR_CALIDAD'] },
+    { key: 'pruebas', name: 'Pruebas / C. Calidad', icon: 'biotech', path: '/pruebas', roles: ['ADMINISTRADOR', 'ANALISTA_LABORATORIO'] },
     { key: 'historial', name: 'Historial', icon: 'history', path: '/historial', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD', 'ANALISTA_LABORATORIO'] },
-    { key: 'aprobacion', name: 'Aprobación / QA', icon: 'verified', path: '/aprobacion', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD'] },
-    { key: 'trazabilidad', name: 'Trazabilidad Lote', icon: 'timeline', path: '/trazabilidad', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD'] },
-    { key: 'conocimiento', name: 'Base de Conocimiento', icon: 'menu_book', path: '/conocimiento', roles: ['ADMINISTRADOR', 'SUPERVISOR_QA', 'SUPERVISOR_CALIDAD'] },
+    { key: 'trazabilidad', name: 'Trazabilidad Lote', icon: 'timeline', path: '/trazabilidad', roles: ['ADMINISTRADOR', 'SUPERVISOR_CALIDAD'] },
     { key: 'configuracion', name: 'Configuración', icon: 'settings', path: '/configuracion', roles: ['ADMINISTRADOR'] }
   ]
 
@@ -37,21 +31,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
     return module.roles.some(role => hasAnyRole(user, role))
   }) : []
 
-=======
-  const modules = [
-    { key: 'dashboard', name: 'Dashboard', icon: 'dashboard', path: '/' },
-    { key: 'ideas', name: 'Ideas / Research', icon: 'lightbulb', path: '/ideas' },
-    { key: 'inventario', name: 'Inventario', icon: 'inventory_2', path: '/inventario' },
-    { key: 'ia', name: 'IA / Simulación', icon: 'psychology', path: '/ia' },
-    { key: 'produccion', name: 'Producción / Proceso', icon: 'precision_manufacturing', path: '/produccion' },
-    { key: 'pruebas', name: 'Pruebas / C. Calidad', icon: 'biotech', path: '/pruebas' },
-    { key: 'aprobacion', name: 'Aprobación / QA', icon: 'verified', path: '/aprobacion' },
-    { key: 'trazabilidad', name: 'Trazabilidad Lote', icon: 'timeline', path: '/trazabilidad' },
-    { key: 'conocimiento', name: 'Base de Conocimiento', icon: 'menu_book', path: '/conocimiento' },
-    { key: 'configuracion', name: 'Configuración', icon: 'settings', path: '/configuracion' }
-  ]
-
->>>>>>> origin/main
   const isActive = (path) => {
     if (path === '/') {
       return currentPath === '/'
@@ -70,18 +49,13 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 <span className="material-symbols-outlined text-primary text-2xl">science</span>
               </div>
               <div className="flex flex-col">
-<<<<<<< HEAD
                 <h1 className="text-text-light text-base font-bold leading-normal">OMEGA LAB</h1>
-=======
-                <h1 className="text-text-light text-base font-bold leading-normal">PROSCIENCE LAB</h1>
->>>>>>> origin/main
                 <p className="text-text-muted text-sm font-normal leading-normal">PLM/LIMS System</p>
               </div>
             </div>
 
             {/* Navigation */}
             <nav className="flex flex-col gap-2 flex-grow">
-<<<<<<< HEAD
               {modules.map((module) => {
                 // Si es analista y el módulo tiene nombre específico para analista, usarlo
                 const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista) 
@@ -102,22 +76,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                   </Link>
                 )
               })}
-=======
-              {modules.map((module) => (
-                <Link
-                  key={module.key}
-                  to={module.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive(module.path)
-                      ? 'bg-primary/20 text-primary'
-                      : 'text-text-muted hover:bg-border-dark/50'
-                  }`}
-                >
-                  <span className="material-symbols-outlined">{module.icon}</span>
-                  <p className="text-sm font-medium leading-normal">{module.name}</p>
-                </Link>
-              ))}
->>>>>>> origin/main
             </nav>
 
             {/* User Info */}
@@ -172,11 +130,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                     <span className="material-symbols-outlined text-primary text-2xl">science</span>
                   </div>
                   <div className="flex flex-col">
-<<<<<<< HEAD
                     <h1 className="text-text-light text-base font-bold leading-normal">OMEGA LAB</h1>
-=======
-                    <h1 className="text-text-light text-base font-bold leading-normal">PROSCIENCE LAB</h1>
->>>>>>> origin/main
                     <p className="text-text-muted text-sm font-normal leading-normal">PLM/LIMS System</p>
                   </div>
                 </div>
@@ -186,7 +140,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
               </div>
 
               <nav className="flex flex-col gap-2 flex-grow">
-<<<<<<< HEAD
                 {modules.map((module) => {
                   // Si es analista y el módulo tiene nombre específico para analista, usarlo
                   const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista) 
@@ -208,23 +161,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                     </Link>
                   )
                 })}
-=======
-                {modules.map((module) => (
-                  <Link
-                    key={module.key}
-                    to={module.path}
-                    onClick={onToggle}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                      isActive(module.path)
-                        ? 'bg-primary/20 text-primary'
-                        : 'text-text-muted hover:bg-border-dark/50'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined">{module.icon}</span>
-                    <p className="text-sm font-medium leading-normal">{module.name}</p>
-                  </Link>
-                ))}
->>>>>>> origin/main
               </nav>
 
               {/* User Info */}
