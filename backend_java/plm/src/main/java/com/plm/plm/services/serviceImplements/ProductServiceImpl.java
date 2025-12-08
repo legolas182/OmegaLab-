@@ -21,10 +21,15 @@ import com.plm.plm.dto.BOMItemDTO;
 import com.plm.plm.dto.ProductDTO;
 import com.plm.plm.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +56,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Override
     @Transactional
     public ProductDTO createProduct(ProductDTO productDTO) {
@@ -63,10 +71,6 @@ public class ProductServiceImpl implements ProductService {
         product.setCodigo(productDTO.getCodigo());
         product.setNombre(productDTO.getNombre());
         product.setDescripcion(productDTO.getDescripcion() != null ? productDTO.getDescripcion() : "");
-<<<<<<< HEAD
-=======
-        product.setCategoria(productDTO.getCategoria() != null ? productDTO.getCategoria() : "");
->>>>>>> origin/main
         product.setUnidadMedida(productDTO.getUnidadMedida() != null ? productDTO.getUnidadMedida() : "un");
         
         if (productDTO.getCategoriaId() != null) {
@@ -103,7 +107,6 @@ public class ProductServiceImpl implements ProductService {
                 EstadoUsuario.ACTIVO
             );
         } else if (categoria != null) {
-<<<<<<< HEAD
             // Buscar por nombre de categoría a través de la relación
             products = productRepository.findAll()
                 .stream()
@@ -111,9 +114,6 @@ public class ProductServiceImpl implements ProductService {
                             p.getCategoriaEntity() != null && 
                             p.getCategoriaEntity().getNombre().equalsIgnoreCase(categoria))
                 .collect(Collectors.toList());
-=======
-            products = productRepository.findByCategoriaAndEstado(categoria, EstadoUsuario.ACTIVO);
->>>>>>> origin/main
         } else {
             products = productRepository.findAll()
                 .stream()
@@ -193,13 +193,6 @@ public class ProductServiceImpl implements ProductService {
             product.setDescripcion(productDTO.getDescripcion());
         }
         
-<<<<<<< HEAD
-=======
-        if (productDTO.getCategoria() != null) {
-            product.setCategoria(productDTO.getCategoria());
-        }
-        
->>>>>>> origin/main
         if (productDTO.getUnidadMedida() != null && !productDTO.getUnidadMedida().trim().isEmpty()) {
             product.setUnidadMedida(productDTO.getUnidadMedida());
         }
@@ -270,7 +263,12 @@ public class ProductServiceImpl implements ProductService {
         item.setPorcentaje(porcentaje);
         item.setSecuencia(nextSeq);
 
-        return bomItemRepository.save(item).getDTO();
+        BOMItemDTO savedItem = bomItemRepository.save(item).getDTO();
+        
+        // Validar porcentajes después de agregar el item usando procedimiento almacenado
+        validateBOMPercentages(bomId);
+        
+        return savedItem;
     }
 
     @Override
@@ -299,7 +297,12 @@ public class ProductServiceImpl implements ProductService {
         item.setUnidad(unidad);
         item.setPorcentaje(porcentaje);
 
-        return bomItemRepository.save(item).getDTO();
+        BOMItemDTO savedItem = bomItemRepository.save(item).getDTO();
+        
+        // Validar porcentajes después de actualizar el item usando procedimiento almacenado
+        validateBOMPercentages(item.getBom().getId());
+        
+        return savedItem;
     }
 
     @Override
@@ -308,7 +311,11 @@ public class ProductServiceImpl implements ProductService {
         BOMItem item = bomItemRepository.findById(itemId)
             .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado"));
 
+        Integer bomId = item.getBom().getId();
         bomItemRepository.delete(item);
+        
+        // Validar porcentajes después de eliminar el item usando procedimiento almacenado
+        validateBOMPercentages(bomId);
     }
 
     @Override
@@ -325,6 +332,119 @@ public class ProductServiceImpl implements ProductService {
         int major = parts.length > 0 ? Integer.parseInt(parts[0]) : 1;
         int minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
         return major + "." + (minor + 1);
+    }
+
+    /**
+     * Valida que los porcentajes de un BOM sumen 100% usando procedimiento almacenado
+     */
+    private void validateBOMPercentages(Integer bomId) {
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("ValidarPorcentajesBOM")
+                .declareParameters(
+                        new SqlParameter("p_bom_id", Types.INTEGER),
+                        new SqlOutParameter("p_valido", Types.BOOLEAN),
+                        new SqlOutParameter("p_suma_total", Types.DECIMAL),
+                        new SqlOutParameter("p_mensaje", Types.VARCHAR)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_bom_id", bomId);
+
+        Map<String, Object> result = call.execute(inParams);
+
+        Boolean isValid = (Boolean) result.get("p_valido");
+        BigDecimal totalSum = (BigDecimal) result.get("p_suma_total");
+        String message = (String) result.get("p_mensaje");
+
+        if (!isValid) {
+            throw new BadRequestException(
+                String.format("BOM percentages do not sum to 100%%. Current sum: %s%%. %s", 
+                    totalSum, message)
+            );
+        }
+    }
+
+    /**
+     * Valida los porcentajes de un BOM y retorna información detallada
+     */
+    @Override
+    public Map<String, Object> validateBOM(Integer bomId) {
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("ValidarPorcentajesBOM")
+                .declareParameters(
+                        new SqlParameter("p_bom_id", Types.INTEGER),
+                        new SqlOutParameter("p_valido", Types.BOOLEAN),
+                        new SqlOutParameter("p_suma_total", Types.DECIMAL),
+                        new SqlOutParameter("p_mensaje", Types.VARCHAR)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_bom_id", bomId);
+
+        Map<String, Object> result = call.execute(inParams);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("valido", result.get("p_valido"));
+        response.put("sumaTotal", result.get("p_suma_total"));
+        response.put("mensaje", result.get("p_mensaje"));
+
+        return response;
+    }
+
+    /**
+     * Verifica si hay stock suficiente para producir un producto usando procedimiento almacenado
+     */
+    @Override
+    public Map<String, Object> verifyStockProduction(Integer productoId, BigDecimal cantidad) {
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("VerificarStockProduccion")
+                .declareParameters(
+                        new SqlParameter("p_producto_id", Types.INTEGER),
+                        new SqlParameter("p_cantidad_producir", Types.DECIMAL),
+                        new SqlOutParameter("p_disponible", Types.BOOLEAN),
+                        new SqlOutParameter("p_mensaje", Types.CLOB)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_producto_id", productoId);
+        inParams.put("p_cantidad_producir", cantidad);
+
+        Map<String, Object> result = call.execute(inParams);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("disponible", result.get("p_disponible"));
+        response.put("mensaje", result.get("p_mensaje"));
+
+        return response;
+    }
+
+    /**
+     * Calcula los totales de un BOM usando procedimiento almacenado
+     */
+    @Override
+    public Map<String, Object> calculateBOMTotals(Integer bomId) {
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("CalcularTotalesBOM")
+                .declareParameters(
+                        new SqlParameter("p_bom_id", Types.INTEGER),
+                        new SqlOutParameter("p_total_porcentaje", Types.DECIMAL),
+                        new SqlOutParameter("p_total_cantidad", Types.DECIMAL),
+                        new SqlOutParameter("p_num_items", Types.INTEGER),
+                        new SqlOutParameter("p_detalle", Types.CLOB)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_bom_id", bomId);
+
+        Map<String, Object> result = call.execute(inParams);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalPorcentaje", result.get("p_total_porcentaje"));
+        response.put("totalCantidad", result.get("p_total_cantidad"));
+        response.put("numItems", result.get("p_num_items"));
+        response.put("detalle", result.get("p_detalle"));
+
+        return response;
     }
 }
 

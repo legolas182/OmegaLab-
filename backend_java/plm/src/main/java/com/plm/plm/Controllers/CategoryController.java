@@ -30,22 +30,15 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<Map<String, List<CategoryDTO>>> getAllCategories(
-<<<<<<< HEAD
             @RequestParam(required = false) String tipoProducto,
             @RequestParam(required = false) Boolean all) {
-=======
-            @RequestParam(required = false) String tipoProducto) {
->>>>>>> origin/main
         List<CategoryDTO> categories;
         
         if (tipoProducto != null && !tipoProducto.isEmpty()) {
             TipoProducto tipo = TipoProducto.fromString(tipoProducto);
             categories = categoryService.getCategoriesByTipoProducto(tipo);
-<<<<<<< HEAD
         } else if (all != null && all) {
             categories = categoryService.getAllCategoriesForAdmin();
-=======
->>>>>>> origin/main
         } else {
             categories = categoryService.getAllCategories();
         }
