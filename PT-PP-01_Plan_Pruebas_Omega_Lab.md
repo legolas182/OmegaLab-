@@ -389,7 +389,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-AUTH-001 - Login Exitoso con Credenciales Válidas | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU01 – Iniciar Sesión | **MÓDULO.** | Autenticación |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF02 – Inicio de sesión | **MÓDULO.** | Autenticación |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un usuario puede iniciar sesión correctamente con credenciales válidas y acceder al sistema. |
@@ -466,7 +466,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-AUTH-002 - Login Fallido con Credenciales Inválidas | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU01 – Iniciar Sesión | **MÓDULO.** | Autenticación |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF02 – Inicio de sesión | **MÓDULO.** | Autenticación |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema rechaza credenciales incorrectas y muestra un mensaje de error apropiado sin revelar información sensible. |
@@ -539,7 +539,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-AUTH-003 - Validación de Token JWT en Peticiones | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU01 – Iniciar Sesión / Seguridad | **MÓDULO.** | Autenticación |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF03 – Gestión de sesión con JWT | **MÓDULO.** | Autenticación |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que las peticiones a endpoints protegidos requieren un token JWT válido, rechazando peticiones sin token, con token inválido o con token expirado, y permitiendo acceso solo con token válido. |
@@ -639,7 +639,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-DASH-001 - Visualización de Dashboard según Rol - Administrador | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU05 – Visualizar Dashboard | **MÓDULO.** | Dashboard |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF06 – Visualización de KPIs en tiempo real | **MÓDULO.** | Dashboard |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el Dashboard muestra la información correcta y completa para un usuario con rol Administrador, incluyendo KPIs, gráficos y tablas relevantes. |
@@ -718,7 +718,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-DASH-002 - Visualización de Dashboard según Rol - Analista de Laboratorio | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU05 – Visualizar Dashboard | **MÓDULO.** | Dashboard |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF06 – Visualización de KPIs en tiempo real | **MÓDULO.** | Dashboard |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el Dashboard muestra solo la información relevante para un Analista de Laboratorio, incluyendo KPIs específicos, ideas asignadas y solo los módulos permitidos según su rol. |
@@ -799,7 +799,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-IDEA-001 - Crear Nueva Idea | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU02 – Crear Nueva Idea | **MÓDULO.** | Ideas / Nuevas Fórmulas |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF13 – Creación de nuevas fórmulas | **MÓDULO.** | Ideas / Nuevas Fórmulas |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Supervisor QA o Administrador puede crear una nueva idea con todos los campos requeridos y que la idea se registra correctamente en el sistema con estado inicial "generada". |
@@ -883,7 +883,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-IDEA-002 - Validar Campos Requeridos al Crear Idea | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU02 – Crear Nueva Idea | **MÓDULO.** | Ideas / Nuevas Fórmulas |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF13 – Creación de nuevas fórmulas | **MÓDULO.** | Ideas / Nuevas Fórmulas |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema valida campos requeridos antes de crear una idea, mostrando mensajes de error apropiados cuando faltan campos obligatorios y permitiendo crear la idea solo cuando todos los campos requeridos están completos. |
@@ -982,7 +982,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-IDEA-003 - Asignar Idea a Analista de Laboratorio | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU06 – Asignar Idea a Analista | **MÓDULO.** | Ideas / Nuevas Fórmulas |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF13 – Creación de nuevas fórmulas | **MÓDULO.** | Ideas / Nuevas Fórmulas |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Supervisor QA puede asignar una idea en estado "aprobada" a un Analista de Laboratorio, cambiando el estado a "en_prueba" y asegurando que el analista pueda ver la idea asignada. |
@@ -1068,7 +1068,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-IDEA-004 - Generar Idea desde Producto usando IA | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU07 – Generar Idea con IA | **MÓDULO.** | IA / Simulación |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF14 – Asistencia de IA para sugerir combinaciones de productos del inventario | **MÓDULO.** | IA / Simulación |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema puede generar una idea mejorada usando OpenAI API, creando automáticamente una idea con título, descripción, BOM modificado y pruebas requeridas sugeridas basadas en un producto existente y un objetivo específico. |
@@ -1152,7 +1152,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-IDEA-005 - Filtrar Ideas por Estado | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU08 – Filtrar Ideas | **MÓDULO.** | Ideas / Nuevas Fórmulas |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF13 – Creación de nuevas fórmulas | **MÓDULO.** | Ideas / Nuevas Fórmulas |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema permite filtrar ideas por estado, mostrando solo las ideas que coinciden con el estado seleccionado y actualizando correctamente el contador de resultados. |
@@ -1234,7 +1234,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-INV-001 - Crear Producto Terminado | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU09 – Crear Producto Terminado | **MÓDULO.** | Inventario |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF15 – Análisis de inventario disponible | **MÓDULO.** | Inventario |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que se puede crear un nuevo producto terminado con todos los campos requeridos, asegurando que el código sea único y que el producto se registre correctamente en el sistema con estado inicial "activo". |
@@ -1320,7 +1320,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-INV-002 - Validar Código Único de Producto | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU09 – Crear Producto Terminado | **MÓDULO.** | Inventario |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF15 – Análisis de inventario disponible | **MÓDULO.** | Inventario |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema valida que no se pueden crear dos productos con el mismo código, mostrando un mensaje de error apropiado cuando se intenta usar un código duplicado. |
@@ -1404,7 +1404,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-INV-003 - Crear Materia Prima | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU10 – Crear Materia Prima | **MÓDULO.** | Inventario |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF15 – Análisis de inventario disponible | **MÓDULO.** | Inventario |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que se puede crear una nueva materia prima con todos los campos requeridos, asegurando que el código sea único y que la materia prima se registre correctamente en el sistema. |
@@ -1489,7 +1489,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-INV-004 - Buscar Productos por Texto | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU11 – Buscar Productos | **MÓDULO.** | Inventario |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF15 – Análisis de inventario disponible | **MÓDULO.** | Inventario |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que la búsqueda de productos funciona correctamente, mostrando solo los productos que contienen el texto buscado en nombre o código, siendo case-insensitive y mostrando un contador de resultados. |
@@ -1572,7 +1572,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-BOM-001 - Crear BOM para un Producto | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU03 – Crear BOM | **MÓDULO.** | Producción / Proceso (BOMs) |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF16 – Gestión de BOM con control de versiones | **MÓDULO.** | Producción / Proceso (BOMs) |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que se puede crear un BOM (Bill of Materials) para un producto, agregando items con materiales, cantidades y porcentajes que sumen 100%, y que el BOM se guarda correctamente con estado "borrador". |
@@ -1667,7 +1667,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-BOM-002 - Validar que Porcentajes de BOM Sumen 100% | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU03 – Crear BOM | **MÓDULO.** | Producción / Proceso (BOMs) |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF19 – Validación de proporciones | **MÓDULO.** | Producción / Proceso (BOMs) |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema valida que los porcentajes de un BOM sumen exactamente 100% antes de permitir guardar, rechazando BOMs con porcentajes que no sumen 100% y aceptando solo aquellos que cumplan esta condición. |
@@ -1771,7 +1771,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-BOM-003 - Aprobar BOM | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU12 – Aprobar BOM | **MÓDULO.** | Producción / Proceso (BOMs) |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF16 – Gestión de BOM con control de versiones / RF17 – Justificación técnica de formulaciones | **MÓDULO.** | Producción / Proceso (BOMs) |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Supervisor QA puede aprobar un BOM en estado "borrador" con porcentajes válidos, cambiando su estado a "aprobado" y registrando la información de aprobación. |
@@ -1856,7 +1856,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-BOM-004 - Ver Historial de Versiones de BOM | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU13 – Ver Historial de BOM | **MÓDULO.** | Producción / Proceso (BOMs) |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF16 – Gestión de BOM con control de versiones / RF18 – Historial de cambios con trazabilidad | **MÓDULO.** | Producción / Proceso (BOMs) |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que se puede ver el historial completo de versiones de BOM para un producto, mostrando todas las versiones con su información (número, estado, fecha, creador) y permitiendo ver el detalle de cada versión. |
@@ -1940,7 +1940,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PRUEBA-001 - Crear Prueba Vinculada a Idea | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU14 – Crear Prueba de Laboratorio | **MÓDULO.** | Pruebas / Control de Calidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF30 – Registro de pruebas analíticas | **MÓDULO.** | Pruebas / Control de Calidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Analista puede crear una prueba vinculada a una idea asignada, completando todos los campos requeridos y asegurando que la prueba se registre correctamente con estado "pendiente". |
@@ -2029,7 +2029,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PRUEBA-002 - Agregar Resultado Analítico a Prueba | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU04 – Agregar Resultado Analítico | **MÓDULO.** | Pruebas / Control de Calidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF30 – Registro de pruebas analíticas | **MÓDULO.** | Pruebas / Control de Calidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Analista puede agregar resultados analíticos a una prueba en estado "en_proceso", y que el sistema evalúa automáticamente si el resultado cumple con la especificación definida. |
@@ -2116,7 +2116,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PRUEBA-003 - Evaluación Automática de Cumplimiento de Especificación | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU04 – Agregar Resultado Analítico | **MÓDULO.** | Pruebas / Control de Calidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF30 – Registro de pruebas analíticas | **MÓDULO.** | Pruebas / Control de Calidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema evalúa automáticamente si un resultado cumple con la especificación definida, comparando valores numéricos contra rangos, límites superiores e inferiores, y marcando correctamente como "Cumple" o "OOS" según corresponda. |
@@ -2232,7 +2232,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PRUEBA-004 - Cambio Automático de Estado de Prueba a Completada | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU15 – Cambio Automático de Estado | **MÓDULO.** | Pruebas / Control de Calidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF30 – Registro de pruebas analíticas | **MÓDULO.** | Pruebas / Control de Calidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que cuando todas las pruebas requeridas tienen resultados y todos cumplen con las especificaciones, la prueba cambia automáticamente a estado "completada" sin intervención manual. |
@@ -2318,7 +2318,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PRUEBA-005 - Detección Automática de OOS (Out of Specification) | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU16 – Detección de OOS | **MÓDULO.** | Pruebas / Control de Calidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF31 – Gestión de resultados OOS / RF33 – Alertas automáticas para OOS | **MÓDULO.** | Pruebas / Control de Calidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que cuando un resultado no cumple la especificación definida, el sistema detecta automáticamente el OOS, marca el resultado como "No cumple", cambia el estado de la prueba a "OOS" y muestra alertas visuales. |
@@ -2406,7 +2406,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-ROL-001 - Verificar Acceso Restringido por Rol - Analista | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU17 – Control de Acceso | **MÓDULO.** | Roles y Permisos |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF04 – Control de acceso basado en roles | **MÓDULO.** | Roles y Permisos |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Analista no puede acceder a módulos restringidos, tanto desde el Sidebar como por URL directa, y que solo se muestran los módulos permitidos según su rol. |
@@ -2484,7 +2484,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-ROL-002 - Verificar que Analista Solo Ve Ideas Asignadas | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU18 – Filtrado de Ideas | **MÓDULO.** | Roles y Permisos |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF04 – Control de acceso basado en roles | **MÓDULO.** | Roles y Permisos |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que un Analista solo puede ver las ideas que le fueron asignadas, no pudiendo acceder a ideas asignadas a otros analistas o ideas en otros estados que no le corresponden. |
@@ -2569,7 +2569,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-INT-001 - Integración Frontend-Backend | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU19 – Integración Sistema | **MÓDULO.** | Integración |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF03 – Gestión de sesión con JWT | **MÓDULO.** | Integración |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el frontend se comunica correctamente con el backend, enviando peticiones HTTP con token JWT válido, recibiendo respuestas correctas y actualizando la interfaz de usuario adecuadamente. |
@@ -2655,7 +2655,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-PERF-001 - Carga de Listado de Productos con Gran Volumen | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU20 – Rendimiento del Sistema | **MÓDULO.** | Rendimiento |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF15 – Análisis de inventario disponible | **MÓDULO.** | Rendimiento |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar el rendimiento al cargar un listado con muchos productos (1000+), asegurando que el tiempo de carga sea aceptable, la interfaz permanezca responsive y no se congele durante la carga. |
@@ -2738,7 +2738,7 @@ Este formato permite un seguimiento completo del ciclo de vida de cada caso de p
 
 | **CASO DE PRUEBA No - Nombre.** | CP-COMP-001 - Compatibilidad con Navegadores | **FECHA PLANEACIÓN** | dd/mm/aaaa |
 | --- | --- | --- | --- |
-| **HISTORIA DE USUARIO O CASO DE USO:** | HU21 – Compatibilidad | **MÓDULO.** | Compatibilidad |
+| **HISTORIA DE USUARIO O CASO DE USO:** | RF06 – Visualización de KPIs en tiempo real | **MÓDULO.** | Compatibilidad |
 | **RESPONSABLE PLANEACIÓN** | [Nombre del planner] | **DESARROLLADOR** | [Nombre del desarrollador] |
 
 | Descripción del caso de prueba | Verificar que el sistema funciona correctamente en diferentes navegadores (Chrome, Firefox, Edge, Safari), asegurando que no hay errores de JavaScript, el diseño se ve correctamente y las funcionalidades operan igual en todos los navegadores. |
@@ -2837,6 +2837,79 @@ Cada caso de prueba debe incluir las siguientes secciones:
 5. **Ejecución Caso de Prueba**: Versión de la Prueba, Fecha de Realización, Respuesta del Sistema, Defectos y Desviaciones, Veredicto
 
 Durante la ejecución (Fase 2), se pueden agregar casos adicionales según se identifiquen necesidades o problemas durante las pruebas. Cada ejecución debe documentarse con su versión correspondiente.
+
+---
+
+## **Mapeo de Casos de Prueba con Requisitos Funcionales**
+
+A continuación se presenta la relación entre los casos de prueba y los requisitos funcionales (RF) del sistema:
+
+| **Caso de Prueba** | **Requisito Funcional** | **Descripción del RF** |
+| --- | --- | --- |
+| CP-AUTH-001 | RF02 | Inicio de sesión |
+| CP-AUTH-002 | RF02 | Inicio de sesión |
+| CP-AUTH-003 | RF03 | Gestión de sesión con JWT |
+| CP-DASH-001 | RF06, RF07, RF08 | Visualización de KPIs en tiempo real, Visualización de lotes pendientes, Visualización de no conformidades activas |
+| CP-DASH-002 | RF06 | Visualización de KPIs en tiempo real |
+| CP-IDEA-001 | RF13 | Creación de nuevas fórmulas |
+| CP-IDEA-002 | RF13 | Creación de nuevas fórmulas |
+| CP-IDEA-003 | RF13 | Creación de nuevas fórmulas |
+| CP-IDEA-004 | RF14 | Asistencia de IA para sugerir combinaciones de productos del inventario |
+| CP-IDEA-005 | RF13 | Creación de nuevas fórmulas |
+| CP-INV-001 | RF15 | Análisis de inventario disponible |
+| CP-INV-002 | RF15 | Análisis de inventario disponible |
+| CP-INV-003 | RF15 | Análisis de inventario disponible |
+| CP-INV-004 | RF15 | Análisis de inventario disponible |
+| CP-BOM-001 | RF16 | Gestión de BOM con control de versiones |
+| CP-BOM-002 | RF19 | Validación de proporciones |
+| CP-BOM-003 | RF16, RF17 | Gestión de BOM con control de versiones, Justificación técnica de formulaciones |
+| CP-BOM-004 | RF16, RF18 | Gestión de BOM con control de versiones, Historial de cambios con trazabilidad |
+| CP-PRUEBA-001 | RF30 | Registro de pruebas analíticas |
+| CP-PRUEBA-002 | RF30 | Registro de pruebas analíticas |
+| CP-PRUEBA-003 | RF30 | Registro de pruebas analíticas |
+| CP-PRUEBA-004 | RF30 | Registro de pruebas analíticas |
+| CP-PRUEBA-005 | RF31, RF33 | Gestión de resultados OOS, Alertas automáticas para OOS |
+| CP-ROL-001 | RF04 | Control de acceso basado en roles |
+| CP-ROL-002 | RF04 | Control de acceso basado en roles |
+| CP-INT-001 | RF03 | Gestión de sesión con JWT |
+| CP-PERF-001 | RF15 | Análisis de inventario disponible |
+| CP-COMP-001 | RF06 | Visualización de KPIs en tiempo real |
+
+**Nota sobre Requisitos Funcionales no cubiertos en casos de prueba actuales:**
+
+Los siguientes requisitos funcionales no tienen casos de prueba específicos en este documento, pero pueden ser cubiertos en futuras iteraciones o en casos de prueba adicionales:
+
+- **RF01**: Registro de usuarios
+- **RF05**: Recuperación de contraseña
+- **RF09**: Alertas y notificaciones
+- **RF10**: Búsqueda en bases de datos moleculares
+- **RF11**: Guardado de resultados de investigación
+- **RF12**: Historial de búsquedas
+- **RF20**: Predicción de propiedades fisicoquímicas
+- **RF21**: Análisis de compatibilidad de ingredientes
+- **RF22**: Optimización de formulaciones
+- **RF23**: Extracción de datos de documentos científicos
+- **RF24**: Análisis de tendencias
+- **RF25**: Creación de órdenes de lote
+- **RF26**: Dispensación digital de materiales
+- **RF27**: Line clearance
+- **RF28**: Seguimiento de estado de lotes
+- **RF29**: Registro de muestras
+- **RF32**: Control de calibración de equipos
+- **RF34**: Liberación de producto con firma digital
+- **RF35**: Gestión de No Conformidades
+- **RF36**: Gestión de CAPA
+- **RF37**: Control de cambios
+- **RF38**: Trazabilidad completa de lotes
+- **RF39**: Trazabilidad hacia atrás
+- **RF40**: Trazabilidad hacia adelante
+- **RF41**: Gestión de retiros del mercado
+- **RF42**: Gestión de SOPs
+- **RF43**: Control de versiones de documentos
+- **RF44**: Búsqueda de documentos
+- **RF45**: Gestión de usuarios
+- **RF46**: Gestión de roles y permisos
+- **RF47**: Configuración de equipos
 
 **Fin del Documento**
 
