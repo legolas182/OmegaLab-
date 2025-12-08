@@ -45,6 +45,10 @@ const Productos = () => {
     porcentaje: ''
   })
 
+  const [bomValidation, setBomValidation] = useState(null)
+  const [bomTotals, setBomTotals] = useState(null)
+  const [stockVerification, setStockVerification] = useState(null)
+
   useEffect(() => {
     loadProducts()
     loadMaterials()
@@ -117,8 +121,26 @@ const Productos = () => {
       if (data.bom) {
         const bomWithItems = await productService.getBOMWithItems(data.bom.id)
         setBom(bomWithItems)
+        
+        // Validar y calcular totales del BOM usando procedimientos almacenados
+        if (bomWithItems.id) {
+          try {
+            const validation = await productService.validateBOM(bomWithItems.id)
+            setBomValidation(validation)
+            
+            const totals = await productService.calculateBOMTotals(bomWithItems.id)
+            setBomTotals(totals)
+          } catch (err) {
+            console.error('Error validando BOM:', err)
+          }
+        }
       } else {
         setBom(null)
+        setBomValidation(null)
+        setBomTotals(null)
+        setStockVerification(null)
+        setBomValidation(null)
+        setBomTotals(null)
       }
     } catch (err) {
       setError(err.message)
@@ -161,6 +183,12 @@ const Productos = () => {
           if (selectedProduct?.id === id) {
             setSelectedProduct(null)
             setBom(null)
+        setBomValidation(null)
+        setBomTotals(null)
+        setStockVerification(null)
+            setBomValidation(null)
+            setBomTotals(null)
+            setStockVerification(null)
           }
           await loadProducts()
         } catch (err) {
@@ -228,7 +256,10 @@ const Productos = () => {
         unidad: newMaterial.unidad,
         porcentaje: newMaterial.porcentaje ? parseFloat(newMaterial.porcentaje) : 0
       })
+      
+      // Recargar BOM y validar porcentajes
       await loadProductBOM(selectedProduct.id)
+      
       setShowAddMaterial(false)
       setNewMaterial({
         materialId: '',
@@ -253,6 +284,7 @@ const Productos = () => {
           setLoading(true)
           setError('')
           await productService.deleteBOMItem(itemId)
+          // Recargar BOM y validar porcentajes
           await loadProductBOM(selectedProduct.id)
         } catch (err) {
           setError(err.message)
@@ -262,6 +294,30 @@ const Productos = () => {
       },
       type: 'danger'
     })
+  }
+
+  const handleVerifyStock = async () => {
+    if (!selectedProduct) return
+    
+    try {
+      setLoading(true)
+      setError('')
+      const cantidad = prompt('Ingrese la cantidad a producir:')
+      if (!cantidad || isNaN(parseFloat(cantidad))) {
+        setError('Debe ingresar una cantidad válida')
+        return
+      }
+      
+      const verification = await productService.verifyStockProduction(
+        selectedProduct.id, 
+        parseFloat(cantidad)
+      )
+      setStockVerification(verification)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -395,6 +451,9 @@ const Productos = () => {
               setShowDetailsModal(false)
               setSelectedProduct(null)
               setBom(null)
+        setBomValidation(null)
+        setBomTotals(null)
+        setStockVerification(null)
             }
           }}
         >
@@ -411,6 +470,9 @@ const Productos = () => {
                     setShowDetailsModal(false)
                     setSelectedProduct(null)
                     setBom(null)
+        setBomValidation(null)
+        setBomTotals(null)
+        setStockVerification(null)
                   }}
                   className="text-text-muted hover:text-text-light"
                 >
@@ -441,7 +503,7 @@ const Productos = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-text-light font-semibold">Lista de Materiales (BOM)</h3>
                   {bom ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                       <span className={`px-2 py-1 rounded text-xs ${
                         bom.estado === 'APROBADO' ? 'bg-success/20 text-success' :
                         bom.estado === 'BORRADOR' ? 'bg-warning/20 text-warning' :
@@ -449,6 +511,13 @@ const Productos = () => {
                       }`}>
                         {bom.version} - {bom.estado}
                       </span>
+                      {bomValidation && (
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          bomValidation.valido ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
+                        }`}>
+                          {bomValidation.valido ? '✓ Válido' : '✗ Inválido'}
+                        </span>
+                      )}
                       <button
                         onClick={() => {
                           setShowAddMaterial(true)
@@ -457,6 +526,15 @@ const Productos = () => {
                       >
                         Agregar Material
                       </button>
+                      {selectedProduct && (
+                        <button
+                          onClick={handleVerifyStock}
+                          disabled={loading}
+                          className="px-3 py-1.5 rounded-lg bg-info text-white text-xs font-medium hover:bg-info/90 disabled:opacity-50"
+                        >
+                          Verificar Stock
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <button
@@ -468,6 +546,72 @@ const Productos = () => {
                     </button>
                   )}
                 </div>
+
+                {/* Alerta de validación de porcentajes */}
+                {bomValidation && !bomValidation.valido && (
+                  <div className="mb-4 rounded-lg bg-danger/20 border border-danger/50 p-3 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-danger">error</span>
+                    <div className="flex-1">
+                      <p className="text-danger text-sm font-medium">Los porcentajes no suman 100%</p>
+                      <p className="text-danger/80 text-xs mt-1">
+                        Suma actual: {bomValidation.sumaTotal}% - {bomValidation.mensaje}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Totales del BOM */}
+                {bomTotals && (
+                  <div className="mb-4 rounded-lg bg-input-dark/50 border border-border-dark p-3">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-text-muted text-xs mb-1">Total Porcentaje</p>
+                        <p className={`text-text-light font-semibold ${
+                          bomTotals.totalPorcentaje === 100 ? 'text-success' : 'text-danger'
+                        }`}>
+                          {bomTotals.totalPorcentaje}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-text-muted text-xs mb-1">Total Cantidad</p>
+                        <p className="text-text-light font-semibold">{bomTotals.totalCantidad}</p>
+                      </div>
+                      <div>
+                        <p className="text-text-muted text-xs mb-1">Número de Items</p>
+                        <p className="text-text-light font-semibold">{bomTotals.numItems}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Verificación de Stock */}
+                {stockVerification && (
+                  <div className={`mb-4 rounded-lg border p-3 ${
+                    stockVerification.disponible 
+                      ? 'bg-success/20 border-success/50' 
+                      : 'bg-danger/20 border-danger/50'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <span className={`material-symbols-outlined ${
+                        stockVerification.disponible ? 'text-success' : 'text-danger'
+                      }`}>
+                        {stockVerification.disponible ? 'check_circle' : 'error'}
+                      </span>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${
+                          stockVerification.disponible ? 'text-success' : 'text-danger'
+                        }`}>
+                          {stockVerification.disponible ? 'Stock suficiente' : 'Stock insuficiente'}
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          stockVerification.disponible ? 'text-success/80' : 'text-danger/80'
+                        }`}>
+                          {stockVerification.mensaje}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {bom && bom.items && bom.items.length > 0 ? (
                   <div className="overflow-x-auto">
@@ -527,16 +671,22 @@ const Productos = () => {
 
               {/* Botón Cerrar */}
               <div className="flex justify-end pt-4 border-t border-border-dark">
-                <button
-                  onClick={() => {
-                    setShowDetailsModal(false)
-                    setSelectedProduct(null)
-                    setBom(null)
-                  }}
-                  className="px-4 py-2 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark"
-                >
-                  Cerrar
-                </button>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false)
+                  setSelectedProduct(null)
+                  setBom(null)
+        setBomValidation(null)
+        setBomTotals(null)
+        setStockVerification(null)
+                  setBomValidation(null)
+                  setBomTotals(null)
+                  setStockVerification(null)
+                }}
+                className="px-4 py-2 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark"
+              >
+                Cerrar
+              </button>
               </div>
             </div>
           </div>

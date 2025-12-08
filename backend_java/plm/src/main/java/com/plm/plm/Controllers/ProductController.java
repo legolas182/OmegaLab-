@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +150,32 @@ public class ProductController {
         Map<String, String> data = new HashMap<>();
         data.put("message", "Item eliminado correctamente");
         response.put("data", data);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/boms/{bomId}/validar")
+    public ResponseEntity<Map<String, Object>> validateBOM(@PathVariable Integer bomId) {
+        Map<String, Object> validacion = productService.validateBOM(bomId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", validacion);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/boms/{bomId}/totales")
+    public ResponseEntity<Map<String, Object>> calculateBOMTotals(@PathVariable Integer bomId) {
+        Map<String, Object> totales = productService.calculateBOMTotals(bomId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", totales);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/verificar-stock")
+    public ResponseEntity<Map<String, Object>> verifyStock(
+            @PathVariable Integer id,
+            @RequestParam BigDecimal cantidad) {
+        Map<String, Object> verificacion = productService.verifyStockProduction(id, cantidad);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", verificacion);
         return ResponseEntity.ok(response);
     }
 
