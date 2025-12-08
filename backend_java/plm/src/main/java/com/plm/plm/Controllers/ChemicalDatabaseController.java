@@ -67,44 +67,5 @@ public class ChemicalDatabaseController {
         
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/details/{source}/{sourceId}")
-    public ResponseEntity<Map<String, Object>> getCompoundDetails(
-            @PathVariable String source,
-            @PathVariable String sourceId) {
-        
-        ChemicalCompoundDTO compound = chemicalDatabaseService.getCompoundDetails(source, sourceId);
-        
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> data = new HashMap<>();
-        data.put("compound", compound);
-        response.put("data", data);
-        
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/cache/{inchiKey}")
-    public ResponseEntity<Map<String, Object>> getCachedCompound(@PathVariable String inchiKey) {
-        ChemicalCompoundDTO compound = chemicalDatabaseService.getCachedCompound(inchiKey);
-        
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> data = new HashMap<>();
-        data.put("compound", compound);
-        response.put("data", data);
-        
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/cache")
-    public ResponseEntity<Map<String, Object>> saveToCache(@RequestBody ChemicalCompoundDTO compound) {
-        ChemicalCompoundDTO saved = chemicalDatabaseService.saveToCache(compound);
-        
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> data = new HashMap<>();
-        data.put("compound", saved);
-        response.put("data", data);
-        
-        return ResponseEntity.ok(response);
-    }
 }
 
