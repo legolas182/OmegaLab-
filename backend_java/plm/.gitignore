@@ -14,7 +14,6 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
 *.iws
 *.iml
 *.ipr
@@ -31,11 +30,10 @@ build/
 
 ### VS Code ###
 .vscode/
-<<<<<<< HEAD
+
 
 ### Application Properties with Secrets ###
 src/main/resources/application-local.properties
 src/main/resources/application-secrets.properties
 src/main/resources/application.properties
-=======
->>>>>>> origin/main
+

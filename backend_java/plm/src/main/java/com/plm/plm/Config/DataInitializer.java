@@ -218,10 +218,6 @@ public class DataInitializer implements CommandLineRunner {
      */
     private void updateCategoriesTableSchema() {
         try {
-            System.out.println("==========================================");
-            System.out.println("ACTUALIZANDO RESTRICCIÓN ÚNICA DE CATEGORIAS");
-            System.out.println("==========================================");
-            
             // Verificar si la tabla existe
             String checkTable = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'categorias'";
             Integer tableExists = jdbcTemplate.queryForObject(checkTable, Integer.class);
@@ -362,9 +358,9 @@ public class DataInitializer implements CommandLineRunner {
         // Configuración de usuarios para cada rol
         Object[][] usuariosConfig = {
             {Rol.ADMINISTRADOR, "admin@omegalab.com", "admin123", "Administrador"},
-            {Rol.SUPERVISOR_QA, "supervisor.qa@omegalab.com", "supervisor123", "Supervisor QA"},
-            {Rol.SUPERVISOR_CALIDAD, "supervisor.calidad@omegalab.com", "calidad123", "Supervisor Calidad"},
-            {Rol.ANALISTA_LABORATORIO, "analista.lab@omegalab.com", "analista123", "Analista Laboratorio"}
+            {Rol.SUPERVISOR_QA, "supervisor.qa@omegalab.com", "supervisor123", "Ana Maria"},
+            {Rol.SUPERVISOR_CALIDAD, "supervisor.calidad@omegalab.com", "calidad123", "Supervisor Jose"},
+            {Rol.ANALISTA_LABORATORIO, "analista.lab@omegalab.com", "analista123", "Analista manuela"}
         };
 
         List<User> usuariosCreados = new ArrayList<>();
