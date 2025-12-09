@@ -1,14 +1,8 @@
 package com.plm.plm.services.serviceImplements;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
-import com.plm.plm.Models.ChemicalCompound;
-import com.plm.plm.Reposotory.ChemicalCompoundRepository;
 import com.plm.plm.dto.ChemicalCompoundDTO;
 import com.plm.plm.services.ChemicalDatabaseService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,21 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
-
-    @Autowired
-    private ChemicalCompoundRepository compoundRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private final RestTemplate restTemplate = new RestTemplate();
     
@@ -91,93 +77,13 @@ public class ChemicalDatabaseServiceImpl implements ChemicalDatabaseService {
     }
 
     @Override
-    public List<ChemicalCompoundDTO> searchDrugBank(String query, SearchType type) {
-        // DrugBank requiere registro y autenticación
-        // Por ahora retornar lista vacía - implementar cuando se tenga acceso
-        System.out.println("DrugBank search not yet implemented - requires authentication");
-        return new ArrayList<>();
-    }
-
-    @Override
-    public List<ChemicalCompoundDTO> searchZINC(String query, SearchType type) {
-        // ZINC tiene API limitada - principalmente descargas
-        // Por ahora retornar lista vacía
-        System.out.println("ZINC search not yet implemented - limited API access");
-        return new ArrayList<>();
-    }
-
-    @Override
     public Map<String, List<ChemicalCompoundDTO>> searchAll(String query, SearchType type) {
         Map<String, List<ChemicalCompoundDTO>> results = new HashMap<>();
         
         results.put("PubChem", searchPubChem(query, type));
         results.put("ChEMBL", searchChEMBL(query, type));
-        // DrugBank y ZINC se pueden agregar cuando estén implementados
         
         return results;
-    }
-
-    @Override
-    public ChemicalCompoundDTO getCompoundDetails(String source, String sourceId) {
-        // Buscar primero en cache local
-        Optional<ChemicalCompound> cached = compoundRepository.findBySourceAndSourceId(
-            ChemicalCompound.ChemicalSource.valueOf(source), sourceId);
-        
-        if (cached.isPresent()) {
-            return cached.get().getDTO();
-        }
-
-        // Si no está en cache, buscar en la API correspondiente
-        // Por ahora, retornar null - se puede implementar después
-        return null;
-    }
-
-    @Override
-    @Cacheable("chemicalCompounds")
-    public ChemicalCompoundDTO getCachedCompound(String inchiKey) {
-        Optional<ChemicalCompound> compound = compoundRepository.findByInchiKey(inchiKey);
-        return compound.map(ChemicalCompound::getDTO).orElse(null);
-    }
-
-    @Override
-    public ChemicalCompoundDTO saveToCache(ChemicalCompoundDTO compoundDTO) {
-        // Verificar si ya existe
-        if (compoundDTO.getInchiKey() != null) {
-            Optional<ChemicalCompound> existing = compoundRepository.findByInchiKey(compoundDTO.getInchiKey());
-            if (existing.isPresent()) {
-                return existing.get().getDTO();
-            }
-        }
-
-        // Crear nuevo compuesto
-        ChemicalCompound compound = new ChemicalCompound();
-        compound.setName(compoundDTO.getName());
-        compound.setFormula(compoundDTO.getFormula());
-        compound.setMolecularWeight(compoundDTO.getMolecularWeight() != null ? 
-            BigDecimal.valueOf(compoundDTO.getMolecularWeight()) : null);
-        compound.setSmiles(compoundDTO.getSmiles());
-        compound.setInchi(compoundDTO.getInchi());
-        compound.setInchiKey(compoundDTO.getInchiKey());
-        compound.setCasNumber(compoundDTO.getCasNumber());
-        compound.setSource(ChemicalCompound.ChemicalSource.valueOf(compoundDTO.getSource()));
-        compound.setSourceId(compoundDTO.getSourceId());
-        compound.setLogP(compoundDTO.getLogP() != null ? BigDecimal.valueOf(compoundDTO.getLogP()) : null);
-        compound.setLogS(compoundDTO.getLogS() != null ? BigDecimal.valueOf(compoundDTO.getLogS()) : null);
-        compound.setHbd(compoundDTO.getHbd());
-        compound.setHba(compoundDTO.getHba());
-        compound.setRotatableBonds(compoundDTO.getRotatableBonds());
-        compound.setTpsa(compoundDTO.getTpsa() != null ? BigDecimal.valueOf(compoundDTO.getTpsa()) : null);
-        compound.setSolubility(compoundDTO.getSolubility());
-        compound.setStability(compoundDTO.getStability());
-        compound.setBioactivity(compoundDTO.getBioactivity());
-        compound.setMechanismOfAction(compoundDTO.getMechanismOfAction());
-        compound.setPurchasable(compoundDTO.getPurchasable());
-        compound.setVendor(compoundDTO.getVendor());
-        compound.setPrice(compoundDTO.getPrice() != null ? BigDecimal.valueOf(compoundDTO.getPrice()) : null);
-        compound.setAdditionalProperties(compoundDTO.getAdditionalProperties());
-        compound.setSourceUrl(compoundDTO.getSourceUrl());
-
-        return compoundRepository.save(compound).getDTO();
     }
 
     // Métodos auxiliares privados
