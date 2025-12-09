@@ -1,13 +1,14 @@
 package com.plm.plm.Config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
+import javax.sql.DataSource;
 import java.net.URI;
 
 /**
@@ -38,9 +39,12 @@ public class DatabaseConfig {
 
     @Bean
     @Primary
-    @ConfigurationProperties("spring.datasource")
-    public DataSourceProperties dataSourceProperties() {
-        DataSourceProperties properties = new DataSourceProperties();
+    public DataSource dataSource() {
+        HikariConfig config = new HikariConfig();
+        
+        String jdbcUrl;
+        String username;
+        String password;
         
         // Intentar usar MYSQL_URL primero (formato Railway)
         if (mysqlUrl != null && !mysqlUrl.isEmpty()) {
@@ -50,34 +54,43 @@ public class DatabaseConfig {
                 String host = uri.getHost();
                 int port = uri.getPort() == -1 ? 3306 : uri.getPort();
                 String database = uri.getPath().substring(1); // Remover el "/" inicial
-                String user = uri.getUserInfo().split(":")[0];
-                String password = uri.getUserInfo().split(":")[1];
+                String[] userInfo = uri.getUserInfo().split(":");
+                username = userInfo[0];
+                password = userInfo.length > 1 ? userInfo[1] : "";
                 
                 // Construir URL JDBC
-                String jdbcUrl = String.format(
+                jdbcUrl = String.format(
                     "jdbc:mysql://%s:%d/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true",
                     host, port, database
                 );
-                
-                properties.setUrl(jdbcUrl);
-                properties.setUsername(user);
-                properties.setPassword(password);
                 
                 System.out.println("✓ Configuración de base de datos desde MYSQL_URL");
             } catch (Exception e) {
                 System.err.println("Error al parsear MYSQL_URL, usando variables individuales: " + e.getMessage());
                 // Fallback a variables individuales
-                buildUrlFromIndividualVariables(properties);
+                jdbcUrl = buildUrlFromIndividualVariables();
+                username = mysqlUser;
+                password = mysqlPassword;
             }
         } else {
             // Usar variables individuales
-            buildUrlFromIndividualVariables(properties);
+            jdbcUrl = buildUrlFromIndividualVariables();
+            username = mysqlUser;
+            password = mysqlPassword;
         }
         
-        return properties;
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(5);
+        config.setConnectionTimeout(30000);
+        
+        return new HikariDataSource(config);
     }
 
-    private void buildUrlFromIndividualVariables(DataSourceProperties properties) {
+    private String buildUrlFromIndividualVariables() {
         if (mysqlHost != null && !mysqlHost.isEmpty() && 
             mysqlDatabase != null && !mysqlDatabase.isEmpty()) {
             
@@ -86,13 +99,11 @@ public class DatabaseConfig {
                 mysqlHost, mysqlPort, mysqlDatabase
             );
             
-            properties.setUrl(jdbcUrl);
-            properties.setUsername(mysqlUser);
-            properties.setPassword(mysqlPassword);
-            
             System.out.println("✓ Configuración de base de datos desde variables individuales");
+            return jdbcUrl;
         } else {
             System.err.println("⚠ No se encontraron variables de MySQL. Usando configuración por defecto.");
+            return "jdbc:mysql://localhost:3306/proscience?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
         }
     }
 }
