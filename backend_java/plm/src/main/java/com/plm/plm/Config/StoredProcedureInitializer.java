@@ -91,17 +91,23 @@ public class StoredProcedureInitializer implements CommandLineRunner {
                 procedureName = finalProcedureName;
             }
             
-            if (procedureExists(procedureName)) {
-                System.out.println("✓ Procedimiento " + procedureName + " ya existe, omitiendo...");
-                return;
-            }
-            
             System.out.println("Creando procedimiento desde archivo: " + resourcePath);
             
-            // Ejecutar el SQL limpio
-            jdbcTemplate.execute(cleanSql);
+            // Primero eliminar el procedimiento si existe (ejecutar por separado)
+            try {
+                jdbcTemplate.execute("DROP PROCEDURE IF EXISTS " + procedureName);
+            } catch (Exception e) {
+                // Ignorar errores al eliminar (puede que no exista)
+            }
             
-            System.out.println("✓ Procedimiento " + procedureName + " creado exitosamente");
+            // Luego crear el procedimiento (ejecutar solo el CREATE, sin el DROP)
+            String createSql = extractCreateProcedure(cleanSql);
+            if (createSql != null && !createSql.trim().isEmpty()) {
+                jdbcTemplate.execute(createSql);
+                System.out.println("✓ Procedimiento " + procedureName + " creado exitosamente");
+            } else {
+                System.err.println("⚠ No se pudo extraer la sentencia CREATE PROCEDURE de: " + resourcePath);
+            }
             
         } catch (Exception e) {
             System.err.println("Error al cargar procedimiento desde " + resourcePath + ": " + e.getMessage());
@@ -139,21 +145,77 @@ public class StoredProcedureInitializer implements CommandLineRunner {
         // Eliminar líneas DELIMITER en medio del código (multilínea)
         cleaned = cleaned.replaceAll("(?i)[\\n\\r]+\\s*DELIMITER\\s+[^\\n\\r]*[\\n\\r]+", "\n");
         
-        // Reemplazar CREATE PROCEDURE IF NOT EXISTS por DROP PROCEDURE IF EXISTS + CREATE PROCEDURE
-        // Esto asegura que el procedimiento se actualice si ya existe
-        Pattern ifNotExistsPattern = Pattern.compile(
-            "(?i)CREATE\\s+PROCEDURE\\s+IF\\s+NOT\\s+EXISTS\\s+(\\w+)",
-            Pattern.MULTILINE
-        );
-        Matcher matcher = ifNotExistsPattern.matcher(cleaned);
-        if (matcher.find()) {
-            String procedureName = matcher.group(1);
-            // Agregar DROP PROCEDURE IF EXISTS antes del CREATE
-            cleaned = "DROP PROCEDURE IF EXISTS " + procedureName + ";\n" + 
-                     cleaned.replaceFirst("(?i)CREATE\\s+PROCEDURE\\s+IF\\s+NOT\\s+EXISTS", "CREATE PROCEDURE");
-        }
+        // Reemplazar CREATE PROCEDURE IF NOT EXISTS por CREATE PROCEDURE
+        cleaned = cleaned.replaceAll("(?i)CREATE\\s+PROCEDURE\\s+IF\\s+NOT\\s+EXISTS", "CREATE PROCEDURE");
+        
+        // Reemplazar el delimitador $$ al final del procedimiento por punto y coma
+        cleaned = cleaned.replaceAll("\\$\\$", ";");
         
         return cleaned.trim();
+    }
+    
+    /**
+     * Extrae solo la sentencia CREATE PROCEDURE del SQL limpio
+     * Usa un enfoque de profundidad para rastrear bloques BEGIN/END anidados
+     */
+    private String extractCreateProcedure(String sql) {
+        String[] lines = sql.split("\\r?\\n");
+        StringBuilder createSql = new StringBuilder();
+        boolean inCreate = false;
+        int depth = 0; // Profundidad de bloques BEGIN/END
+        
+        Pattern beginPattern = Pattern.compile("\\bBEGIN\\b", Pattern.CASE_INSENSITIVE);
+        Pattern endControlPattern = Pattern.compile(
+            "\\bEND\\s+(IF|LOOP|CASE|WHILE|REPEAT)\\b", 
+            Pattern.CASE_INSENSITIVE
+        );
+        Pattern endPattern = Pattern.compile("\\bEND\\b", Pattern.CASE_INSENSITIVE);
+        
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            String upperLine = trimmedLine.toUpperCase();
+            
+            // Detectar inicio del CREATE PROCEDURE
+            if (trimmedLine.matches("(?i).*CREATE\\s+PROCEDURE.*")) {
+                inCreate = true;
+            }
+            
+            if (inCreate) {
+                createSql.append(line).append("\n");
+                
+                // Detectar BEGIN (aumenta profundidad)
+                // Buscar todas las ocurrencias de BEGIN como palabra completa
+                Matcher beginMatcher = beginPattern.matcher(trimmedLine);
+                while (beginMatcher.find()) {
+                    depth++;
+                }
+                
+                // Detectar END (disminuye profundidad)
+                // Primero verificar si hay END que sea parte de estructuras de control (END IF, END LOOP, etc.)
+                boolean hasControlEnd = endControlPattern.matcher(trimmedLine).find();
+                
+                // Si hay END pero NO es parte de una estructura de control, disminuir profundidad
+                if (!hasControlEnd) {
+                    Matcher endMatcher = endPattern.matcher(trimmedLine);
+                    while (endMatcher.find()) {
+                        depth--;
+                        
+                        // Si la profundidad llegó a 0, hemos cerrado el BEGIN principal
+                        // El END final del procedimiento generalmente tiene punto y coma o está solo
+                        if (depth == 0 && (trimmedLine.contains(";") || upperLine.matches("^END\\s*$"))) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        String result = createSql.toString().trim();
+        // Asegurarse de que termine con punto y coma
+        if (result.length() > 0 && !result.endsWith(";")) {
+            result = result + ";";
+        }
+        return result.length() > 0 ? result : null;
     }
 
     /**
