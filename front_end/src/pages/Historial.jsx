@@ -33,10 +33,10 @@ const Historial = () => {
       // 1. Pruebas completadas (COMPLETADA, OOS, RECHAZADA)
       // 2. O pruebas cuya idea asociada esté en estado PRUEBA_APROBADA
       let pruebasCompletadas = data.filter(p => {
-        const pruebaCompletada = p.estado === 'COMPLETADA' || 
-                                 p.estado === 'OOS' || 
-                                 p.estado === 'RECHAZADA'
-        const ideaAprobada = p.ideaEstado === 'PRUEBA_APROBADA'
+        const pruebaCompletada = (p.estado || '').toUpperCase() === 'COMPLETADA' || 
+                                 (p.estado || '').toUpperCase() === 'OOS' || 
+                                 (p.estado || '').toUpperCase() === 'RECHAZADA'
+        const ideaAprobada = (p.ideaEstado || '').toLowerCase() === 'prueba_aprobada'
         return pruebaCompletada || ideaAprobada
       })
       
@@ -69,11 +69,11 @@ const Historial = () => {
       
       // Filtrar fórmulas que han pasado por el proceso de QA
       let formulasQA = data.filter(idea => {
-        const estado = idea.estado || ''
-        return estado === 'APROBADA' || 
-               estado === 'PRUEBA_APROBADA' || 
-               estado === 'EN_PRODUCCION' || 
-               estado === 'RECHAZADA'
+        const estado = (idea.estado || '').toLowerCase()
+        return estado === 'aprobada' || 
+               estado === 'prueba_aprobada' || 
+               estado === 'en_produccion' || 
+               estado === 'rechazada'
       })
       
       // Aplicar filtro por estado si está seleccionado
@@ -828,7 +828,7 @@ const Historial = () => {
               })()}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-border-dark">
-                {selectedPrueba.ideaId && selectedPrueba.ideaEstado === 'PRUEBA_APROBADA' && (
+                {selectedPrueba.ideaId && (selectedPrueba.ideaEstado || '').toLowerCase() === 'prueba_aprobada' && (
                   <button
                     onClick={() => handleEnviarASupervisor(selectedPrueba)}
                     className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 flex items-center gap-2"

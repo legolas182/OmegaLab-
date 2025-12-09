@@ -49,10 +49,18 @@ const Ideas = () => {
       loadIdeas()
     }
     
+    // Escuchar eventos de creación de nuevas ideas (desde IA, etc.)
+    const handleIdeaCreated = (event) => {
+      // Recargar ideas para mostrar la nueva idea en el kanban
+      loadIdeas()
+    }
+    
     window.addEventListener('ideaEstadoChanged', handleEstadoChanged)
+    window.addEventListener('ideaCreated', handleIdeaCreated)
     
     return () => {
       window.removeEventListener('ideaEstadoChanged', handleEstadoChanged)
+      window.removeEventListener('ideaCreated', handleIdeaCreated)
     }
   }, [])
 
@@ -74,8 +82,8 @@ const Ideas = () => {
       // Si es analista, cargar solo sus ideas asignadas en estado EN_PRUEBA
       if (isAnalista) {
         const data = await ideaService.getMisIdeas()
-        // Filtrar solo ideas en estado EN_PRUEBA (las PRUEBA_APROBADA van al historial)
-        const ideasEnPrueba = data.filter(idea => idea.estado === 'EN_PRUEBA')
+        // Filtrar solo ideas en estado EN_PRUEBA (las prueba_aprobada van al historial)
+        const ideasEnPrueba = data.filter(idea => (idea.estado || '').toLowerCase() === 'en_prueba')
         setIdeas(ideasEnPrueba)
       } else {
         // Si es Supervisor QA o Admin, cargar todas las ideas
@@ -210,21 +218,21 @@ const Ideas = () => {
     }
   }
 
-  // Definir columnas del kanban (sin incluir RECHAZADA ni PRUEBA_APROBADA - se gestionan en Aprobación / QA)
+  // Definir columnas del kanban (sin incluir rechazada ni prueba_aprobada - se gestionan en Aprobación / QA)
   const kanbanColumns = [
-    { id: 'GENERADA', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
-    { id: 'EN_REVISION', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
-    { id: 'APROBADA', label: 'Aprobada', borderClass: 'border-green-500/30', bgClass: 'bg-green-500/10', dotClass: 'bg-green-500', badgeClass: 'bg-green-500/20 text-green-400' },
-    { id: 'EN_PRUEBA', label: 'En Prueba', borderClass: 'border-purple-500/30', bgClass: 'bg-purple-500/10', dotClass: 'bg-purple-500', badgeClass: 'bg-purple-500/20 text-purple-400' },
-    { id: 'EN_PRODUCCION', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
+    { id: 'generada', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
+    { id: 'en_revision', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
+    { id: 'aprobada', label: 'Aprobada', borderClass: 'border-green-500/30', bgClass: 'bg-green-500/10', dotClass: 'bg-green-500', badgeClass: 'bg-green-500/20 text-green-400' },
+    { id: 'en_prueba', label: 'En Prueba', borderClass: 'border-purple-500/30', bgClass: 'bg-purple-500/10', dotClass: 'bg-purple-500', badgeClass: 'bg-purple-500/20 text-purple-400' },
+    { id: 'en_produccion', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
   ]
 
-  // Agrupar fórmulas por estado (excluyendo RECHAZADA y PRUEBA_APROBADA del kanban)
-  // RECHAZADA se archiva, PRUEBA_APROBADA se gestiona en Aprobación / QA
+  // Agrupar fórmulas por estado (excluyendo rechazada y prueba_aprobada del kanban)
+  // rechazada se archiva, prueba_aprobada se gestiona en Aprobación / QA
   const formulasByEstado = ideas.reduce((acc, idea) => {
-    const estado = idea.estado || 'GENERADA'
+    const estado = (idea.estado || 'generada').toLowerCase()
     // Las fórmulas rechazadas y las que pasaron pruebas no aparecen en el kanban
-    if (estado === 'RECHAZADA' || estado === 'PRUEBA_APROBADA') {
+    if (estado === 'rechazada' || estado === 'prueba_aprobada') {
       return acc
     }
     if (!acc[estado]) {
@@ -260,13 +268,13 @@ const Ideas = () => {
     if (!draggedFormula) return
 
     // Si el estado es el mismo, no hacer nada
-    if (draggedFormula.estado === targetEstado) {
+    if ((draggedFormula.estado || '').toLowerCase() === (targetEstado || '').toLowerCase()) {
       setDraggedFormula(null)
       return
     }
 
-    // Si el estado objetivo es EN_PRUEBA, mostrar diálogo de analista
-    if (targetEstado === 'EN_PRUEBA') {
+    // Si el estado objetivo es en_prueba, mostrar diálogo de analista
+    if (targetEstado === 'en_prueba') {
       setSelectedIdea(draggedFormula)
       setSelectedAnalistaId(null)
       if (analistas.length === 0) {
@@ -1094,7 +1102,7 @@ const Ideas = () => {
                               )}
                               
                               {/* Botón Iniciar Prueba para Analistas */}
-                              {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
+                              {isAnalista && (selectedFormula.estado || '').toLowerCase() === 'en_prueba' && (() => {
                                 // Verificar si ya existe una prueba para esta fórmula
                                 const pruebasExistentes = pruebasPorIdea.get(selectedFormula.id) || []
                                 const tienePruebaIniciada = pruebasExistentes.length > 0
@@ -1413,17 +1421,17 @@ const Ideas = () => {
                             )}
                           </div>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            prueba.estado === 'PENDIENTE' ? 'bg-warning/20 text-warning' :
-                            prueba.estado === 'EN_PROCESO' ? 'bg-primary/20 text-primary' :
-                            prueba.estado === 'COMPLETADA' ? 'bg-success/20 text-success' :
-                            prueba.estado === 'OOS' ? 'bg-danger/20 text-danger' :
+                            (prueba.estado || '').toLowerCase() === 'pendiente' ? 'bg-warning/20 text-warning' :
+                            (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'bg-primary/20 text-primary' :
+                            (prueba.estado || '').toLowerCase() === 'completada' ? 'bg-success/20 text-success' :
+                            (prueba.estado || '').toLowerCase() === 'oos' ? 'bg-danger/20 text-danger' :
                             'bg-gray-500/20 text-gray-400'
                           }`}>
-                            {prueba.estado === 'PENDIENTE' ? 'Pendiente' :
-                             prueba.estado === 'EN_PROCESO' ? 'En Proceso' :
-                             prueba.estado === 'COMPLETADA' ? 'Completada' :
-                             prueba.estado === 'OOS' ? 'OOS' :
-                             prueba.estado === 'RECHAZADA' ? 'Rechazada' : prueba.estado}
+                            {(prueba.estado || '').toLowerCase() === 'pendiente' ? 'Pendiente' :
+                             (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'En Proceso' :
+                             (prueba.estado || '').toLowerCase() === 'completada' ? 'Completada' :
+                             (prueba.estado || '').toLowerCase() === 'oos' ? 'OOS' :
+                             (prueba.estado || '').toLowerCase() === 'rechazada' ? 'Rechazada' : prueba.estado}
                           </span>
                         </div>
                       </div>
@@ -1437,7 +1445,7 @@ const Ideas = () => {
                 {/* Acciones para Supervisor QA y Admin */}
                 {!isAnalista && (
                   <>
-                    {selectedFormula.estado === 'GENERADA' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'generada' && (
                       <>
                         <button
                           onClick={(e) => {
@@ -1462,7 +1470,7 @@ const Ideas = () => {
                         </button>
                       </>
                     )}
-                    {selectedFormula.estado === 'EN_REVISION' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'en_revision' && (
                       <>
                         <button
                           onClick={(e) => {
@@ -1488,7 +1496,7 @@ const Ideas = () => {
                         </button>
                       </>
                     )}
-                    {selectedFormula.estado === 'APROBADA' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'aprobada' && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation()

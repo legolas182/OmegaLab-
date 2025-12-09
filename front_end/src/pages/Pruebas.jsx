@@ -203,16 +203,16 @@ const Pruebas = () => {
       const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
       
       // Solo cambiar estado si todas las pruebas requeridas están completas
-      if (todosCumplen && pruebaCompleta.estado === 'EN_PROCESO') {
-        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'COMPLETADA' })
+      if (todosCumplen && (pruebaCompleta.estado || '').toLowerCase() === 'en_proceso') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'completada' })
         const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
         setSelectedPrueba(pruebaActualizadaEstado)
         loadPruebas()
         if (isAnalista) {
           loadIdeasAsignadas()
         }
-      } else if (hayOOS && pruebaCompleta.estado === 'EN_PROCESO') {
-        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'OOS' })
+      } else if (hayOOS && (pruebaCompleta.estado || '').toLowerCase() === 'en_proceso') {
+        await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'oos' })
         const pruebaActualizadaEstado = await pruebaService.getPruebaById(pruebaCompleta.id)
         setSelectedPrueba(pruebaActualizadaEstado)
         loadPruebas()
@@ -397,12 +397,12 @@ const Pruebas = () => {
       </div>
 
       {/* Alertas OOS - Solo si hay pruebas OOS */}
-      {pruebas.filter(p => p.estado === 'OOS').length > 0 && (
+      {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length > 0 && (
       <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
         <span className="material-symbols-outlined text-danger text-2xl">error</span>
         <div className="flex-1">
             <p className="text-text-light font-semibold">
-              {pruebas.filter(p => p.estado === 'OOS').length} Resultado{pruebas.filter(p => p.estado === 'OOS').length === 1 ? '' : 's'} Fuera de Especificación (OOS)
+              {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length} Resultado{pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length === 1 ? '' : 's'} Fuera de Especificación (OOS)
             </p>
           <p className="text-text-muted text-sm">Requieren investigación y documentación</p>
           </div>
@@ -495,9 +495,9 @@ const Pruebas = () => {
             <div className="mb-6 p-4 rounded-lg bg-input-dark border border-border-dark">
               <h3 className="text-text-light font-semibold mb-4">Acciones</h3>
               <div className="flex flex-wrap gap-3">
-                {selectedPrueba.estado === 'PENDIENTE' && (
+                {(selectedPrueba.estado || '').toLowerCase() === 'pendiente' && (
                   <button
-                    onClick={() => handleChangeEstado('EN_PROCESO')}
+                    onClick={() => handleChangeEstado('en_proceso')}
                     disabled={updatingEstado}
                     className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
@@ -505,10 +505,10 @@ const Pruebas = () => {
                     Iniciar Prueba
                   </button>
                 )}
-                {selectedPrueba.estado === 'EN_PROCESO' && (
+                {(selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
                   <>
                     <button
-                      onClick={() => handleChangeEstado('COMPLETADA')}
+                      onClick={() => handleChangeEstado('completada')}
                       disabled={updatingEstado}
                       className="px-4 py-2 rounded-lg bg-success text-white text-sm font-medium hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
@@ -516,7 +516,7 @@ const Pruebas = () => {
                       Completar Prueba
                     </button>
                     <button
-                      onClick={() => handleChangeEstado('OOS')}
+                      onClick={() => handleChangeEstado('oos')}
                       disabled={updatingEstado}
                       className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
@@ -524,7 +524,7 @@ const Pruebas = () => {
                       Marcar como OOS
                     </button>
                     <button
-                      onClick={() => handleChangeEstado('RECHAZADA')}
+                      onClick={() => handleChangeEstado('rechazada')}
                       disabled={updatingEstado}
                       className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
@@ -624,7 +624,7 @@ const Pruebas = () => {
                                     </div>
                                   ) : (
                                     <div className="flex items-center gap-2">
-                                      {isAnalista && selectedPrueba.estado === 'EN_PROCESO' && (
+                                      {isAnalista && (selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
                                         <>
                                           <button
                                             onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'si')}

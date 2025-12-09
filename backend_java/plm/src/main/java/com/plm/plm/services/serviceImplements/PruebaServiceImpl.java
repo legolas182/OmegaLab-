@@ -185,14 +185,19 @@ public class PruebaServiceImpl implements PruebaService {
             List<Prueba> pruebasDeIdea = pruebaRepository.findByIdeaId(ideaId);
             
             if (pruebasDeIdea.isEmpty()) {
+                System.out.println("Sincronización: Idea " + ideaId + " no tiene pruebas asociadas");
                 return; // No hay pruebas, no hacer nada
             }
+            
+            System.out.println("Sincronización: Idea " + ideaId + " tiene " + pruebasDeIdea.size() + " prueba(s)");
             
             // Verificar si todas las pruebas están completadas (COMPLETADA, OOS o RECHAZADA)
             boolean todasCompletadas = pruebasDeIdea.stream()
                     .allMatch(p -> p.getEstado() == EstadoPrueba.COMPLETADA || 
                                   p.getEstado() == EstadoPrueba.OOS || 
                                   p.getEstado() == EstadoPrueba.RECHAZADA);
+            
+            System.out.println("Sincronización: Todas las pruebas completadas: " + todasCompletadas);
             
             if (todasCompletadas) {
                 // Verificar si todas las pruebas pasaron
@@ -203,34 +208,44 @@ public class PruebaServiceImpl implements PruebaService {
                 boolean algunaFallo = pruebasDeIdea.stream()
                         .anyMatch(p -> p.getEstado() == EstadoPrueba.OOS || p.getEstado() == EstadoPrueba.RECHAZADA);
                 
+                System.out.println("Sincronización: Todas pasaron: " + todasPasaron + ", Alguna falló: " + algunaFallo);
+                
                 // Obtener la idea para verificar su estado actual
                 com.plm.plm.Models.Idea idea = ideaRepository.findById(ideaId)
                         .orElse(null);
                 
-                if (idea != null && idea.getEstado() == EstadoIdea.EN_PRUEBA) {
+                if (idea == null) {
+                    System.err.println("Sincronización: Idea " + ideaId + " no encontrada");
+                    return;
+                }
+                
+                System.out.println("Sincronización: Estado actual de idea " + ideaId + ": " + idea.getEstado());
+                
+                // Solo actualizar si está en EN_PRUEBA (no actualizar si ya está en otro estado final)
+                if (idea.getEstado() == EstadoIdea.EN_PRUEBA) {
                     // Obtener el usuario asignado a la idea (analista) para usar como userId
                     // Si no hay usuario asignado, usar el creador de la idea
                     Integer userId = idea.getAsignadoA() != null ? idea.getAsignadoA().getId() : 
                                     (idea.getCreador() != null ? idea.getCreador().getId() : null);
                     
+                    // Determinar el nuevo estado basado en los resultados de las pruebas
+                    EstadoIdea nuevoEstado = todasPasaron ? EstadoIdea.PRUEBA_APROBADA : EstadoIdea.RECHAZADA;
+                    
                     if (userId == null) {
-                        // Si no hay usuario disponible, buscar un administrador o supervisor QA
-                        // Por ahora, simplemente cambiar el estado directamente sin userId
-                        idea.setEstado(todasPasaron ? EstadoIdea.PRUEBA_APROBADA : EstadoIdea.RECHAZADA);
+                        // Si no hay usuario disponible, cambiar el estado directamente sin userId
+                        idea.setEstado(nuevoEstado);
                         ideaRepository.save(idea);
-                        System.out.println("Estado de idea " + ideaId + " actualizado a " + idea.getEstado() + " (sin userId)");
+                        System.out.println("Sincronización: Estado de idea " + ideaId + " actualizado a " + nuevoEstado.getValor() + " (sin userId)");
                     } else {
-                        if (todasPasaron) {
-                            // Todas las pruebas pasaron, cambiar idea a PRUEBA_APROBADA
-                            ideaService.changeEstado(ideaId, EstadoIdea.PRUEBA_APROBADA, userId, null);
-                            System.out.println("Estado de idea " + ideaId + " actualizado a PRUEBA_APROBADA");
-                        } else if (algunaFallo) {
-                            // Alguna prueba falló, cambiar idea a RECHAZADA
-                            ideaService.changeEstado(ideaId, EstadoIdea.RECHAZADA, userId, null);
-                            System.out.println("Estado de idea " + ideaId + " actualizado a RECHAZADA");
-                        }
+                        // Usar el servicio para cambiar el estado (mantiene consistencia)
+                        ideaService.changeEstado(ideaId, nuevoEstado, userId, null);
+                        System.out.println("Sincronización: Estado de idea " + ideaId + " actualizado a " + nuevoEstado.getValor() + " (con userId: " + userId + ")");
                     }
+                } else {
+                    System.out.println("Sincronización: Idea " + ideaId + " está en estado " + idea.getEstado() + ", no se actualiza (solo se actualiza desde EN_PRUEBA)");
                 }
+            } else {
+                System.out.println("Sincronización: No todas las pruebas están completadas, esperando...");
             }
         } catch (Exception e) {
             // Log el error pero no interrumpir el flujo

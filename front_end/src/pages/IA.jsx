@@ -134,6 +134,11 @@ const IA = () => {
       const idea = await ideaService.generateFromMaterials(objetivo, materialIdsToSend, compoundIds)
       setMessage({ type: 'success', text: 'Fórmula generada exitosamente. La IA ha seleccionado automáticamente las materias primas del inventario. Revisa el módulo de Ideas para ver los detalles completos.' })
     
+      // Disparar evento para recargar ideas en el kanban
+      window.dispatchEvent(new CustomEvent('ideaCreated', {
+        detail: { ideaId: idea.id }
+      }))
+    
       // Limpiar formulario
       setSelectedMaterials([])
       setSelectedCompounds([])
