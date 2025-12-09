@@ -142,7 +142,7 @@ public class DatabaseConfig {
         return new HikariDataSource(config);
     }
 
-    @Bean
+    @Bean(name = "entityManagerFactory")
     @Primary
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
@@ -184,6 +184,23 @@ public class DatabaseConfig {
         System.out.println("MYSQLUSER: " + mysqlUser);
         System.out.println("MYSQLPASSWORD: " + (mysqlPassword != null && !mysqlPassword.isEmpty() ? "***CONFIGURADA***" : "NO DISPONIBLE"));
         System.out.println("================================");
+        
+        // Validar que no sean valores de ejemplo
+        if (mysqlHost == null || mysqlHost.isEmpty() || 
+            mysqlHost.equals("xxx.railway.internal") || 
+            mysqlHost.startsWith("xxx")) {
+            System.err.println("⚠ ERROR: MYSQLHOST contiene un valor de ejemplo o está vacío.");
+            System.err.println("⚠ Valor actual: " + mysqlHost);
+            System.err.println("⚠ Por favor, configura MYSQLHOST con el host real de tu servicio MySQL en Railway.");
+            throw new IllegalStateException("MYSQLHOST no está configurado correctamente. Valor actual: " + mysqlHost);
+        }
+        
+        if (mysqlDatabase == null || mysqlDatabase.isEmpty()) {
+            System.err.println("⚠ ERROR: MYSQLDATABASE contiene un valor de ejemplo o está vacío.");
+            System.err.println("⚠ Valor actual: " + mysqlDatabase);
+            System.err.println("⚠ Por favor, configura MYSQLDATABASE con el nombre real de tu base de datos.");
+            throw new IllegalStateException("MYSQLDATABASE no está configurado correctamente. Valor actual: " + mysqlDatabase);
+        }
         
         if (mysqlHost != null && !mysqlHost.isEmpty() && 
             mysqlDatabase != null && !mysqlDatabase.isEmpty()) {
