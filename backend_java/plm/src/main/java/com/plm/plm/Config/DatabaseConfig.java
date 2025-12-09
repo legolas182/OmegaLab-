@@ -115,9 +115,9 @@ public class DatabaseConfig {
                 username = userInfo[0];
                 password = userInfo.length > 1 ? userInfo[1] : "";
                 
-                // Construir URL JDBC
+                // Construir URL JDBC con parámetros optimizados para Railway
                 jdbcUrl = String.format(
-                    "jdbc:mysql://%s:%d/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+                    "jdbc:mysql://%s:%d/%s?useSSL=true&requireSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8",
                     host, port, database
                 );
                 
@@ -142,7 +142,28 @@ public class DatabaseConfig {
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(5);
-        config.setConnectionTimeout(30000);
+        config.setConnectionTimeout(30000); // 30 segundos
+        config.setValidationTimeout(5000); // 5 segundos
+        config.setIdleTimeout(600000); // 10 minutos
+        config.setMaxLifetime(1800000); // 30 minutos
+        config.setLeakDetectionThreshold(60000); // Detectar conexiones perdidas
+        
+        // Configuración adicional para Railway
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        config.addDataSourceProperty("useLocalSessionState", "true");
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+        config.addDataSourceProperty("cacheResultSetMetadata", "true");
+        config.addDataSourceProperty("cacheServerConfiguration", "true");
+        config.addDataSourceProperty("elideSetAutoCommits", "true");
+        config.addDataSourceProperty("maintainTimeStats", "false");
+        
+        System.out.println("✓ Configurando DataSource con HikariCP");
+        System.out.println("  URL: " + jdbcUrl.replace(password, "***"));
+        System.out.println("  Usuario: " + username);
+        System.out.println("  Timeout de conexión: 30s");
         
         return new HikariDataSource(config);
     }
@@ -191,9 +212,11 @@ public class DatabaseConfig {
         System.out.println("================================");
         
         // Validar que no sean valores de ejemplo
+        // Nota: Railway puede generar hosts con "xxx" en el nombre (ej: containers-us-west-xxx.railway.app)
+        // Solo rechazamos si es específicamente "xxx.railway.internal" o si empieza con "xxx" pero NO contiene "railway.app"
         if (mysqlHost == null || mysqlHost.isEmpty() || 
             mysqlHost.equals("xxx.railway.internal") || 
-            (mysqlHost.startsWith("xxx") && !mysqlHost.contains("railway.app"))) {
+            (mysqlHost.startsWith("xxx") && !mysqlHost.contains("railway.app") && !mysqlHost.contains("railway.internal"))) {
             System.err.println("⚠ ERROR: MYSQLHOST contiene un valor de ejemplo o está vacío.");
             System.err.println("⚠ Valor actual: " + mysqlHost);
             System.err.println("");
@@ -223,8 +246,9 @@ public class DatabaseConfig {
         if (mysqlHost != null && !mysqlHost.isEmpty() && 
             mysqlDatabase != null && !mysqlDatabase.isEmpty()) {
             
+            // Construir URL JDBC con parámetros optimizados para Railway
             String jdbcUrl = String.format(
-                "jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+                "jdbc:mysql://%s:%s/%s?useSSL=true&requireSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8",
                 mysqlHost, mysqlPort, mysqlDatabase
             );
             
