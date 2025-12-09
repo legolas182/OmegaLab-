@@ -206,6 +206,40 @@ public class FormulaServiceImpl implements FormulaService {
     public FormulaDTO getFormulaById(Integer id) {
         Formula formula = formulaRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fórmula no encontrada"));
+        
+        List<FormulaIngredient> ingredientes = formulaIngredientRepository.findByFormulaIdOrderBySecuenciaAsc(formula.getId());
+        formula.setIngredientes(ingredientes);
+        
+        return formula.getDTO();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FormulaDTO getFormulaByIdeaId(Integer ideaId) {
+        List<Formula> formulas = formulaRepository.findByIdeaId(ideaId);
+        if (formulas.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontró una fórmula asociada a la idea");
+        }
+        
+        Formula formula = formulas.stream()
+                .filter(f -> f.getEstado() == EstadoFormula.PRUEBA_APROBADA || 
+                            f.getEstado() == EstadoFormula.EN_PRODUCCION ||
+                            f.getEstado() == EstadoFormula.APROBADA ||
+                            f.getEstado() == EstadoFormula.EN_PRUEBA ||
+                            f.getEstado() == EstadoFormula.DISENADA)
+                .findFirst()
+                .orElse(formulas.stream()
+                        .max((f1, f2) -> {
+                            if (f1.getCreatedAt() == null && f2.getCreatedAt() == null) return 0;
+                            if (f1.getCreatedAt() == null) return -1;
+                            if (f2.getCreatedAt() == null) return 1;
+                            return f2.getCreatedAt().compareTo(f1.getCreatedAt());
+                        })
+                        .orElse(formulas.get(0)));
+        
+        List<FormulaIngredient> ingredientes = formulaIngredientRepository.findByFormulaIdOrderBySecuenciaAsc(formula.getId());
+        formula.setIngredientes(ingredientes);
+        
         return formula.getDTO();
     }
 

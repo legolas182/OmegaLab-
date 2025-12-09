@@ -23,7 +23,7 @@ public class OrdenProduccionDTO {
     private LocalDateTime fechaFin;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private DispensacionDTO dispensacion;
-    private LineClearanceDTO lineClearance;
+    private Integer loteId;
+    private String loteCodigo;
 }
 

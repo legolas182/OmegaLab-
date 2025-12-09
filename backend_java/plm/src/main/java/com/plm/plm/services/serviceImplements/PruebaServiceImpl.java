@@ -231,6 +231,10 @@ public class PruebaServiceImpl implements PruebaService {
                     // Determinar el nuevo estado basado en los resultados de las pruebas
                     EstadoIdea nuevoEstado = todasPasaron ? EstadoIdea.PRUEBA_APROBADA : EstadoIdea.RECHAZADA;
                     
+                    if (todasPasaron && idea.getCantidadSugerida() == null) {
+                        idea.setCantidadSugerida(java.math.BigDecimal.valueOf(1000.0));
+                    }
+                    
                     if (userId == null) {
                         // Si no hay usuario disponible, cambiar el estado directamente sin userId
                         idea.setEstado(nuevoEstado);
@@ -239,6 +243,8 @@ public class PruebaServiceImpl implements PruebaService {
                     } else {
                         // Usar el servicio para cambiar el estado (mantiene consistencia)
                         ideaService.changeEstado(ideaId, nuevoEstado, userId, null);
+                        idea.setCantidadSugerida(idea.getCantidadSugerida());
+                        ideaRepository.save(idea);
                         System.out.println("Sincronización: Estado de idea " + ideaId + " actualizado a " + nuevoEstado.getValor() + " (con userId: " + userId + ")");
                     }
                 } else {

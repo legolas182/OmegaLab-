@@ -218,7 +218,7 @@ const Ideas = () => {
     }
   }
 
-  // Definir columnas del kanban (sin incluir rechazada ni prueba_aprobada - se gestionan en Aprobación / QA)
+  // Definir columnas del kanban (sin incluir rechazada ni prueba_aprobada - se gestionan en historial y aprobación)
   const kanbanColumns = [
     { id: 'generada', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
     { id: 'en_revision', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
@@ -228,10 +228,10 @@ const Ideas = () => {
   ]
 
   // Agrupar fórmulas por estado (excluyendo rechazada y prueba_aprobada del kanban)
-  // rechazada se archiva, prueba_aprobada se gestiona en Aprobación / QA
+  // rechazada se archiva, prueba_aprobada se gestiona en la página de Aprobación
   const formulasByEstado = ideas.reduce((acc, idea) => {
     const estado = (idea.estado || 'generada').toLowerCase()
-    // Las fórmulas rechazadas y las que pasaron pruebas no aparecen en el kanban
+    // Las fórmulas rechazadas y prueba_aprobada no aparecen en el kanban
     if (estado === 'rechazada' || estado === 'prueba_aprobada') {
       return acc
     }
@@ -285,6 +285,7 @@ const Ideas = () => {
       setDragOverColumn(null)
       return
     }
+
 
     // Para otros estados, cambiar directamente
     try {

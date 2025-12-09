@@ -1,8 +1,8 @@
 package com.plm.plm.Controllers;
 
 import com.plm.plm.Config.exception.UnauthorizedException;
-import com.plm.plm.dto.DispensacionDTO;
-import com.plm.plm.dto.LineClearanceDTO;
+import com.plm.plm.dto.LoteDTO;
+import com.plm.plm.dto.OrdenDetalleDTO;
 import com.plm.plm.dto.OrdenProduccionDTO;
 import com.plm.plm.security.JwtTokenProvider;
 import com.plm.plm.services.ProduccionService;
@@ -46,50 +46,25 @@ public class ProduccionController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/ordenes/{ordenId}/dispensacion")
-    public ResponseEntity<Map<String, Object>> getDispensacionByOrdenId(@PathVariable Integer ordenId) {
-        DispensacionDTO dispensacion = produccionService.getDispensacionByOrdenId(ordenId);
+    @GetMapping("/ordenes/{id}/detalle")
+    public ResponseEntity<Map<String, Object>> getOrdenDetalle(@PathVariable Integer id) {
+        OrdenDetalleDTO detalle = produccionService.getOrdenDetalle(id);
         Map<String, Object> response = new HashMap<>();
-        Map<String, DispensacionDTO> data = new HashMap<>();
-        data.put("dispensacion", dispensacion);
+        Map<String, OrdenDetalleDTO> data = new HashMap<>();
+        data.put("detalle", detalle);
         response.put("data", data);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/ordenes/{ordenId}/dispensacion")
-    public ResponseEntity<Map<String, Object>> saveDispensacion(
-            @PathVariable Integer ordenId,
-            @RequestBody DispensacionDTO dispensacionDTO,
+    @PostMapping("/ordenes/{id}/generar-lote")
+    public ResponseEntity<Map<String, Object>> generarLote(
+            @PathVariable Integer id,
             HttpServletRequest request) {
         Integer userId = getUserIdFromRequest(request);
-        DispensacionDTO dispensacion = produccionService.saveDispensacion(ordenId, dispensacionDTO, userId);
+        LoteDTO lote = produccionService.generarLote(id, userId);
         Map<String, Object> response = new HashMap<>();
-        Map<String, DispensacionDTO> data = new HashMap<>();
-        data.put("dispensacion", dispensacion);
-        response.put("data", data);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/ordenes/{ordenId}/line-clearance")
-    public ResponseEntity<Map<String, Object>> getLineClearanceByOrdenId(@PathVariable Integer ordenId) {
-        LineClearanceDTO lineClearance = produccionService.getLineClearanceByOrdenId(ordenId);
-        Map<String, Object> response = new HashMap<>();
-        Map<String, LineClearanceDTO> data = new HashMap<>();
-        data.put("lineClearance", lineClearance);
-        response.put("data", data);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/ordenes/{ordenId}/line-clearance")
-    public ResponseEntity<Map<String, Object>> saveLineClearance(
-            @PathVariable Integer ordenId,
-            @RequestBody LineClearanceDTO lineClearanceDTO,
-            HttpServletRequest request) {
-        Integer userId = getUserIdFromRequest(request);
-        LineClearanceDTO lineClearance = produccionService.saveLineClearance(ordenId, lineClearanceDTO, userId);
-        Map<String, Object> response = new HashMap<>();
-        Map<String, LineClearanceDTO> data = new HashMap<>();
-        data.put("lineClearance", lineClearance);
+        Map<String, LoteDTO> data = new HashMap<>();
+        data.put("lote", lote);
         response.put("data", data);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -103,4 +78,3 @@ public class ProduccionController {
         throw new UnauthorizedException("Token de autenticación no encontrado");
     }
 }
-

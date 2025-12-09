@@ -2,15 +2,13 @@ package com.plm.plm.services.serviceImplements;
 
 import com.plm.plm.Config.Exception.BadRequestException;
 import com.plm.plm.Config.exception.ResourceNotFoundException;
-import com.plm.plm.Enums.EstadoBOM;
 import com.plm.plm.Enums.EstadoFormula;
 import com.plm.plm.Enums.EstadoIdea;
 import com.plm.plm.Models.*;
 import com.plm.plm.Reposotory.*;
-import com.plm.plm.dto.BOMItemDTO;
-import com.plm.plm.dto.DispensacionDTO;
-import com.plm.plm.dto.DispensacionItemDTO;
-import com.plm.plm.dto.LineClearanceDTO;
+import com.plm.plm.dto.LoteDTO;
+import com.plm.plm.dto.MaterialNecesarioDTO;
+import com.plm.plm.dto.OrdenDetalleDTO;
 import com.plm.plm.dto.OrdenProduccionDTO;
 import com.plm.plm.services.ProduccionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,25 +31,7 @@ public class ProduccionServiceImpl implements ProduccionService {
     private OrdenProduccionRepository ordenProduccionRepository;
 
     @Autowired
-    private DispensacionRepository dispensacionRepository;
-
-    @Autowired
-    private DispensacionItemRepository dispensacionItemRepository;
-
-    @Autowired
-    private LineClearanceRepository lineClearanceRepository;
-
-    @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private BOMRepository bomRepository;
-
-    @Autowired
-    private BOMItemRepository bomItemRepository;
-
-    @Autowired
-    private MaterialRepository materialRepository;
 
     @Autowired
     private FormulaRepository formulaRepository;
@@ -60,37 +39,21 @@ public class ProduccionServiceImpl implements ProduccionService {
     @Autowired
     private FormulaIngredientRepository formulaIngredientRepository;
 
+    @Autowired
+    private LoteRepository loteRepository;
+
+    @Autowired
+    private LoteEventoRepository loteEventoRepository;
+
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OrdenProduccionDTO> getOrdenesProduccion() {
-        List<Idea> ideas = ideaRepository.findByEstado(EstadoIdea.EN_PRODUCCION);
+        List<OrdenProduccion> ordenes = ordenProduccionRepository.findAll();
         
-        return ideas.stream().map(idea -> {
-            List<OrdenProduccion> ordenesExistentes = ordenProduccionRepository.findByIdeaId(idea.getId());
-            OrdenProduccion orden;
-            
-            if (!ordenesExistentes.isEmpty()) {
-                orden = ordenesExistentes.get(0);
-            } else {
-                orden = new OrdenProduccion();
-                orden.setCodigo("OP-" + idea.getId());
-                orden.setIdea(idea);
-                orden.setCantidad(BigDecimal.valueOf(1000));
-                orden.setEstado("EN_PROCESO");
-                orden.setSupervisorCalidad(idea.getAsignadoA());
-                orden.setFechaInicio(idea.getApprovedAt());
-                orden = ordenProduccionRepository.save(orden);
-            }
-            
-            if (orden.getDispensacion() != null) {
-                orden.getDispensacion().getItems().size();
-            }
-            if (orden.getLineClearance() != null) {
-                orden.getLineClearance().getId();
-            }
-            
-            return orden.getDTO();
-        }).collect(Collectors.toList());
+        return ordenes.stream()
+                .filter(orden -> orden.getIdea() != null && orden.getIdea().getEstado() == EstadoIdea.EN_PRODUCCION)
+                .map(OrdenProduccion::getDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -99,27 +62,12 @@ public class ProduccionServiceImpl implements ProduccionService {
         OrdenProduccion orden = ordenProduccionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden de producción no encontrada"));
         
-        if (orden.getDispensacion() != null) {
-            orden.getDispensacion().getItems().size();
-        }
-        if (orden.getLineClearance() != null) {
-            orden.getLineClearance().getId();
-        }
-        
         return orden.getDTO();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DispensacionDTO getDispensacionByOrdenId(Integer ordenId) {
-        Optional<Dispensacion> dispensacionOpt = dispensacionRepository.findByOrdenId(ordenId);
-        
-        if (dispensacionOpt.isPresent()) {
-            Dispensacion dispensacion = dispensacionOpt.get();
-            dispensacion.getItems().size();
-            return dispensacion.getDTO();
-        }
-        
+    public OrdenDetalleDTO getOrdenDetalle(Integer ordenId) {
         OrdenProduccion orden = ordenProduccionRepository.findById(ordenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden de producción no encontrada"));
         
@@ -130,21 +78,27 @@ public class ProduccionServiceImpl implements ProduccionService {
             throw new BadRequestException("La cantidad de la orden de producción es obligatoria y debe ser mayor a cero");
         }
         
-        DispensacionDTO dto = new DispensacionDTO();
-        dto.setOrdenId(ordenId);
-        dto.setCompletada(false);
-        
         List<Formula> formulas = formulaRepository.findByIdeaId(idea.getId());
         if (formulas.isEmpty()) {
-            throw new ResourceNotFoundException("No se encontró una fórmula asociada a la idea. La fórmula es obligatoria para generar la dispensación");
+            throw new ResourceNotFoundException("No se encontró una fórmula asociada a la idea. La fórmula es obligatoria para generar la producción");
         }
         
         Formula formula = formulas.stream()
                 .filter(f -> f.getEstado() == EstadoFormula.PRUEBA_APROBADA || 
                             f.getEstado() == EstadoFormula.EN_PRODUCCION ||
-                            f.getEstado() == EstadoFormula.APROBADA)
+                            f.getEstado() == EstadoFormula.APROBADA ||
+                            f.getEstado() == EstadoFormula.EN_PRUEBA ||
+                            f.getEstado() == EstadoFormula.DISENADA)
                 .findFirst()
-                .orElse(formulas.get(0));
+                .orElse(formulas.stream()
+                        .max((f1, f2) -> {
+                            if (f1.getCreatedAt() == null && f2.getCreatedAt() == null) return 0;
+                            if (f1.getCreatedAt() == null) return -1;
+                            if (f2.getCreatedAt() == null) return 1;
+                            return f2.getCreatedAt().compareTo(f1.getCreatedAt());
+                        })
+                        .orElse(formulas.get(0)));
+        
         List<FormulaIngredient> ingredientes = formulaIngredientRepository.findByFormulaIdOrderBySecuenciaAsc(formula.getId());
         
         if (ingredientes.isEmpty()) {
@@ -158,16 +112,16 @@ public class ProduccionServiceImpl implements ProduccionService {
         
         BigDecimal factorEscala = cantidadOrden.divide(rendimientoBase, 4, java.math.RoundingMode.HALF_UP);
         
-        List<DispensacionItemDTO> items = ingredientes.stream().map(ingrediente -> {
-            DispensacionItemDTO itemDTO = new DispensacionItemDTO();
+        List<MaterialNecesarioDTO> materiales = ingredientes.stream().map(ingrediente -> {
+            MaterialNecesarioDTO materialDTO = new MaterialNecesarioDTO();
             if (ingrediente.getMaterial() != null) {
-                itemDTO.setMaterialId(ingrediente.getMaterial().getId());
-                itemDTO.setMaterialNombre(ingrediente.getMaterial().getNombre());
-                itemDTO.setMaterialCodigo(ingrediente.getMaterial().getCodigo());
+                materialDTO.setMaterialId(ingrediente.getMaterial().getId());
+                materialDTO.setMaterialNombre(ingrediente.getMaterial().getNombre());
+                materialDTO.setMaterialCodigo(ingrediente.getMaterial().getCodigo());
             } else {
-                itemDTO.setMaterialId(null);
-                itemDTO.setMaterialNombre(ingrediente.getNombre());
-                itemDTO.setMaterialCodigo(null);
+                materialDTO.setMaterialId(null);
+                materialDTO.setMaterialNombre(ingrediente.getNombre());
+                materialDTO.setMaterialCodigo(null);
             }
             
             BigDecimal cantidadBase = ingrediente.getCantidad() != null ? ingrediente.getCantidad() : BigDecimal.ZERO;
@@ -178,121 +132,66 @@ public class ProduccionServiceImpl implements ProduccionService {
                 cantidadRequerida = cantidadOrden.multiply(porcentaje).divide(BigDecimal.valueOf(100.0), 4, java.math.RoundingMode.HALF_UP);
             }
             
-            itemDTO.setCantidadRequerida(cantidadRequerida);
-            itemDTO.setUnidadRequerida(ingrediente.getUnidad() != null ? ingrediente.getUnidad() : "g");
-            itemDTO.setCantidadPesada(BigDecimal.ZERO);
-            itemDTO.setSecuencia(ingrediente.getSecuencia() != null ? ingrediente.getSecuencia() : 0);
-            return itemDTO;
+            materialDTO.setCantidadRequerida(cantidadRequerida);
+            materialDTO.setUnidadRequerida(ingrediente.getUnidad() != null ? ingrediente.getUnidad() : "g");
+            materialDTO.setPorcentaje(ingrediente.getPorcentaje() != null ? ingrediente.getPorcentaje() : BigDecimal.ZERO);
+            materialDTO.setSecuencia(ingrediente.getSecuencia() != null ? ingrediente.getSecuencia() : 0);
+            return materialDTO;
         }).collect(Collectors.toList());
         
-        dto.setItems(items);
+        OrdenDetalleDTO dto = new OrdenDetalleDTO();
+        dto.setId(orden.getId());
+        dto.setCodigo(orden.getCodigo());
+        dto.setIdeaTitulo(idea.getTitulo());
+        dto.setCantidad(cantidadOrden);
+        dto.setEstado(orden.getEstado());
+        dto.setSupervisorCalidadNombre(orden.getSupervisorCalidad() != null ? orden.getSupervisorCalidad().getNombre() : null);
+        dto.setLoteId(orden.getLote() != null ? orden.getLote().getId() : null);
+        dto.setLoteCodigo(orden.getLote() != null ? orden.getLote().getCodigo() : null);
+        dto.setMateriales(materiales);
+        
         return dto;
     }
 
     @Override
     @Transactional
-    public DispensacionDTO saveDispensacion(Integer ordenId, DispensacionDTO dispensacionDTO, Integer userId) {
+    public LoteDTO generarLote(Integer ordenId, Integer userId) {
         OrdenProduccion orden = ordenProduccionRepository.findById(ordenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden de producción no encontrada"));
+        
+        if (orden.getLote() != null) {
+            throw new BadRequestException("Esta orden ya tiene un lote asociado");
+        }
         
         User usuario = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         
-        Dispensacion dispensacion;
-        Optional<Dispensacion> dispensacionOpt = dispensacionRepository.findByOrdenId(ordenId);
+        LocalDateTime ahora = LocalDateTime.now();
+        String codigoLote = "LOTE-" + ahora.getYear() + "-" + String.format("%03d", loteRepository.count() + 1);
         
-        if (dispensacionOpt.isPresent()) {
-            dispensacion = dispensacionOpt.get();
-            dispensacionItemRepository.deleteAll(dispensacion.getItems());
-            dispensacion.getItems().clear();
-        } else {
-            dispensacion = new Dispensacion();
-            dispensacion.setOrden(orden);
-        }
+        Lote lote = new Lote();
+        lote.setCodigo(codigoLote);
+        lote.setOrden(orden);
+        lote.setFechaProduccion(ahora);
+        lote.setEstado("EN_PROCESO");
+        lote = loteRepository.save(lote);
         
-        dispensacion.setCompletada(true);
-        dispensacion.setRealizadaPor(usuario);
-        dispensacion.setEquipoUtilizado(dispensacionDTO.getEquipoUtilizado());
-        dispensacion.setFechaCalibracion(dispensacionDTO.getFechaCalibracion());
+        LoteEvento eventoInicio = new LoteEvento();
+        eventoInicio.setLote(lote);
+        eventoInicio.setTipo("Proceso");
+        eventoInicio.setDescripcion("Inicio de Producción - Orden " + orden.getCodigo());
+        eventoInicio.setFecha(ahora);
+        eventoInicio.setHora(ahora.format(DateTimeFormatter.ofPattern("HH:mm")));
+        eventoInicio.setIdentificador("PROD-" + orden.getCodigo());
+        eventoInicio.setUsuario(usuario);
+        eventoInicio.setDetalles("Orden de producción iniciada por " + usuario.getNombre());
+        loteEventoRepository.save(eventoInicio);
         
-        if (dispensacionDTO.getItems() != null) {
-            for (DispensacionItemDTO itemDTO : dispensacionDTO.getItems()) {
-                Material material = materialRepository.findById(itemDTO.getMaterialId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Material no encontrado: " + itemDTO.getMaterialId()));
-                
-                DispensacionItem item = new DispensacionItem();
-                item.setDispensacion(dispensacion);
-                item.setMaterial(material);
-                item.setCantidadRequerida(itemDTO.getCantidadRequerida());
-                item.setUnidadRequerida(itemDTO.getUnidadRequerida());
-                item.setCantidadPesada(itemDTO.getCantidadPesada());
-                item.setSecuencia(itemDTO.getSecuencia());
-                
-                dispensacion.getItems().add(item);
-            }
-        }
-        
-        dispensacion = dispensacionRepository.save(dispensacion);
-        orden.setDispensacion(dispensacion);
+        orden.setEstado("EN_PRODUCCION");
+        orden.setFechaInicio(ahora);
         ordenProduccionRepository.save(orden);
         
-        dispensacion.getItems().size();
-        return dispensacion.getDTO();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public LineClearanceDTO getLineClearanceByOrdenId(Integer ordenId) {
-        Optional<LineClearance> lineClearanceOpt = lineClearanceRepository.findByOrdenId(ordenId);
-        
-        if (lineClearanceOpt.isPresent()) {
-            return lineClearanceOpt.get().getDTO();
-        }
-        
-        LineClearanceDTO dto = new LineClearanceDTO();
-        dto.setOrdenId(ordenId);
-        dto.setCompletado(false);
-        dto.setLineaLimpia(false);
-        dto.setSinResiduos(false);
-        dto.setEquiposVerificados(false);
-        dto.setDocumentacionCompleta(false);
-        dto.setMaterialesCorrectos(false);
-        return dto;
-    }
-
-    @Override
-    @Transactional
-    public LineClearanceDTO saveLineClearance(Integer ordenId, LineClearanceDTO lineClearanceDTO, Integer userId) {
-        OrdenProduccion orden = ordenProduccionRepository.findById(ordenId)
-                .orElseThrow(() -> new ResourceNotFoundException("Orden de producción no encontrada"));
-        
-        User usuario = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        
-        LineClearance lineClearance;
-        Optional<LineClearance> lineClearanceOpt = lineClearanceRepository.findByOrdenId(ordenId);
-        
-        if (lineClearanceOpt.isPresent()) {
-            lineClearance = lineClearanceOpt.get();
-        } else {
-            lineClearance = new LineClearance();
-            lineClearance.setOrden(orden);
-        }
-        
-        lineClearance.setCompletado(true);
-        lineClearance.setLineaLimpia(lineClearanceDTO.getLineaLimpia());
-        lineClearance.setSinResiduos(lineClearanceDTO.getSinResiduos());
-        lineClearance.setEquiposVerificados(lineClearanceDTO.getEquiposVerificados());
-        lineClearance.setDocumentacionCompleta(lineClearanceDTO.getDocumentacionCompleta());
-        lineClearance.setMaterialesCorrectos(lineClearanceDTO.getMaterialesCorrectos());
-        lineClearance.setVerificadoPor(usuario);
-        lineClearance.setObservaciones(lineClearanceDTO.getObservaciones());
-        
-        lineClearance = lineClearanceRepository.save(lineClearance);
-        orden.setLineClearance(lineClearance);
-        ordenProduccionRepository.save(orden);
-        
-        return lineClearance.getDTO();
+        lote.getEventos().size();
+        return lote.getDTO();
     }
 }
-

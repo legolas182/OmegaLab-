@@ -19,37 +19,19 @@ class ProduccionService {
     }
   }
 
-  async getDispensacionByOrdenId(ordenId) {
+  async getOrdenDetalle(id) {
     try {
-      const response = await api.get(`/produccion/ordenes/${ordenId}/dispensacion`);
-      return response.data.data.dispensacion;
+      const response = await api.get(`/produccion/ordenes/${id}/detalle`);
+      return response.data.data.detalle;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  async saveDispensacion(ordenId, dispensacionData) {
+  async generarLote(ordenId) {
     try {
-      const response = await api.post(`/produccion/ordenes/${ordenId}/dispensacion`, dispensacionData);
-      return response.data.data.dispensacion;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  async getLineClearanceByOrdenId(ordenId) {
-    try {
-      const response = await api.get(`/produccion/ordenes/${ordenId}/line-clearance`);
-      return response.data.data.lineClearance;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  async saveLineClearance(ordenId, lineClearanceData) {
-    try {
-      const response = await api.post(`/produccion/ordenes/${ordenId}/line-clearance`, lineClearanceData);
-      return response.data.data.lineClearance;
+      const response = await api.post(`/produccion/ordenes/${ordenId}/generar-lote`);
+      return response.data.data.lote;
     } catch (error) {
       throw this.handleError(error);
     }
@@ -68,4 +50,3 @@ class ProduccionService {
 }
 
 export default new ProduccionService();
-

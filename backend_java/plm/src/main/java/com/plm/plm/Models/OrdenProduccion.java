@@ -61,10 +61,7 @@ public class OrdenProduccion {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Dispensacion dispensacion;
-
-    @OneToOne(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
-    private LineClearance lineClearance;
+    private Lote lote;
 
     public OrdenProduccionDTO getDTO() {
         OrdenProduccionDTO dto = new OrdenProduccionDTO();
@@ -80,8 +77,8 @@ public class OrdenProduccion {
         dto.setFechaFin(fechaFin);
         dto.setCreatedAt(createdAt);
         dto.setUpdatedAt(updatedAt);
-        dto.setDispensacion(dispensacion != null ? dispensacion.getDTO() : null);
-        dto.setLineClearance(lineClearance != null ? lineClearance.getDTO() : null);
+        dto.setLoteId(lote != null ? lote.getId() : null);
+        dto.setLoteCodigo(lote != null ? lote.getCodigo() : null);
         return dto;
     }
 }

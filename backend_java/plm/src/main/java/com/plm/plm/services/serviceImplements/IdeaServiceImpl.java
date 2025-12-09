@@ -11,6 +11,9 @@ import com.plm.plm.Reposotory.IdeaRepository;
 import com.plm.plm.Reposotory.ProductRepository;
 import com.plm.plm.Reposotory.UserRepository;
 import com.plm.plm.Reposotory.CategoryRepository;
+import com.plm.plm.Reposotory.OrdenProduccionRepository;
+import com.plm.plm.Models.OrdenProduccion;
+import java.math.BigDecimal;
 import com.plm.plm.dto.IdeaDTO;
 import com.plm.plm.services.IdeaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,9 @@ public class IdeaServiceImpl implements IdeaService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private OrdenProduccionRepository ordenProduccionRepository;
 
     @Override
     @Transactional
@@ -229,7 +235,23 @@ public class IdeaServiceImpl implements IdeaService {
         User aprobador = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         idea.setAprobador(aprobador);
-        idea.setApprovedAt(LocalDateTime.now());
+        LocalDateTime ahora = LocalDateTime.now();
+        idea.setApprovedAt(ahora);
+        
+        idea = ideaRepository.save(idea);
+        
+        // Crear orden de producción con la cantidad especificada por QA
+        List<OrdenProduccion> ordenesExistentes = ordenProduccionRepository.findByIdeaId(idea.getId());
+        if (ordenesExistentes.isEmpty()) {
+            OrdenProduccion orden = new OrdenProduccion();
+            orden.setCodigo("OP-" + idea.getId());
+            orden.setIdea(idea);
+            orden.setCantidad(BigDecimal.valueOf(cantidad));
+            orden.setEstado("EN_PROCESO");
+            orden.setSupervisorCalidad(supervisor);
+            orden.setFechaInicio(ahora);
+            ordenProduccionRepository.save(orden);
+        }
 
         return ideaRepository.save(idea).getDTO();
     }
