@@ -16,9 +16,11 @@ public class PlmApplication {
 		if (port != null) {
 			System.out.println("✓ Puerto asignado por Railway: " + port);
 		} else {
-			System.out.println("⚠ Variable PORT no encontrada, usando puerto por defecto");
+			System.out.println("⚠ Variable PORT no encontrada, usando puerto por defecto 8080");
 		}
 		
+		// Iniciar la aplicación Spring Boot
+		// SpringApplication.run() es bloqueante y mantendrá la aplicación corriendo
 		SpringApplication.run(PlmApplication.class, args);
 	}
 }

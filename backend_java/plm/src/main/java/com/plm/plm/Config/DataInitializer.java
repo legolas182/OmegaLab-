@@ -62,16 +62,25 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        updateIdeasTableSchema();
-        updatePruebasTableSchema();
-        updateCategoriesTableSchema();
-        updateMaterialCompoundsTableSchema();
-        initializeUsers();
-        initializeCategories();
-        initializeMaterials();
-        initializeMaterialCompounds();
-        initializeProducts();
-        initializeBOMs();
+        try {
+            System.out.println("[DataInitializer] Iniciando inicialización de datos...");
+            updateIdeasTableSchema();
+            updatePruebasTableSchema();
+            updateCategoriesTableSchema();
+            updateMaterialCompoundsTableSchema();
+            initializeUsers();
+            initializeCategories();
+            initializeMaterials();
+            initializeMaterialCompounds();
+            initializeProducts();
+            initializeBOMs();
+            System.out.println("[DataInitializer] ✓ Inicialización de datos completada exitosamente");
+        } catch (Exception e) {
+            System.err.println("[DataInitializer] ✗ Error durante la inicialización de datos: " + e.getMessage());
+            e.printStackTrace();
+            // No lanzar la excepción para que la aplicación pueda continuar
+            // La aplicación debe seguir funcionando incluso si hay problemas con los datos iniciales
+        }
     }
 
     /**
