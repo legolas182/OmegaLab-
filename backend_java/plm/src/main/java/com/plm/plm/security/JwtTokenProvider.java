@@ -17,10 +17,10 @@ import java.util.function.Function;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:default_secret_change_in_production_use_strong_secret_key_min_256_bits}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:86400000}")
     private Long expiration;
 
     public String generateToken(UserDetails userDetails) {
