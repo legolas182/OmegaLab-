@@ -30,9 +30,13 @@ WORKDIR /app
 # Copiar el JAR desde la etapa de build (usar wildcard para encontrar el JAR)
 COPY --from=build /app/target/*.jar app.jar
 
+# Verificar que el JAR se copió correctamente
+RUN ls -la /app/app.jar || (echo "Error: app.jar no encontrado" && ls -la /app/)
+
 # Exponer el puerto (Railway lo asignará automáticamente)
 EXPOSE 3001
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Usar CMD en lugar de ENTRYPOINT para que Railway pueda sobrescribirlo si es necesario
+CMD ["java", "-jar", "app.jar"]
 
