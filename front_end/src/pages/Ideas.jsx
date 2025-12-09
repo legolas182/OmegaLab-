@@ -1202,7 +1202,7 @@ const Ideas = () => {
                                             tipoPrueba: 'Control de Calidad - Fórmula IA',
                                             descripcion: `Prueba generada automáticamente para validar la fórmula: ${selectedFormula.titulo}`,
                                             pruebasRequeridas: pruebasTexto,
-                                            estado: 'PENDIENTE'
+                                            estado: 'pendiente'
                                           })
                                           
                                           // Recargar pruebas

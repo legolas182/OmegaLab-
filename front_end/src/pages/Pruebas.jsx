@@ -102,7 +102,7 @@ const Pruebas = () => {
         descripcion: nuevaPrueba.descripcion,
         equiposUtilizados: nuevaPrueba.equiposUtilizados,
         pruebasRequeridas: nuevaPrueba.pruebasRequeridas,
-        estado: 'PENDIENTE'
+        estado: 'pendiente'
       })
       setShowCreateDialog(false)
       setNuevaPrueba({
