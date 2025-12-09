@@ -2,45 +2,97 @@ package com.plm.plm.Config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.net.URI;
+import java.util.Properties;
 
 /**
  * Configuración de base de datos para Railway
  * Convierte MYSQL_URL de Railway (formato mysql://) a formato JDBC
+ * Lee explícitamente las variables de entorno del sistema para conectar
+ * a la base de datos MySQL separada en Railway
  */
 @Configuration
 @Profile("prod")
+@EnableTransactionManagement
 public class DatabaseConfig {
 
-    @Value("${MYSQL_URL:}")
-    private String mysqlUrl;
+    @Value("${spring.jpa.hibernate.ddl-auto:update}")
+    private String ddlAuto;
 
-    @Value("${MYSQLHOST:}")
-    private String mysqlHost;
+    @Value("${spring.jpa.show-sql:false}")
+    private String showSql;
 
-    @Value("${MYSQLPORT:3306}")
-    private String mysqlPort;
+    @Value("${spring.jpa.properties.hibernate.dialect:org.hibernate.dialect.MySQLDialect}")
+    private String hibernateDialect;
 
-    @Value("${MYSQLDATABASE:}")
-    private String mysqlDatabase;
+    @Value("${spring.jpa.properties.hibernate.format_sql:false}")
+    private String formatSql;
 
-    @Value("${MYSQLUSER:root}")
-    private String mysqlUser;
+    @Value("${spring.jpa.properties.hibernate.use_sql_comments:false}")
+    private String useSqlComments;
 
-    @Value("${MYSQLPASSWORD:}")
-    private String mysqlPassword;
+    /**
+     * Obtiene una variable de entorno del sistema.
+     * Primero intenta desde variables de entorno, luego desde propiedades de Spring
+     */
+    private String getEnv(String key, String defaultValue) {
+        String value = System.getenv(key);
+        if (value == null || value.isEmpty()) {
+            // Si no está en variables de entorno, intentar desde propiedades de Spring
+            value = System.getProperty(key, defaultValue);
+        }
+        return value != null ? value : defaultValue;
+    }
+
+    private String getMysqlUrl() {
+        return getEnv("MYSQL_URL", "");
+    }
+
+    private String getMysqlHost() {
+        return getEnv("MYSQLHOST", "");
+    }
+
+    private String getMysqlPort() {
+        return getEnv("MYSQLPORT", "3306");
+    }
+
+    private String getMysqlDatabase() {
+        return getEnv("MYSQLDATABASE", "");
+    }
+
+    private String getMysqlUser() {
+        return getEnv("MYSQLUSER", "root");
+    }
+
+    private String getMysqlPassword() {
+        return getEnv("MYSQLPASSWORD", "");
+    }
 
     @Bean
     @Primary
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
+        
+        // Leer variables de entorno explícitamente
+        String mysqlUrl = getMysqlUrl();
+        String mysqlHost = getMysqlHost();
+        String mysqlPort = getMysqlPort();
+        String mysqlDatabase = getMysqlDatabase();
+        String mysqlUser = getMysqlUser();
+        String mysqlPassword = getMysqlPassword();
         
         String jdbcUrl;
         String username;
@@ -68,13 +120,13 @@ public class DatabaseConfig {
             } catch (Exception e) {
                 System.err.println("Error al parsear MYSQL_URL, usando variables individuales: " + e.getMessage());
                 // Fallback a variables individuales
-                jdbcUrl = buildUrlFromIndividualVariables();
+                jdbcUrl = buildUrlFromIndividualVariables(mysqlHost, mysqlPort, mysqlDatabase);
                 username = mysqlUser;
                 password = mysqlPassword;
             }
         } else {
             // Usar variables individuales
-            jdbcUrl = buildUrlFromIndividualVariables();
+            jdbcUrl = buildUrlFromIndividualVariables(mysqlHost, mysqlPort, mysqlDatabase);
             username = mysqlUser;
             password = mysqlPassword;
         }
@@ -90,9 +142,42 @@ public class DatabaseConfig {
         return new HikariDataSource(config);
     }
 
-    private String buildUrlFromIndividualVariables() {
+    @Bean
+    @Primary
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource);
+        em.setPackagesToScan("com.plm.plm.Models");
+        
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        em.setJpaVendorAdapter(vendorAdapter);
+        
+        Properties properties = new Properties();
+        properties.setProperty("hibernate.hbm2ddl.auto", ddlAuto);
+        properties.setProperty("hibernate.show_sql", showSql);
+        properties.setProperty("hibernate.dialect", hibernateDialect);
+        properties.setProperty("hibernate.format_sql", formatSql);
+        properties.setProperty("hibernate.use_sql_comments", useSqlComments);
+        
+        em.setJpaProperties(properties);
+        
+        return em;
+    }
+
+    @Bean
+    @Primary
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        return transactionManager;
+    }
+
+    private String buildUrlFromIndividualVariables(String mysqlHost, String mysqlPort, String mysqlDatabase) {
         // Debug: mostrar qué variables están disponibles
-        System.out.println("=== Debug: Variables de MySQL ===");
+        String mysqlUser = getMysqlUser();
+        String mysqlPassword = getMysqlPassword();
+        
+        System.out.println("=== Debug: Variables de MySQL desde Variables de Entorno ===");
         System.out.println("MYSQLHOST: " + (mysqlHost != null && !mysqlHost.isEmpty() ? mysqlHost : "NO DISPONIBLE"));
         System.out.println("MYSQLPORT: " + mysqlPort);
         System.out.println("MYSQLDATABASE: " + (mysqlDatabase != null && !mysqlDatabase.isEmpty() ? mysqlDatabase : "NO DISPONIBLE"));
@@ -112,14 +197,16 @@ public class DatabaseConfig {
             System.out.println("URL JDBC: jdbc:mysql://" + mysqlHost + ":" + mysqlPort + "/" + mysqlDatabase);
             return jdbcUrl;
         } else {
-            System.err.println("⚠ No se encontraron variables de MySQL. Usando configuración por defecto.");
-            System.err.println("⚠ Por favor, configura las siguientes variables en Railway:");
-            System.err.println("   - MYSQLHOST");
-            System.err.println("   - MYSQLPORT");
-            System.err.println("   - MYSQLDATABASE");
-            System.err.println("   - MYSQLUSER");
-            System.err.println("   - MYSQLPASSWORD");
-            return "jdbc:mysql://localhost:3306/proscience?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+            System.err.println("⚠ ERROR: No se encontraron variables de MySQL en las variables de entorno.");
+            System.err.println("⚠ Por favor, configura las siguientes variables en Railway (sección Variables del servicio Backend):");
+            System.err.println("   - MYSQLHOST (host de la base de datos MySQL)");
+            System.err.println("   - MYSQLPORT (puerto, por defecto 3306)");
+            System.err.println("   - MYSQLDATABASE (nombre de la base de datos)");
+            System.err.println("   - MYSQLUSER (usuario de MySQL)");
+            System.err.println("   - MYSQLPASSWORD (contraseña de MySQL)");
+            System.err.println("⚠ O alternativamente, configura MYSQL_URL con el formato: mysql://user:password@host:port/database");
+            throw new IllegalStateException("No se pueden encontrar las variables de entorno necesarias para conectar a la base de datos MySQL. " +
+                    "Por favor, configura MYSQLHOST, MYSQLPORT, MYSQLDATABASE, MYSQLUSER y MYSQLPASSWORD en Railway.");
         }
     }
 }
