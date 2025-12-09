@@ -91,6 +91,15 @@ public class DatabaseConfig {
     }
 
     private String buildUrlFromIndividualVariables() {
+        // Debug: mostrar qué variables están disponibles
+        System.out.println("=== Debug: Variables de MySQL ===");
+        System.out.println("MYSQLHOST: " + (mysqlHost != null && !mysqlHost.isEmpty() ? mysqlHost : "NO DISPONIBLE"));
+        System.out.println("MYSQLPORT: " + mysqlPort);
+        System.out.println("MYSQLDATABASE: " + (mysqlDatabase != null && !mysqlDatabase.isEmpty() ? mysqlDatabase : "NO DISPONIBLE"));
+        System.out.println("MYSQLUSER: " + mysqlUser);
+        System.out.println("MYSQLPASSWORD: " + (mysqlPassword != null && !mysqlPassword.isEmpty() ? "***CONFIGURADA***" : "NO DISPONIBLE"));
+        System.out.println("================================");
+        
         if (mysqlHost != null && !mysqlHost.isEmpty() && 
             mysqlDatabase != null && !mysqlDatabase.isEmpty()) {
             
@@ -100,9 +109,16 @@ public class DatabaseConfig {
             );
             
             System.out.println("✓ Configuración de base de datos desde variables individuales");
+            System.out.println("URL JDBC: jdbc:mysql://" + mysqlHost + ":" + mysqlPort + "/" + mysqlDatabase);
             return jdbcUrl;
         } else {
             System.err.println("⚠ No se encontraron variables de MySQL. Usando configuración por defecto.");
+            System.err.println("⚠ Por favor, configura las siguientes variables en Railway:");
+            System.err.println("   - MYSQLHOST");
+            System.err.println("   - MYSQLPORT");
+            System.err.println("   - MYSQLDATABASE");
+            System.err.println("   - MYSQLUSER");
+            System.err.println("   - MYSQLPASSWORD");
             return "jdbc:mysql://localhost:3306/proscience?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
         }
     }
