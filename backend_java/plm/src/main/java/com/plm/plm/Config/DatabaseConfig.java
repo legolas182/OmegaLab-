@@ -46,13 +46,18 @@ public class DatabaseConfig {
 
     /**
      * Obtiene una variable de entorno del sistema.
-     * Primero intenta desde variables de entorno, luego desde propiedades de Spring
+     * Primero intenta desde variables de entorno, luego desde propiedades de Spring.
+     * También limpia comillas dobles que puedan estar alrededor del valor.
      */
     private String getEnv(String key, String defaultValue) {
         String value = System.getenv(key);
         if (value == null || value.isEmpty()) {
             // Si no está en variables de entorno, intentar desde propiedades de Spring
             value = System.getProperty(key, defaultValue);
+        }
+        // Limpiar comillas dobles si están presentes (Railway a veces las agrega)
+        if (value != null && value.startsWith("\"") && value.endsWith("\"")) {
+            value = value.substring(1, value.length() - 1);
         }
         return value != null ? value : defaultValue;
     }
@@ -188,11 +193,24 @@ public class DatabaseConfig {
         // Validar que no sean valores de ejemplo
         if (mysqlHost == null || mysqlHost.isEmpty() || 
             mysqlHost.equals("xxx.railway.internal") || 
-            mysqlHost.startsWith("xxx")) {
+            (mysqlHost.startsWith("xxx") && !mysqlHost.contains("railway.app"))) {
             System.err.println("⚠ ERROR: MYSQLHOST contiene un valor de ejemplo o está vacío.");
             System.err.println("⚠ Valor actual: " + mysqlHost);
-            System.err.println("⚠ Por favor, configura MYSQLHOST con el host real de tu servicio MySQL en Railway.");
-            throw new IllegalStateException("MYSQLHOST no está configurado correctamente. Valor actual: " + mysqlHost);
+            System.err.println("");
+            System.err.println("📋 CÓMO OBTENER EL VALOR REAL:");
+            System.err.println("   1. Ve a tu servicio MySQL en Railway");
+            System.err.println("   2. Abre la pestaña 'Variables' o 'Settings'");
+            System.err.println("   3. Busca la variable 'MYSQLHOST' o 'MYSQL_HOST'");
+            System.err.println("   4. Copia el valor (debería ser algo como: containers-us-west-xxx.railway.app)");
+            System.err.println("   5. Si no existe, busca 'Private Networking' o 'Service URL'");
+            System.err.println("   6. Ve a tu servicio Backend → Variables");
+            System.err.println("   7. Agrega/actualiza MYSQLHOST con el valor copiado");
+            System.err.println("");
+            System.err.println("💡 NOTA: Si ambos servicios están en el mismo proyecto Railway,");
+            System.err.println("   puedes usar el host interno (ej: mysql.railway.internal)");
+            System.err.println("   pero debe ser el nombre REAL del servicio, no 'xxx'");
+            throw new IllegalStateException("MYSQLHOST no está configurado correctamente. Valor actual: " + mysqlHost + 
+                    ". Por favor, obtén el valor real desde las variables de tu servicio MySQL en Railway.");
         }
         
         if (mysqlDatabase == null || mysqlDatabase.isEmpty()) {
