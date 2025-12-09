@@ -37,5 +37,11 @@ public class HealthController {
         response.put("timestamp", LocalDateTime.now().toString());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/favicon.ico")
+    public ResponseEntity<Void> favicon() {
+        // Devolver 204 No Content para evitar errores en los logs
+        return ResponseEntity.noContent().build();
+    }
 }
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -189,12 +190,38 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Maneja excepciones de recursos estáticos no encontrados (favicon.ico, etc.)
+     * No loguea estos errores ya que son comunes y no críticos
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFoundException(
+            NoResourceFoundException ex, HttpServletRequest request) {
+        
+        // Ignorar silenciosamente recursos estáticos no encontrados (favicon.ico, etc.)
+        // No loguear para evitar ruido en los logs
+        String path = request.getRequestURI();
+        if (path != null && (path.equals("/favicon.ico") || path.startsWith("/static/") || path.startsWith("/assets/"))) {
+            return ResponseEntity.noContent().build();
+        }
+        
+        // Para otros recursos no encontrados, devolver 404
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
      * Maneja cualquier excepción no controlada (500)
      * NO expone información sensible del error interno
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGeneralException(
             Exception ex, HttpServletRequest request) {
+        
+        // Ignorar errores de favicon.ico y recursos estáticos
+        String path = request.getRequestURI();
+        if (path != null && (path.equals("/favicon.ico") || 
+            (ex.getMessage() != null && ex.getMessage().contains("favicon.ico")))) {
+            return ResponseEntity.noContent().build();
+        }
         
         // Log del error completo para debugging (en producción usar un logger)
         ex.printStackTrace();
