@@ -33,10 +33,12 @@ COPY --from=build /app/target/*.jar app.jar
 # Verificar que el JAR se copió correctamente
 RUN ls -la /app/app.jar || (echo "Error: app.jar no encontrado" && ls -la /app/)
 
-# Exponer el puerto (Railway lo asignará automáticamente)
-EXPOSE 3001
+# Exponer el puerto (Railway lo asignará automáticamente a través de la variable PORT)
+# No exponer un puerto fijo, Railway lo maneja automáticamente
+EXPOSE 8080
 
 # Comando para ejecutar la aplicación
-# Usar CMD en lugar de ENTRYPOINT para que Railway pueda sobrescribirlo si es necesario
+# Railway asignará el puerto a través de la variable de entorno PORT
+# La aplicación debe usar server.port=${PORT:8080} en application-prod.properties
 CMD ["java", "-jar", "app.jar"]
 

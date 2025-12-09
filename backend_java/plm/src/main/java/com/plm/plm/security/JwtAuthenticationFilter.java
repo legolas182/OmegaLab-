@@ -40,6 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response, 
                                     FilterChain filterChain) throws ServletException, IOException {
         
+        String path = request.getRequestURI();
+        
+        // Permitir que las rutas públicas pasen sin autenticación
+        if (isPublicPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         try {
             String jwt = getJwtFromRequest(request);
 
@@ -85,6 +93,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(tokenPrefix.length());
         }
         return null;
+    }
+    
+    /**
+     * Verifica si la ruta es pública y no requiere autenticación
+     */
+    private boolean isPublicPath(String path) {
+        if (path == null) {
+            return false;
+        }
+        return path.equals("/") ||
+               path.equals("/health") ||
+               path.equals("/api/health") ||
+               path.equals("/favicon.ico") ||
+               path.startsWith("/actuator/") ||
+               path.startsWith("/api/auth/");
     }
 }
 

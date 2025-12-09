@@ -11,6 +11,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class PlmApplication {
 
 	public static void main(String[] args) {
+		// Log del puerto que se usará (Railway asigna PORT automáticamente)
+		String port = System.getenv("PORT");
+		if (port != null) {
+			System.out.println("✓ Puerto asignado por Railway: " + port);
+		} else {
+			System.out.println("⚠ Variable PORT no encontrada, usando puerto por defecto");
+		}
+		
 		SpringApplication.run(PlmApplication.class, args);
 	}
 }
