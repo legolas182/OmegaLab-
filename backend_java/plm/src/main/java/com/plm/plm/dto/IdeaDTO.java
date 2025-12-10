@@ -29,6 +29,7 @@ public class IdeaDTO {
     private Integer approvedBy;
     private String approvedByName;
     private LocalDateTime approvedAt;
+    private Double cantidadSugerida;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

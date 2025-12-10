@@ -97,6 +97,24 @@ class IdeaService {
     }
   }
 
+  async getFormulaByIdeaId(id) {
+    try {
+      const response = await api.get(`/ideas/${id}/formula`);
+      return response.data.data.formula;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async crearFormulaDesdeIdea(id) {
+    try {
+      const response = await api.post(`/ideas/${id}/crear-formula`);
+      return response.data.data.formula;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   async getMisIdeas() {
     try {
       const response = await api.get('/ideas/mis-ideas');

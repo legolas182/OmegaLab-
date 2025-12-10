@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
 import ideaService from '../services/ideaService'
@@ -25,7 +26,7 @@ const Ideas = () => {
   const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
   const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
   const isAnalista = hasAnyRole(user, 'ANALISTA_LABORATORIO')
-  
+
   if (!user || (!isSupervisorQA && !isAdmin && !isAnalista)) {
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -41,18 +42,26 @@ const Ideas = () => {
   // Cargar ideas solo una vez al inicio
   useEffect(() => {
     loadIdeas()
-    
+
     // Escuchar eventos de cambio de estado desde otros módulos (Aprobacion, etc.)
     const handleEstadoChanged = (event) => {
       const { ideaId, nuevoEstado } = event.detail
       // Recargar ideas para reflejar el cambio de estado
       loadIdeas()
     }
-    
+
+    // Escuchar eventos de creación de nuevas ideas (desde IA, etc.)
+    const handleIdeaCreated = (event) => {
+      // Recargar ideas para mostrar la nueva idea en el kanban
+      loadIdeas()
+    }
+
     window.addEventListener('ideaEstadoChanged', handleEstadoChanged)
-    
+    window.addEventListener('ideaCreated', handleIdeaCreated)
+
     return () => {
       window.removeEventListener('ideaEstadoChanged', handleEstadoChanged)
+      window.removeEventListener('ideaCreated', handleIdeaCreated)
     }
   }, [])
 
@@ -74,8 +83,8 @@ const Ideas = () => {
       // Si es analista, cargar solo sus ideas asignadas en estado EN_PRUEBA
       if (isAnalista) {
         const data = await ideaService.getMisIdeas()
-        // Filtrar solo ideas en estado EN_PRUEBA (las PRUEBA_APROBADA van al historial)
-        const ideasEnPrueba = data.filter(idea => idea.estado === 'EN_PRUEBA')
+        // Filtrar solo ideas en estado EN_PRUEBA (las prueba_aprobada van al historial)
+        const ideasEnPrueba = data.filter(idea => (idea.estado || '').toLowerCase() === 'en_prueba')
         setIdeas(ideasEnPrueba)
       } else {
         // Si es Supervisor QA o Admin, cargar todas las ideas
@@ -118,10 +127,10 @@ const Ideas = () => {
     try {
       const updatedIdea = await ideaService.changeEstado(idea.id, nuevoEstado)
       // Actualizar la idea localmente de forma optimista (sin recargar todo)
-      setIdeas(prevIdeas => 
-        prevIdeas.map(i => 
-          i.id === idea.id 
-            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || nuevoEstado.toUpperCase() } 
+      setIdeas(prevIdeas =>
+        prevIdeas.map(i =>
+          i.id === idea.id
+            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || nuevoEstado.toUpperCase() }
             : i
         )
       )
@@ -131,7 +140,7 @@ const Ideas = () => {
       }
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      alert('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
       // En caso de error, recargar para sincronizar
       loadIdeas()
     }
@@ -139,17 +148,17 @@ const Ideas = () => {
 
   const handleAssignToAnalyst = async () => {
     if (!selectedAnalistaId) {
-      alert('Por favor selecciona un analista')
+      toast.error('Por favor selecciona un analista')
       return
     }
 
     try {
       const updatedIdea = await ideaService.changeEstado(selectedIdea.id, 'en_prueba', selectedAnalistaId)
       // Actualizar la idea localmente de forma optimista (sin recargar todo)
-      setIdeas(prevIdeas => 
-        prevIdeas.map(i => 
-          i.id === selectedIdea.id 
-            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || 'EN_PRUEBA' } 
+      setIdeas(prevIdeas =>
+        prevIdeas.map(i =>
+          i.id === selectedIdea.id
+            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || 'EN_PRUEBA' }
             : i
         )
       )
@@ -162,7 +171,7 @@ const Ideas = () => {
       setSelectedAnalistaId(null)
     } catch (error) {
       console.error('Error al asignar a analista:', error)
-      alert('Error al asignar analista: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al asignar analista: ' + (error.message || 'Error desconocido'))
       // En caso de error, recargar para sincronizar
       loadIdeas()
     }
@@ -210,21 +219,21 @@ const Ideas = () => {
     }
   }
 
-  // Definir columnas del kanban (sin incluir RECHAZADA ni PRUEBA_APROBADA - se gestionan en Aprobación / QA)
+  // Definir columnas del kanban (sin incluir rechazada ni prueba_aprobada - se gestionan en historial y aprobación)
   const kanbanColumns = [
-    { id: 'GENERADA', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
-    { id: 'EN_REVISION', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
-    { id: 'APROBADA', label: 'Aprobada', borderClass: 'border-green-500/30', bgClass: 'bg-green-500/10', dotClass: 'bg-green-500', badgeClass: 'bg-green-500/20 text-green-400' },
-    { id: 'EN_PRUEBA', label: 'En Prueba', borderClass: 'border-purple-500/30', bgClass: 'bg-purple-500/10', dotClass: 'bg-purple-500', badgeClass: 'bg-purple-500/20 text-purple-400' },
-    { id: 'EN_PRODUCCION', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
+    { id: 'generada', label: 'Generada', borderClass: 'border-blue-500/30', bgClass: 'bg-blue-500/10', dotClass: 'bg-blue-500', badgeClass: 'bg-blue-500/20 text-blue-400' },
+    { id: 'en_revision', label: 'En Revisión', borderClass: 'border-yellow-500/30', bgClass: 'bg-yellow-500/10', dotClass: 'bg-yellow-500', badgeClass: 'bg-yellow-500/20 text-yellow-400' },
+    { id: 'aprobada', label: 'Aprobada', borderClass: 'border-green-500/30', bgClass: 'bg-green-500/10', dotClass: 'bg-green-500', badgeClass: 'bg-green-500/20 text-green-400' },
+    { id: 'en_prueba', label: 'En Prueba', borderClass: 'border-purple-500/30', bgClass: 'bg-purple-500/10', dotClass: 'bg-purple-500', badgeClass: 'bg-purple-500/20 text-purple-400' },
+    { id: 'en_produccion', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
   ]
 
-  // Agrupar fórmulas por estado (excluyendo RECHAZADA y PRUEBA_APROBADA del kanban)
-  // RECHAZADA se archiva, PRUEBA_APROBADA se gestiona en Aprobación / QA
+  // Agrupar fórmulas por estado (excluyendo rechazada y prueba_aprobada del kanban)
+  // rechazada se archiva, prueba_aprobada se gestiona en la página de Aprobación
   const formulasByEstado = ideas.reduce((acc, idea) => {
-    const estado = idea.estado || 'GENERADA'
-    // Las fórmulas rechazadas y las que pasaron pruebas no aparecen en el kanban
-    if (estado === 'RECHAZADA' || estado === 'PRUEBA_APROBADA') {
+    const estado = (idea.estado || 'generada').toLowerCase()
+    // Las fórmulas rechazadas y prueba_aprobada no aparecen en el kanban
+    if (estado === 'rechazada' || estado === 'prueba_aprobada') {
       return acc
     }
     if (!acc[estado]) {
@@ -260,13 +269,40 @@ const Ideas = () => {
     if (!draggedFormula) return
 
     // Si el estado es el mismo, no hacer nada
-    if (draggedFormula.estado === targetEstado) {
+    if ((draggedFormula.estado || '').toLowerCase() === (targetEstado || '').toLowerCase()) {
       setDraggedFormula(null)
       return
     }
 
-    // Si el estado objetivo es EN_PRUEBA, mostrar diálogo de analista
-    if (targetEstado === 'EN_PRUEBA') {
+    // Definir el orden de los estados (índice más alto = más avanzado)
+    const estadosOrden = {
+      'generada': 0,
+      'en_revision': 1,
+      'aprobada': 2,
+      'en_prueba': 3,
+      'en_produccion': 4
+    }
+
+    const estadoActual = (draggedFormula.estado || '').toLowerCase()
+    const estadoObjetivo = (targetEstado || '').toLowerCase()
+
+    // Verificar si se está intentando retroceder
+    const indiceActual = estadosOrden[estadoActual]
+    const indiceObjetivo = estadosOrden[estadoObjetivo]
+
+    if (indiceObjetivo < indiceActual) {
+      // No permitir retroceder
+      toast.error('No puedes mover una tarjeta hacia atrás en el flujo. Solo puedes avanzar a las siguientes etapas.', {
+        duration: 5000,
+        icon: '⚠️',
+      })
+      setDraggedFormula(null)
+      setDragOverColumn(null)
+      return
+    }
+
+    // Si el estado objetivo es en_prueba, mostrar diálogo de analista
+    if (targetEstado === 'en_prueba') {
       setSelectedIdea(draggedFormula)
       setSelectedAnalistaId(null)
       if (analistas.length === 0) {
@@ -278,14 +314,15 @@ const Ideas = () => {
       return
     }
 
+
     // Para otros estados, cambiar directamente
     try {
       const updatedIdea = await ideaService.changeEstado(draggedFormula.id, targetEstado.toLowerCase())
       // Actualizar la idea localmente de forma optimista (sin recargar todo)
-      setIdeas(prevIdeas => 
-        prevIdeas.map(i => 
-          i.id === draggedFormula.id 
-            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || targetEstado } 
+      setIdeas(prevIdeas =>
+        prevIdeas.map(i =>
+          i.id === draggedFormula.id
+            ? { ...i, ...updatedIdea, estado: updatedIdea.estado || targetEstado }
             : i
         )
       )
@@ -297,7 +334,7 @@ const Ideas = () => {
       setDragOverColumn(null)
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      alert('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
       setDraggedFormula(null)
       setDragOverColumn(null)
       // En caso de error, recargar para sincronizar
@@ -353,7 +390,7 @@ const Ideas = () => {
         <div className="flex items-center justify-center py-8">
           <span className="material-symbols-outlined animate-spin text-primary">sync</span>
           <p className="text-text-muted ml-2">Cargando fórmulas...</p>
-                  </div>
+        </div>
       ) : ideas.length === 0 ? (
         <div className="text-center py-12 rounded-lg bg-card-dark border border-border-dark">
           <span className="material-symbols-outlined text-6xl text-text-muted mb-4">lightbulb_outline</span>
@@ -361,11 +398,11 @@ const Ideas = () => {
             {isAnalista ? 'No tienes fórmulas asignadas' : 'No hay fórmulas registradas'}
           </p>
           <p className="text-text-muted text-sm">
-            {isAnalista 
+            {isAnalista
               ? 'Las fórmulas asignadas aparecerán aquí cuando te sean asignadas'
               : 'Ve al módulo IA / Simulación para generar nuevas fórmulas desde productos del inventario'}
           </p>
-                </div>
+        </div>
       ) : isAnalista ? (
         // Vista de lista para analista
         <div className="space-y-4">
@@ -388,7 +425,7 @@ const Ideas = () => {
                       </span>
                     </div>
                     <p className="text-text-muted text-sm mb-4 line-clamp-2">{formula.descripcion}</p>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       {formula.categoria && (
                         <div className="flex items-center gap-2">
@@ -439,9 +476,8 @@ const Ideas = () => {
               return (
                 <div
                   key={column.id}
-                  className={`flex-shrink-0 w-80 flex flex-col transition-all ${
-                    dragOverColumn === column.id ? 'scale-105' : ''
-                  }`}
+                  className={`flex-shrink-0 w-80 flex flex-col transition-all ${dragOverColumn === column.id ? 'scale-105' : ''
+                    }`}
                   onDragOver={(e) => handleDragOver(e, column.id)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => {
@@ -463,11 +499,10 @@ const Ideas = () => {
                   </div>
 
                   {/* Área de drop */}
-                  <div className={`flex-1 min-h-[200px] rounded-lg border-2 border-dashed p-2 space-y-3 overflow-y-auto transition-all ${
-                    dragOverColumn === column.id 
-                      ? `${column.borderClass} ${column.bgClass} border-solid` 
-                      : 'bg-input-dark/30 border-border-dark'
-                  }`}>
+                  <div className={`flex-1 min-h-[200px] rounded-lg border-2 border-dashed p-2 space-y-3 overflow-y-auto transition-all ${dragOverColumn === column.id
+                    ? `${column.borderClass} ${column.bgClass} border-solid`
+                    : 'bg-input-dark/30 border-border-dark'
+                    }`}>
                     {formulas.map((formula) => (
                       <div
                         key={formula.id}
@@ -475,13 +510,12 @@ const Ideas = () => {
                         onDragStart={(e) => handleDragStart(e, formula)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedFormula(formula)}
-                        className={`p-4 rounded-lg bg-card-dark border border-border-dark cursor-move hover:border-primary/50 hover:bg-card-dark/80 transition-all ${
-                          draggedFormula?.id === formula.id ? 'opacity-50' : ''
-                        }`}
+                        className={`p-4 rounded-lg bg-card-dark border border-border-dark cursor-move hover:border-primary/50 hover:bg-card-dark/80 transition-all ${draggedFormula?.id === formula.id ? 'opacity-50' : ''
+                          }`}
                       >
                         <div className="flex flex-col">
                           <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
+                            <div className="flex-1">
                               <h3 className="text-text-light font-semibold text-sm line-clamp-2 mb-1">
                                 {formula.titulo}
                               </h3>
@@ -490,7 +524,7 @@ const Ideas = () => {
                           </div>
 
                           <p className="text-text-muted text-xs mb-3 line-clamp-2">{formula.descripcion}</p>
-                          
+
                           <div className="space-y-1 text-xs text-text-muted">
                             {formula.categoria && (
                               <div className="flex items-center gap-1">
@@ -537,7 +571,7 @@ const Ideas = () => {
                 <h2 className="text-text-light text-2xl font-bold">{selectedFormula.titulo}</h2>
                 <span className={`px-3 py-1 rounded text-sm font-medium ${getEstadoColor(selectedFormula.estado)}`}>
                   {getEstadoLabel(selectedFormula.estado)}
-                    </span>
+                </span>
               </div>
               <button
                 onClick={() => setSelectedFormula(null)}
@@ -545,7 +579,7 @@ const Ideas = () => {
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
-        </div>
+            </div>
 
             <div className="p-6 space-y-6">
               {/* Información Básica */}
@@ -640,7 +674,7 @@ const Ideas = () => {
                             console.log('materialesSugeridosBD NO encontrado en aiDetails')
                             console.log('Keys disponibles en aiDetails:', Object.keys(aiDetails))
                           }
-                          
+
                           return aiDetails.materialesSugeridosBD && Array.isArray(aiDetails.materialesSugeridosBD) && aiDetails.materialesSugeridosBD.length > 0 ? (
                             <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
                               <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
@@ -661,48 +695,48 @@ const Ideas = () => {
                                         </span>
                                       )}
                                     </div>
-                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
-                                    {compuesto.formulaMolecular && (
-                                      <div>
-                                        <span className="text-text-muted text-xs">Fórmula Molecular:</span>
-                                        <p className="text-text-light font-medium font-mono">{compuesto.formulaMolecular}</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
+                                      {compuesto.formulaMolecular && (
+                                        <div>
+                                          <span className="text-text-muted text-xs">Fórmula Molecular:</span>
+                                          <p className="text-text-light font-medium font-mono">{compuesto.formulaMolecular}</p>
+                                        </div>
+                                      )}
+                                      {compuesto.pesoMolecular && (
+                                        <div>
+                                          <span className="text-text-muted text-xs">Peso Molecular:</span>
+                                          <p className="text-text-light font-medium">{compuesto.pesoMolecular} g/mol</p>
+                                        </div>
+                                      )}
+                                      {compuesto.logP !== null && compuesto.logP !== undefined && (
+                                        <div>
+                                          <span className="text-text-muted text-xs">LogP:</span>
+                                          <p className="text-text-light font-medium">{compuesto.logP}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {compuesto.solubilidad && (
+                                      <div className="mb-2">
+                                        <span className="text-text-muted text-xs">Solubilidad:</span>
+                                        <p className="text-text-light text-sm">{compuesto.solubilidad}</p>
                                       </div>
                                     )}
-                                    {compuesto.pesoMolecular && (
-                                      <div>
-                                        <span className="text-text-muted text-xs">Peso Molecular:</span>
-                                        <p className="text-text-light font-medium">{compuesto.pesoMolecular} g/mol</p>
+                                    {compuesto.propiedades && (
+                                      <div className="mb-2">
+                                        <span className="text-text-muted text-xs">Propiedades:</span>
+                                        <p className="text-text-light text-sm">{compuesto.propiedades}</p>
                                       </div>
                                     )}
-                                    {compuesto.logP !== null && compuesto.logP !== undefined && (
-                                      <div>
-                                        <span className="text-text-muted text-xs">LogP:</span>
-                                        <p className="text-text-light font-medium">{compuesto.logP}</p>
+                                    {compuesto.justificacion && (
+                                      <div className="mt-3 pt-3 border-t border-border-dark">
+                                        <span className="text-text-muted text-xs font-medium">¿Por qué es necesario?</span>
+                                        <p className="text-text-light text-sm mt-1">{compuesto.justificacion}</p>
                                       </div>
                                     )}
                                   </div>
-                                  {compuesto.solubilidad && (
-                                    <div className="mb-2">
-                                      <span className="text-text-muted text-xs">Solubilidad:</span>
-                                      <p className="text-text-light text-sm">{compuesto.solubilidad}</p>
-                                    </div>
-                                  )}
-                                  {compuesto.propiedades && (
-                                    <div className="mb-2">
-                                      <span className="text-text-muted text-xs">Propiedades:</span>
-                                      <p className="text-text-light text-sm">{compuesto.propiedades}</p>
-                                    </div>
-                                  )}
-                                  {compuesto.justificacion && (
-                                    <div className="mt-3 pt-3 border-t border-border-dark">
-                                      <span className="text-text-muted text-xs font-medium">¿Por qué es necesario?</span>
-                                      <p className="text-text-light text-sm mt-1">{compuesto.justificacion}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
                           ) : null
                         })()}
 
@@ -1092,13 +1126,13 @@ const Ideas = () => {
                                   </div>
                                 </div>
                               )}
-                              
+
                               {/* Botón Iniciar Prueba para Analistas */}
-                              {isAnalista && selectedFormula.estado === 'EN_PRUEBA' && (() => {
+                              {isAnalista && (selectedFormula.estado || '').toLowerCase() === 'en_prueba' && (() => {
                                 // Verificar si ya existe una prueba para esta fórmula
                                 const pruebasExistentes = pruebasPorIdea.get(selectedFormula.id) || []
                                 const tienePruebaIniciada = pruebasExistentes.length > 0
-                                
+
                                 return !tienePruebaIniciada ? (
                                   <div className="mt-4 pt-4 border-t border-rose-500/20">
                                     <button
@@ -1107,12 +1141,12 @@ const Ideas = () => {
                                           // Obtener el protocolo de análisis completo de los detalles de IA
                                           const aiDetails = parseAIDetails(selectedFormula.detallesIA)
                                           let pruebasTexto = ''
-                                          
+
                                           if (aiDetails && aiDetails.protocoloAnalisis) {
                                             // Construir texto detallado del protocolo de análisis
                                             const protocolo = aiDetails.protocoloAnalisis
                                             const lineas = []
-                                            
+
                                             // Pruebas Físicas
                                             if (protocolo.pruebasFisicas) {
                                               lineas.push('PRUEBAS FÍSICAS:')
@@ -1123,7 +1157,7 @@ const Ideas = () => {
                                               if (protocolo.pruebasFisicas.densidadAparente) lineas.push(`- Densidad Aparente: ${protocolo.pruebasFisicas.densidadAparente}`)
                                               lineas.push('')
                                             }
-                                            
+
                                             // Pruebas Químicas
                                             if (protocolo.pruebasQuimicas) {
                                               lineas.push('PRUEBAS QUÍMICAS:')
@@ -1137,7 +1171,7 @@ const Ideas = () => {
                                               if (protocolo.pruebasQuimicas.cenizas) lineas.push(`- Cenizas: ${protocolo.pruebasQuimicas.cenizas}`)
                                               lineas.push('')
                                             }
-                                            
+
                                             // Pruebas Microbiológicas
                                             if (protocolo.pruebasMicrobiologicas) {
                                               lineas.push('PRUEBAS MICROBIOLÓGICAS:')
@@ -1148,7 +1182,7 @@ const Ideas = () => {
                                               if (protocolo.pruebasMicrobiologicas.coliformes) lineas.push(`- Coliformes: ${protocolo.pruebasMicrobiologicas.coliformes}`)
                                               lineas.push('')
                                             }
-                                            
+
                                             // Directrices para el Analista
                                             if (protocolo.directricesAnalista) {
                                               lineas.push('DIRECTRICES PARA EL ANALISTA:')
@@ -1177,7 +1211,7 @@ const Ideas = () => {
                                                 lineas.push(protocolo.directricesAnalista.documentacion.replace(/\\n/g, '\n'))
                                               }
                                             }
-                                            
+
                                             pruebasTexto = lineas.join('\n')
                                           } else if (selectedFormula.pruebasRequeridas) {
                                             // Fallback a pruebas requeridas si no hay protocolo
@@ -1185,7 +1219,7 @@ const Ideas = () => {
                                           } else {
                                             pruebasTexto = 'Protocolo de análisis no disponible. Revisar detalles de IA.'
                                           }
-                                          
+
                                           // Crear prueba automáticamente con los datos de la idea
                                           const codigoMuestra = `MU-${selectedFormula.id}-${Date.now()}`
                                           const nuevaPrueba = await pruebaService.createPrueba({
@@ -1194,17 +1228,17 @@ const Ideas = () => {
                                             tipoPrueba: 'Control de Calidad - Fórmula IA',
                                             descripcion: `Prueba generada automáticamente para validar la fórmula: ${selectedFormula.titulo}`,
                                             pruebasRequeridas: pruebasTexto,
-                                            estado: 'PENDIENTE'
+                                            estado: 'pendiente'
                                           })
-                                          
+
                                           // Recargar pruebas
                                           loadPruebasForIdeas()
-                                          
+
                                           // Redirigir a Pruebas con la prueba seleccionada
                                           navigate(`/pruebas?pruebaId=${nuevaPrueba.id}`)
                                         } catch (error) {
                                           console.error('Error al crear prueba:', error)
-                                          alert('Error al crear prueba: ' + (error.message || 'Error desconocido'))
+                                          toast.error('Error al crear prueba: ' + (error.message || 'Error desconocido'))
                                         }
                                       }}
                                       className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center justify-center gap-2"
@@ -1286,23 +1320,23 @@ const Ideas = () => {
                             <div className="space-y-2">
                               {aiDetails.bomModificado.map((item, idx) => (
                                 <div key={idx} className="p-3 rounded-lg bg-card-dark border border-border-dark">
-                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-start justify-between mb-2">
                                     <span className="text-text-light font-medium">{item.ingrediente || 'Ingrediente'}</span>
                                   </div>
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div>
+                                    <div>
                                       <span className="text-text-muted">Cantidad Actual:</span>
                                       <p className="text-text-light font-medium">{item.cantidadActual || 'N/A'}</p>
-                </div>
-                  <div>
+                                    </div>
+                                    <div>
                                       <span className="text-text-muted">Cantidad Propuesta:</span>
                                       <p className="text-primary font-medium">{item.cantidadPropuesta || 'N/A'}</p>
-                  </div>
-                  <div>
+                                    </div>
+                                    <div>
                                       <span className="text-text-muted">% Actual:</span>
                                       <p className="text-text-light">{item.porcentajeActual || 'N/A'}</p>
-                  </div>
-                  <div>
+                                    </div>
+                                    <div>
                                       <span className="text-text-muted">% Propuesto:</span>
                                       <p className="text-primary">{item.porcentajePropuesto || 'N/A'}</p>
                                     </div>
@@ -1312,9 +1346,9 @@ const Ideas = () => {
                                         <p className={`font-medium ${item.disponibleEnInventario ? 'text-green-400' : 'text-red-400'}`}>
                                           {item.disponibleEnInventario ? 'Sí' : 'No'}
                                         </p>
-                  </div>
+                                      </div>
                                     )}
-                </div>
+                                  </div>
                                   {item.razon && (
                                     <p className="text-text-muted text-xs mt-2 italic">Razón: {item.razon}</p>
                                   )}
@@ -1339,7 +1373,7 @@ const Ideas = () => {
                                 </li>
                               ))}
                             </ul>
-          </div>
+                          </div>
                         )}
 
                         {/* Escenarios Negativos */}
@@ -1357,7 +1391,7 @@ const Ideas = () => {
                                 </li>
                               ))}
                             </ul>
-          </div>
+                          </div>
                         )}
 
                         {/* Verificación de Inventario */}
@@ -1412,18 +1446,17 @@ const Ideas = () => {
                               </p>
                             )}
                           </div>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            prueba.estado === 'PENDIENTE' ? 'bg-warning/20 text-warning' :
-                            prueba.estado === 'EN_PROCESO' ? 'bg-primary/20 text-primary' :
-                            prueba.estado === 'COMPLETADA' ? 'bg-success/20 text-success' :
-                            prueba.estado === 'OOS' ? 'bg-danger/20 text-danger' :
-                            'bg-gray-500/20 text-gray-400'
-                          }`}>
-                            {prueba.estado === 'PENDIENTE' ? 'Pendiente' :
-                             prueba.estado === 'EN_PROCESO' ? 'En Proceso' :
-                             prueba.estado === 'COMPLETADA' ? 'Completada' :
-                             prueba.estado === 'OOS' ? 'OOS' :
-                             prueba.estado === 'RECHAZADA' ? 'Rechazada' : prueba.estado}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${(prueba.estado || '').toLowerCase() === 'pendiente' ? 'bg-warning/20 text-warning' :
+                            (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'bg-primary/20 text-primary' :
+                              (prueba.estado || '').toLowerCase() === 'completada' ? 'bg-success/20 text-success' :
+                                (prueba.estado || '').toLowerCase() === 'oos' ? 'bg-danger/20 text-danger' :
+                                  'bg-gray-500/20 text-gray-400'
+                            }`}>
+                            {(prueba.estado || '').toLowerCase() === 'pendiente' ? 'Pendiente' :
+                              (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'En Proceso' :
+                                (prueba.estado || '').toLowerCase() === 'completada' ? 'Completada' :
+                                  (prueba.estado || '').toLowerCase() === 'oos' ? 'OOS' :
+                                    (prueba.estado || '').toLowerCase() === 'rechazada' ? 'Rechazada' : prueba.estado}
                           </span>
                         </div>
                       </div>
@@ -1437,7 +1470,7 @@ const Ideas = () => {
                 {/* Acciones para Supervisor QA y Admin */}
                 {!isAnalista && (
                   <>
-                    {selectedFormula.estado === 'GENERADA' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'generada' && (
                       <>
                         <button
                           onClick={(e) => {
@@ -1462,7 +1495,7 @@ const Ideas = () => {
                         </button>
                       </>
                     )}
-                    {selectedFormula.estado === 'EN_REVISION' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'en_revision' && (
                       <>
                         <button
                           onClick={(e) => {
@@ -1488,7 +1521,7 @@ const Ideas = () => {
                         </button>
                       </>
                     )}
-                    {selectedFormula.estado === 'APROBADA' && (
+                    {(selectedFormula.estado || '').toLowerCase() === 'aprobada' && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1504,9 +1537,9 @@ const Ideas = () => {
                   </>
                 )}
               </div>
+            </div>
           </div>
-          </div>
-          </div>
+        </div>
       )}
 
       {/* Diálogo de selección de analista */}
@@ -1527,7 +1560,7 @@ const Ideas = () => {
               <div className="flex items-start gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-purple-500/20">
                   <span className="material-symbols-outlined text-2xl text-purple-400">science</span>
-            </div>
+                </div>
                 <div className="flex-1">
                   <h3 className="text-text-light text-lg font-semibold mb-1">
                     Asignar Analista
@@ -1535,8 +1568,8 @@ const Ideas = () => {
                   <p className="text-text-muted text-sm">
                     Selecciona el analista de laboratorio que realizará las pruebas de esta idea.
                   </p>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Lista de analistas */}
               <div className="mb-4">
@@ -1553,11 +1586,10 @@ const Ideas = () => {
                     {analistas.map((analista) => (
                       <label
                         key={analista.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedAnalistaId === analista.id
-                            ? 'bg-purple-500/20 border-purple-500/50'
-                            : 'bg-input-dark border-border-dark hover:bg-border-dark'
-                        }`}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedAnalistaId === analista.id
+                          ? 'bg-purple-500/20 border-purple-500/50'
+                          : 'bg-input-dark border-border-dark hover:bg-border-dark'
+                          }`}
                       >
                         <input
                           type="radio"
@@ -1589,13 +1621,13 @@ const Ideas = () => {
                 >
                   Cancelar
                 </button>
-          <button
+                <button
                   onClick={handleAssignToAnalyst}
                   disabled={!selectedAnalistaId || loadingAnalistas}
                   className="px-4 py-2 rounded-lg bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+                >
                   Asignar y Enviar a Pruebas
-          </button>
+                </button>
               </div>
             </div>
           </div>

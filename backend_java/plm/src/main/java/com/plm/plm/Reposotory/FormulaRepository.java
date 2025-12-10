@@ -19,7 +19,8 @@ public interface FormulaRepository extends JpaRepository<Formula, Integer> {
     
     List<Formula> findByEstado(EstadoFormula estado);
     
-    List<Formula> findByIdeaId(Integer ideaId);
+    @Query("SELECT f FROM Formula f WHERE f.idea.id = :ideaId")
+    List<Formula> findByIdeaId(@Param("ideaId") Integer ideaId);
     
     @Query("SELECT f FROM Formula f WHERE f.nombre LIKE %:search% OR f.codigo LIKE %:search%")
     List<Formula> searchByNombreOrCodigo(@Param("search") String search);

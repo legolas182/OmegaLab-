@@ -69,6 +69,9 @@ public class IdeaController {
     @Autowired
     private com.plm.plm.Reposotory.ChemicalCompoundRepository chemicalCompoundRepository;
 
+    @Autowired
+    private com.plm.plm.services.FormulaService formulaService;
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createIdea(
             @RequestBody IdeaDTO ideaDTO,
@@ -724,6 +727,37 @@ public class IdeaController {
         data.put("idea", idea);
         response.put("data", data);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/formula")
+    public ResponseEntity<Map<String, Object>> getFormulaByIdeaId(@PathVariable Integer id) {
+        com.plm.plm.dto.FormulaDTO formula = formulaService.getFormulaByIdeaId(id);
+        Map<String, Object> response = new HashMap<>();
+        Map<String, com.plm.plm.dto.FormulaDTO> data = new HashMap<>();
+        data.put("formula", formula);
+        response.put("data", data);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/crear-formula")
+    public ResponseEntity<Map<String, Object>> crearFormulaDesdeIdea(
+            @PathVariable Integer id,
+            HttpServletRequest request) {
+        try {
+            Integer userId = getUserIdFromRequest(request);
+            com.plm.plm.dto.FormulaDTO formula = formulaService.createFormulaFromIdea(id, userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            Map<String, com.plm.plm.dto.FormulaDTO> data = new HashMap<>();
+            data.put("formula", formula);
+            response.put("data", data);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            System.err.println("Error al crear fórmula desde idea: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error al crear fórmula: " + e.getMessage()));
+        }
     }
 
     private Integer getUserIdFromRequest(HttpServletRequest request) {

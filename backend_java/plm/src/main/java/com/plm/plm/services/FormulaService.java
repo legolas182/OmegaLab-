@@ -65,5 +65,15 @@ public interface FormulaService {
      * Validar fórmula (verificar que suma 100%, etc.)
      */
     Map<String, Object> validateFormula(FormulaDTO formula);
+    
+    /**
+     * Obtener fórmula por ideaId
+     */
+    FormulaDTO getFormulaByIdeaId(Integer ideaId);
+
+    /**
+     * Crear fórmula desde una idea aprobada
+     */
+    FormulaDTO createFormulaFromIdea(Integer ideaId, Integer userId);
 }
 
