@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -238,6 +240,128 @@ public class FormulaServiceImpl implements FormulaService {
                         .orElse(formulas.get(0)));
         
         List<FormulaIngredient> ingredientes = formulaIngredientRepository.findByFormulaIdOrderBySecuenciaAsc(formula.getId());
+        formula.setIngredientes(ingredientes);
+        
+        return formula.getDTO();
+    }
+
+    @Override
+    @Transactional
+    public FormulaDTO createFormulaFromIdea(Integer ideaId, Integer userId) {
+        Idea idea = ideaRepository.findById(ideaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Idea no encontrada"));
+        
+        if (idea.getDetallesIA() == null || idea.getDetallesIA().trim().isEmpty()) {
+            throw new BadRequestException("La idea no tiene detalles de IA para crear la fórmula");
+        }
+        
+        List<Formula> existingFormulas = formulaRepository.findByIdeaId(ideaId);
+        if (!existingFormulas.isEmpty()) {
+            Formula existing = existingFormulas.stream()
+                .filter(f -> f.getEstado() == EstadoFormula.PRUEBA_APROBADA || 
+                            f.getEstado() == EstadoFormula.EN_PRODUCCION ||
+                            f.getEstado() == EstadoFormula.APROBADA)
+                .findFirst()
+                .orElse(null);
+            if (existing != null) {
+                List<FormulaIngredient> ingredientes = formulaIngredientRepository
+                    .findByFormulaIdOrderBySecuenciaAsc(existing.getId());
+                existing.setIngredientes(ingredientes);
+                return existing.getDTO();
+            }
+        }
+        
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode detallesIA;
+        try {
+            detallesIA = objectMapper.readTree(idea.getDetallesIA());
+        } catch (Exception e) {
+            throw new BadRequestException("Error al parsear detallesIA: " + e.getMessage());
+        }
+        
+        String nombre = idea.getTitulo();
+        String objetivo = idea.getObjetivo();
+        BigDecimal rendimiento = BigDecimal.valueOf(100.0);
+        
+        if (detallesIA.has("rendimiento")) {
+            rendimiento = BigDecimal.valueOf(detallesIA.get("rendimiento").asDouble());
+        }
+        
+        String codigo = generateCodigoFormula(nombre);
+        int codigoSuffix = 1;
+        while (formulaRepository.existsByCodigo(codigo)) {
+            codigo = generateCodigoFormula(nombre) + "-" + codigoSuffix;
+            codigoSuffix++;
+        }
+        
+        Formula formula = new Formula();
+        formula.setCodigo(codigo);
+        formula.setNombre(nombre);
+        formula.setObjetivo(objetivo);
+        formula.setRendimiento(rendimiento);
+        formula.setEstado(EstadoFormula.PRUEBA_APROBADA);
+        formula.setIdea(idea);
+        
+        if (userId != null) {
+            User creador = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+            formula.setCreador(creador);
+        }
+        
+        formula = formulaRepository.save(formula);
+        
+        List<FormulaIngredient> ingredientesEntities = new ArrayList<>();
+        
+        if (detallesIA.has("ingredientes") && detallesIA.get("ingredientes").isArray()) {
+            JsonNode ingredientesNode = detallesIA.get("ingredientes");
+            int secuencia = 1;
+            
+            for (JsonNode ingNode : ingredientesNode) {
+                FormulaIngredient ing = new FormulaIngredient();
+                ing.setFormula(formula);
+                ing.setNombre(ingNode.has("nombre") ? ingNode.get("nombre").asText() : "Ingrediente " + secuencia);
+                ing.setFuncion(ingNode.has("funcion") ? ingNode.get("funcion").asText() : null);
+                
+                if (ingNode.has("cantidad")) {
+                    ing.setCantidad(BigDecimal.valueOf(ingNode.get("cantidad").asDouble()));
+                } else {
+                    ing.setCantidad(BigDecimal.ZERO);
+                }
+                
+                ing.setUnidad(ingNode.has("unidad") ? ingNode.get("unidad").asText() : "g");
+                
+                if (ingNode.has("porcentaje")) {
+                    ing.setPorcentaje(BigDecimal.valueOf(ingNode.get("porcentaje").asDouble()));
+                } else {
+                    ing.setPorcentaje(BigDecimal.ZERO);
+                }
+                
+                ing.setSecuencia(secuencia++);
+                
+                if (ingNode.has("materialId") && !ingNode.get("materialId").isNull()) {
+                    Material material = materialRepository.findById(ingNode.get("materialId").asInt())
+                        .orElse(null);
+                    ing.setMaterial(material);
+                }
+                
+                ingredientesEntities.add(ing);
+            }
+        }
+        
+        if (ingredientesEntities.isEmpty()) {
+            throw new BadRequestException("No se encontraron ingredientes en los detalles de IA");
+        }
+        
+        formulaIngredientRepository.saveAll(ingredientesEntities);
+        
+        FormulaVersion version = new FormulaVersion();
+        version.setFormula(formula);
+        version.setVersion("1.0");
+        version.setDescripcion("Versión inicial creada desde aprobación QA");
+        formulaVersionRepository.save(version);
+        
+        List<FormulaIngredient> ingredientes = formulaIngredientRepository
+            .findByFormulaIdOrderBySecuenciaAsc(formula.getId());
         formula.setIngredientes(ingredientes);
         
         return formula.getDTO();

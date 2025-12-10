@@ -19,9 +19,6 @@ const Aprobacion = () => {
   const [selectedSupervisorId, setSelectedSupervisorId] = useState(null)
   const [cantidadProduccion, setCantidadProduccion] = useState('')
   const [pruebasPorFormula, setPruebasPorFormula] = useState(new Map())
-  const [showBomModal, setShowBomModal] = useState(false)
-  const [formulaBom, setFormulaBom] = useState(null)
-  const [loadingBom, setLoadingBom] = useState(false)
   const [showAnalisisModal, setShowAnalisisModal] = useState(false)
 
   // Verificar permisos de acceso
@@ -99,7 +96,7 @@ const Aprobacion = () => {
 
     try {
       await ideaService.confirmarProduccion(selectedFormula.id, selectedSupervisorId, cantidad)
-      alert('Fórmula confirmada para producción exitosamente')
+      alert('Fórmula confirmada para producción exitosamente. El lote ha sido creado automáticamente.')
       setShowConfirmarModal(false)
       setSelectedFormula(null)
       setSelectedSupervisorId(null)
@@ -357,26 +354,6 @@ const Aprobacion = () => {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={async () => {
-                    setLoadingBom(true)
-                    setShowBomModal(true)
-                    try {
-                      const bomData = await ideaService.getFormulaByIdeaId(selectedFormula.id)
-                      setFormulaBom(bomData)
-                    } catch (error) {
-                      console.error('Error al cargar BOM:', error)
-                      alert('Error al cargar la lista de materiales')
-                      setShowBomModal(false)
-                    } finally {
-                      setLoadingBom(false)
-                    }
-                  }}
-                  className="px-4 py-2 rounded-lg bg-info/20 text-info font-medium hover:bg-info/30 transition-colors flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">list</span>
-                  Ver Lista de Materiales
-                </button>
                 <button
                   onClick={() => setShowAnalisisModal(true)}
                   className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 font-medium hover:bg-purple-500/30 transition-colors flex items-center gap-2"
@@ -1301,98 +1278,6 @@ const Aprobacion = () => {
         </div>
       )}
 
-      {/* Modal de BOM/Fórmula */}
-      {showBomModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowBomModal(false)
-              setFormulaBom(null)
-            }
-          }}
-        >
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="p-6 space-y-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-text-light text-2xl font-bold mb-2">
-                    Lista de Materiales (BOM)
-                  </h2>
-                  {formulaBom && (
-                    <p className="text-text-muted text-sm">{formulaBom.nombre || formulaBom.codigo}</p>
-                  )}
-                </div>
-                <button
-                  onClick={() => {
-                    setShowBomModal(false)
-                    setFormulaBom(null)
-                  }}
-                  className="text-text-muted hover:text-text-light"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-
-              {loadingBom ? (
-                <div className="text-center py-8">
-                  <span className="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
-                  <p className="text-text-muted mt-2">Cargando lista de materiales...</p>
-                </div>
-              ) : formulaBom && formulaBom.ingredientes && formulaBom.ingredientes.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-input-dark/50 border-b border-border-dark">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Material</th>
-                        <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Cantidad</th>
-                        <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Unidad</th>
-                        <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">%</th>
-                        {formulaBom.rendimiento && (
-                          <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Rendimiento</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-dark">
-                      {formulaBom.ingredientes.map((ingrediente) => (
-                        <tr key={ingrediente.id} className="hover:bg-input-dark/30 transition-colors">
-                          <td className="px-3 py-2.5">
-                            <span className="text-text-light text-xs font-medium">
-                              {ingrediente.nombre || `Material ${ingrediente.materialId || ''}`}
-                            </span>
-                            {ingrediente.materialId && (
-                              <p className="text-text-muted text-xs">ID: {ingrediente.materialId}</p>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <span className="text-text-light text-xs">{ingrediente.cantidad || '0'}</span>
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <span className="text-text-muted text-xs">{ingrediente.unidad || 'g'}</span>
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <span className="text-text-muted text-xs">{ingrediente.porcentaje ? `${ingrediente.porcentaje}%` : 'N/A'}</span>
-                          </td>
-                          {formulaBom.rendimiento && (
-                            <td className="px-3 py-2.5">
-                              <span className="text-text-muted text-xs">{formulaBom.rendimiento} g</span>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-text-muted bg-input-dark rounded-lg border border-border-dark">
-                  <span className="material-symbols-outlined text-4xl mb-2">inventory_2</span>
-                  <p>No se encontraron materiales en la fórmula</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

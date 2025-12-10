@@ -16,6 +16,7 @@ import com.plm.plm.Models.OrdenProduccion;
 import java.math.BigDecimal;
 import com.plm.plm.dto.IdeaDTO;
 import com.plm.plm.services.IdeaService;
+import com.plm.plm.services.ProduccionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,9 @@ public class IdeaServiceImpl implements IdeaService {
 
     @Autowired
     private OrdenProduccionRepository ordenProduccionRepository;
+
+    @Autowired
+    private ProduccionService produccionService;
 
     @Override
     @Transactional
@@ -240,20 +244,30 @@ public class IdeaServiceImpl implements IdeaService {
         
         idea = ideaRepository.save(idea);
         
-        // Crear orden de producción con la cantidad especificada por QA
         List<OrdenProduccion> ordenesExistentes = ordenProduccionRepository.findByIdeaId(idea.getId());
+        OrdenProduccion orden;
         if (ordenesExistentes.isEmpty()) {
-            OrdenProduccion orden = new OrdenProduccion();
+            orden = new OrdenProduccion();
             orden.setCodigo("OP-" + idea.getId());
             orden.setIdea(idea);
             orden.setCantidad(BigDecimal.valueOf(cantidad));
             orden.setEstado("EN_PROCESO");
             orden.setSupervisorCalidad(supervisor);
             orden.setFechaInicio(ahora);
-            ordenProduccionRepository.save(orden);
+            orden = ordenProduccionRepository.save(orden);
+        } else {
+            orden = ordenesExistentes.get(0);
+            orden.setCantidad(BigDecimal.valueOf(cantidad));
+            orden.setSupervisorCalidad(supervisor);
+            orden.setFechaInicio(ahora);
+            orden = ordenProduccionRepository.save(orden);
+        }
+        
+        if (orden.getLote() == null) {
+            produccionService.generarLote(orden.getId(), userId);
         }
 
-        return ideaRepository.save(idea).getDTO();
+        return idea.getDTO();
     }
 
     private void validateIdeaData(IdeaDTO ideaDTO) {

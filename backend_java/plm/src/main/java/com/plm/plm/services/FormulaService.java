@@ -70,5 +70,10 @@ public interface FormulaService {
      * Obtener fórmula por ideaId
      */
     FormulaDTO getFormulaByIdeaId(Integer ideaId);
+
+    /**
+     * Crear fórmula desde una idea aprobada
+     */
+    FormulaDTO createFormulaFromIdea(Integer ideaId, Integer userId);
 }
 
