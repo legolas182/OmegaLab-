@@ -200,124 +200,65 @@ const Aprobacion = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-            {formulas.map((idea) => {
-              const pruebas = pruebasPorFormula.get(idea.id) || []
-              const pruebasCompletadas = pruebas.filter(p => {
-                const estado = (p.estado || '').toLowerCase()
-                return estado === 'completada' || estado === 'oos' || estado === 'rechazada'
-              })
-              const todasPasaron = pruebasCompletadas.every(p => {
-                const estado = (p.estado || '').toLowerCase()
-                return estado === 'completada'
-              })
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border-dark">
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">TÍTULO</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">ESTADO</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">CREADO POR</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">FECHA</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {formulas.map((idea) => {
+                  const pruebas = pruebasPorFormula.get(idea.id) || []
+                  const pruebasCompletadas = pruebas.filter(p => {
+                    const estado = (p.estado || '').toLowerCase()
+                    return estado === 'completada' || estado === 'oos' || estado === 'rechazada'
+                  })
+                  const todasPasaron = pruebasCompletadas.every(p => {
+                    const estado = (p.estado || '').toLowerCase()
+                    return estado === 'completada'
+                  })
 
-              return (
-                <div
-                  key={idea.id}
-                  className="rounded-lg bg-input-dark border border-border-dark hover:border-primary/50 transition-all cursor-pointer"
-                  onClick={() => setSelectedFormula(idea)}
-                >
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-text-light font-semibold text-base mb-1 line-clamp-2">{idea.titulo}</h3>
-                        <p className="text-text-muted text-xs line-clamp-2 mb-2">{idea.descripcion}</p>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            todasPasaron ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
-                          }`}>
-                            {pruebasCompletadas.length}/{pruebas.length} Pruebas
-                          </span>
-                          {idea.categoria && (
-                            <span className="text-text-muted text-xs">{idea.categoria}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {idea.objetivo && (
-                      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-                        <p className="text-text-muted text-xs mb-1">Objetivo</p>
-                        <p className="text-text-light text-xs line-clamp-2">{idea.objetivo}</p>
-                      </div>
-                    )}
-
-                    {(() => {
-                      const aiDetails = parseAIDetails(idea.detallesIA)
-                      if (aiDetails && aiDetails.materiasPrimasSeleccionadas && aiDetails.materiasPrimasSeleccionadas.length > 0) {
-                        return (
-                          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                            <p className="text-text-muted text-xs mb-1 font-medium">Materias Primas (IA)</p>
-                            <div className="space-y-1">
-                              {aiDetails.materiasPrimasSeleccionadas.slice(0, 3).map((mp, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-xs">
-                                  <span className="material-symbols-outlined text-sm text-blue-400">science</span>
-                                  <span className="text-text-light">{mp.nombre || mp.materialNombre || `Material ${mp.id || idx + 1}`}</span>
-                                </div>
-                              ))}
-                              {aiDetails.materiasPrimasSeleccionadas.length > 3 && (
-                                <p className="text-text-muted text-xs italic">+{aiDetails.materiasPrimasSeleccionadas.length - 3} más</p>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      }
-                      return null
-                    })()}
-
-                    {idea.cantidadSugerida && (
-                      <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                        <p className="text-text-muted text-xs mb-1">Cantidad Sugerida por Analista</p>
-                        <p className="text-emerald-400 font-semibold text-sm">{idea.cantidadSugerida} unidades</p>
-                      </div>
-                    )}
-
-                    {pruebasCompletadas.length > 0 && (
-                      <div className="p-2 rounded-lg bg-info/10 border border-info/20">
-                        <p className="text-text-muted text-xs mb-1">Estado de Pruebas</p>
-                        <p className="text-info text-xs font-medium">
-                          {pruebasCompletadas.length} prueba(s) completada(s) - Ver detalles para resultados completos
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2 border-t border-border-dark">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedFormula(idea)
-                        }}
-                        className="flex-1 px-3 py-2 rounded-lg bg-input-dark text-text-light text-xs font-medium hover:bg-border-dark transition-colors"
-                      >
-                        Ver Detalles
-                      </button>
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation()
-                          setLoadingBom(true)
-                          setShowBomModal(true)
-                          try {
-                            const bomData = await ideaService.getFormulaByIdeaId(idea.id)
-                            setFormulaBom(bomData)
-                          } catch (error) {
-                            console.error('Error al cargar BOM:', error)
-                            alert('Error al cargar la lista de materiales')
-                            setShowBomModal(false)
-                          } finally {
-                            setLoadingBom(false)
-                          }
-                        }}
-                        className="px-3 py-2 rounded-lg bg-info/20 text-info text-xs font-medium hover:bg-info/30 transition-colors"
-                        title="Ver Lista de Materiales"
-                      >
-                        <span className="material-symbols-outlined text-sm">list</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+                  return (
+                    <tr key={idea.id} className="border-b border-border-dark hover:bg-card-dark/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="text-text-light font-medium text-sm">{idea.titulo}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          todasPasaron 
+                            ? 'bg-emerald-500/20 text-emerald-400' 
+                            : 'bg-emerald-500/20 text-emerald-400'
+                        }`}>
+                          {todasPasaron ? 'Pruebas Aprobadas' : 'Aprobada para Pruebas'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-text-light text-sm">{idea.createdByName || 'N/A'}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-text-light text-sm">
+                          {idea.createdAt ? new Date(idea.createdAt).toLocaleDateString('es-ES') : 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setSelectedFormula(idea)}
+                          className="w-8 h-8 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors flex items-center justify-center"
+                          title="Ver Detalles"
+                        >
+                          <span className="material-symbols-outlined text-sm">visibility</span>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -336,21 +277,21 @@ const Aprobacion = () => {
           <div className="bg-card-dark rounded-lg border border-border-dark max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-xl my-8">
             <div className="sticky top-0 bg-card-dark border-b border-border-dark p-6 z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-text-light text-2xl font-bold">{selectedFormula.titulo}</h2>
-                  <span className={`px-3 py-1 rounded text-sm font-medium ${getEstadoColor(selectedFormula.estado)}`}>
-                    Pruebas Completadas
-                  </span>
-                </div>
-                <button
+              <div className="flex items-center gap-3">
+                <h2 className="text-text-light text-2xl font-bold">{selectedFormula.titulo}</h2>
+                <span className={`px-3 py-1 rounded text-sm font-medium ${getEstadoColor(selectedFormula.estado)}`}>
+                  Pruebas Completadas
+                </span>
+              </div>
+              <button
                   onClick={() => {
                     setSelectedFormula(null)
                     setShowAnalisisModal(false)
                   }}
-                  className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark transition-colors"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
+                className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -441,7 +382,7 @@ const Aprobacion = () => {
               {selectedFormula.detallesIA && (
                 <div>
                   <h3 className="text-text-light font-semibold text-lg mb-3">Idea Generada por IA</h3>
-                  {(() => {
+              {(() => {
                     const aiDetails = parseAIDetails(selectedFormula.detallesIA)
                     if (!aiDetails) {
                       return (
@@ -451,8 +392,8 @@ const Aprobacion = () => {
                       )
                     }
 
-                    return (
-                      <div className="space-y-4">
+                return (
+                    <div className="space-y-4">
                         {aiDetails.materialesSeleccionados && Array.isArray(aiDetails.materialesSeleccionados) && aiDetails.materialesSeleccionados.length > 0 && (
                           <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                             <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
@@ -467,9 +408,9 @@ const Aprobacion = () => {
                                 {aiDetails.materialesSeleccionados.map((materialId, idx) => (
                                   <span key={idx} className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30">
                                     ID: {materialId}
-                                  </span>
+                            </span>
                                 ))}
-                              </div>
+                          </div>
                             </div>
                             {aiDetails.justificacionSeleccion && (
                               <div className="mt-3 pt-3 border-t border-green-500/20">
@@ -537,24 +478,24 @@ const Aprobacion = () => {
                                     </div>
                                   )}
                                   {compuesto.justificacion && (
-                                    <div className="mt-3 pt-3 border-t border-border-dark">
+                            <div className="mt-3 pt-3 border-t border-border-dark">
                                       <span className="text-text-muted text-xs font-medium">¿Por qué es necesario?</span>
                                       <p className="text-text-light text-sm mt-1">{compuesto.justificacion}</p>
-                                    </div>
+                                </div>
                                   )}
                                 </div>
                               ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
-
+                          )}
+                          
                         {aiDetails.ingredientes && Array.isArray(aiDetails.ingredientes) && aiDetails.ingredientes.length > 0 && (
                           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                             <h4 className="text-text-light font-semibold mb-3 flex items-center gap-2">
                               <span className="material-symbols-outlined text-sm">list</span>
                               Lista de Ingredientes
                             </h4>
-                            <div className="space-y-2">
+                              <div className="space-y-2">
                               {aiDetails.ingredientes.map((ingrediente, idx) => (
                                 <div key={idx} className="p-3 rounded-lg bg-card-dark border border-border-dark">
                                   <div className="flex items-start justify-between mb-2">
@@ -640,7 +581,7 @@ const Aprobacion = () => {
                                         {ingrediente.contenidoProteina !== undefined && (
                                           <span className="text-text-light">
                                             Proteína: <span className="font-medium">{ingrediente.contenidoProteina}%</span>
-                                          </span>
+                                      </span>
                                         )}
                                         {ingrediente.contenidoCarbohidratos !== undefined && (
                                           <span className="text-text-light">
@@ -652,14 +593,14 @@ const Aprobacion = () => {
                                             Grasas: <span className="font-medium">{ingrediente.contenidoGrasas}%</span>
                                           </span>
                                         )}
-                                      </div>
+                                    </div>
                                     </div>
                                   )}
-                                </div>
-                              ))}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
                         {(aiDetails.rendimiento || aiDetails.unidadRendimiento) && (
                           <div className="p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
@@ -672,8 +613,8 @@ const Aprobacion = () => {
                                 {aiDetails.rendimiento || 'N/A'} {aiDetails.unidadRendimiento || 'g'}
                               </span>
                               <span className="text-text-muted text-sm">(1 kg batch)</span>
-                            </div>
-                          </div>
+                        </div>
+                    </div>
                         )}
 
                         {aiDetails.formulaQuimicaGeneral && (
@@ -686,7 +627,7 @@ const Aprobacion = () => {
                               <p className="text-text-light text-sm leading-relaxed whitespace-pre-line font-mono">
                                 {aiDetails.formulaQuimicaGeneral.replace(/\\n/g, '\n')}
                               </p>
-                            </div>
+                  </div>
                           </div>
                         )}
 
@@ -701,7 +642,7 @@ const Aprobacion = () => {
                                 <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
                                   <p className="text-text-muted text-xs mb-1">Solubilidad</p>
                                   <p className="text-text-light text-sm">{aiDetails.parametrosFisicoquimicos.solubilidad}</p>
-                                </div>
+                        </div>
                               )}
                               {aiDetails.parametrosFisicoquimicos.logP && (
                                 <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
@@ -743,7 +684,7 @@ const Aprobacion = () => {
                               <span className="material-symbols-outlined text-sm">biotech</span>
                               Protocolo de Análisis Completo
                             </h4>
-                            <div className="space-y-4">
+                      <div className="space-y-4">
                               {aiDetails.protocoloAnalisis.pruebasFisicas && (
                                 <div className="p-3 rounded-lg bg-card-dark border border-border-dark">
                                   <h5 className="text-text-light font-medium mb-2 flex items-center gap-2">
@@ -1067,13 +1008,13 @@ const Aprobacion = () => {
                 <span className="material-symbols-outlined text-purple-400">science</span>
                 <h2 className="text-text-light text-2xl font-bold">Análisis y Pruebas Completadas por el Analista</h2>
               </div>
-              <button
+                <button
                 onClick={() => setShowAnalisisModal(false)}
                 className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
+                </button>
+              </div>
 
             <div className="p-6">
               {(() => {
@@ -1088,7 +1029,7 @@ const Aprobacion = () => {
                     <div className="p-8 rounded-lg bg-input-dark border border-border-dark text-center">
                       <span className="material-symbols-outlined text-6xl text-text-muted mb-4 block">science</span>
                       <p className="text-text-muted text-lg">No hay análisis completados aún</p>
-                    </div>
+            </div>
                   )
                 }
 
@@ -1103,7 +1044,7 @@ const Aprobacion = () => {
                               {prueba.codigoMuestra && (
                                 <span className="text-text-muted text-sm">({prueba.codigoMuestra})</span>
                               )}
-                            </div>
+          </div>
                             {prueba.analistaNombre && (
                               <p className="text-text-muted text-sm">Analista: <span className="text-text-light font-medium">{prueba.analistaNombre}</span></p>
                             )}
