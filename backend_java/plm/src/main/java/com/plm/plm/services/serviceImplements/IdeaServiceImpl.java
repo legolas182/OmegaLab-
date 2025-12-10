@@ -12,11 +12,14 @@ import com.plm.plm.Reposotory.ProductRepository;
 import com.plm.plm.Reposotory.UserRepository;
 import com.plm.plm.Reposotory.CategoryRepository;
 import com.plm.plm.Reposotory.OrdenProduccionRepository;
+import com.plm.plm.Reposotory.FormulaRepository;
 import com.plm.plm.Models.OrdenProduccion;
+import com.plm.plm.Models.Formula;
 import java.math.BigDecimal;
 import com.plm.plm.dto.IdeaDTO;
 import com.plm.plm.services.IdeaService;
 import com.plm.plm.services.ProduccionService;
+import com.plm.plm.services.FormulaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +47,13 @@ public class IdeaServiceImpl implements IdeaService {
     private OrdenProduccionRepository ordenProduccionRepository;
 
     @Autowired
+    private FormulaRepository formulaRepository;
+
+    @Autowired
     private ProduccionService produccionService;
+
+    @Autowired
+    private FormulaService formulaService;
 
     @Override
     @Transactional
@@ -243,6 +252,11 @@ public class IdeaServiceImpl implements IdeaService {
         idea.setApprovedAt(ahora);
         
         idea = ideaRepository.save(idea);
+        
+        List<Formula> formulasExistentes = formulaRepository.findByIdeaId(idea.getId());
+        if (formulasExistentes.isEmpty()) {
+            formulaService.createFormulaFromIdea(idea.getId(), userId);
+        }
         
         List<OrdenProduccion> ordenesExistentes = ordenProduccionRepository.findByIdeaId(idea.getId());
         OrdenProduccion orden;

@@ -12,5 +12,6 @@ public class MaterialNecesarioDTO {
     private String unidadRequerida;
     private BigDecimal porcentaje;
     private Integer secuencia;
+    private String funcion;
 }
 

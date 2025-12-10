@@ -25,6 +25,7 @@ const Produccion = () => {
   const [ordenDetalle, setOrdenDetalle] = useState(null)
   const [loadingDetalle, setLoadingDetalle] = useState(false)
   const [generandoLote, setGenerandoLote] = useState(false)
+  const [showDetalleModal, setShowDetalleModal] = useState(false)
 
   useEffect(() => {
     loadOrdenes()
@@ -48,12 +49,14 @@ const Produccion = () => {
     setSelectedOrden(orden)
     setLoadingDetalle(true)
     setError('')
+    setShowDetalleModal(true)
     try {
       const detalle = await produccionService.getOrdenDetalle(orden.id)
       setOrdenDetalle(detalle)
     } catch (err) {
       setError(err.message || 'Error al cargar detalles de la orden')
       console.error('Error al cargar detalle:', err)
+      setShowDetalleModal(false)
     } finally {
       setLoadingDetalle(false)
     }
@@ -98,115 +101,177 @@ const Produccion = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-lg bg-card-dark border border-border-dark">
-          <div className="p-4 border-b border-border-dark">
-            <h2 className="text-text-light font-semibold">Órdenes de Producción ({ordenes.length})</h2>
+      <div className="rounded-lg bg-card-dark border border-border-dark">
+        <div className="p-4 border-b border-border-dark">
+          <h2 className="text-text-light font-semibold">Órdenes de Producción ({ordenes.length})</h2>
+        </div>
+        {loading ? (
+          <div className="p-8 text-center text-text-muted">Cargando órdenes...</div>
+        ) : ordenes.length === 0 ? (
+          <div className="p-8 text-center text-text-muted">
+            <span className="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
+            <p className="text-sm">No hay órdenes de producción asignadas</p>
           </div>
-          {loading ? (
-            <div className="p-8 text-center text-text-muted">Cargando órdenes...</div>
-          ) : ordenes.length === 0 ? (
-            <div className="p-8 text-center text-text-muted">
-              <span className="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
-              <p className="text-sm">No hay órdenes de producción asignadas</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border-dark">
-              {ordenes.map((orden) => (
-                <div
-                  key={orden.id}
-                  className={`p-4 hover:bg-border-dark/50 cursor-pointer transition-colors ${
-                    selectedOrden?.id === orden.id ? 'bg-primary/10 border-l-4 border-primary' : ''
-                  }`}
-                  onClick={() => handleSelectOrden(orden)}
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-text-light font-medium">{orden.codigo}</p>
-                      <p className="text-text-muted text-sm">{orden.ideaTitulo}</p>
-                    </div>
-                    <div>
-                      <p className="text-text-muted text-sm">Cantidad</p>
-                      <p className="text-text-light">{orden.cantidad} unidades</p>
-                    </div>
-                    <div>
-                      <p className="text-text-muted text-sm">Estado</p>
-                      <span className={`inline-block px-2 py-1 rounded text-xs ${
-                        orden.estado === 'EN_PROCESO' ? 'bg-warning/20 text-warning' : 
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border-dark">
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">CÓDIGO</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">TÍTULO</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">CANTIDAD</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">ESTADO</th>
+                  <th className="px-4 py-3 text-left text-text-muted text-xs font-semibold uppercase">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordenes.map((orden) => (
+                  <tr
+                    key={orden.id}
+                    className={`border-b border-border-dark hover:bg-card-dark/30 transition-colors cursor-pointer ${
+                      selectedOrden?.id === orden.id ? 'bg-primary/10' : ''
+                    }`}
+                    onClick={() => handleSelectOrden(orden)}
+                  >
+                    <td className="px-4 py-3">
+                      <span className="text-text-light font-medium text-sm">{orden.codigo}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-text-light text-sm line-clamp-1">{orden.ideaTitulo}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-text-light text-sm">{orden.cantidad} unidades</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        orden.estado === 'EN_PROCESO' ? 'bg-amber-500/20 text-amber-400' : 
                         orden.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary' : 
                         'bg-success/20 text-success'
                       }`}>
                         {orden.estado === 'EN_PROCESO' ? 'En Proceso' : 
                          orden.estado === 'EN_PRODUCCION' ? 'En Producción' : orden.estado}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSelectOrden(orden)
+                        }}
+                        className="w-8 h-8 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors flex items-center justify-center"
+                        title="Ver Detalles"
+                      >
+                        <span className="material-symbols-outlined text-sm">visibility</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {showDetalleModal && ordenDetalle && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDetalleModal(false)
+              setSelectedOrden(null)
+              setOrdenDetalle(null)
+            }
+          }}
+        >
+          <div className="bg-card-dark rounded-lg border border-border-dark max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl my-8">
+            <div className="sticky top-0 bg-card-dark border-b border-border-dark p-6 z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-text-light text-2xl font-bold">{ordenDetalle.ideaTitulo}</h2>
+                  <span className={`px-3 py-1 rounded text-sm font-medium ${
+                    ordenDetalle.estado === 'EN_PROCESO' ? 'bg-amber-500/20 text-amber-400' : 
+                    ordenDetalle.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary' : 
+                    'bg-success/20 text-success'
+                  }`}>
+                    {ordenDetalle.estado === 'EN_PROCESO' ? 'En Proceso' : 
+                     ordenDetalle.estado === 'EN_PRODUCCION' ? 'En Producción' : ordenDetalle.estado}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetalleModal(false)
+                    setSelectedOrden(null)
+                    setOrdenDetalle(null)
+                  }}
+                  className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {ordenDetalle.ideaDescripcion && (
+                <div>
+                  <p className="text-text-light text-sm leading-relaxed whitespace-pre-line">
+                    {ordenDetalle.ideaDescripcion.replace(/\\n/g, '\n')}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-text-light font-semibold text-lg mb-3">Información General</h3>
+                <div className="p-4 rounded-lg bg-input-dark border border-border-dark space-y-3">
+                  {ordenDetalle.ideaObjetivo && (
+                    <div>
+                      <p className="text-text-muted text-xs mb-1">Objetivo:</p>
+                      <p className="text-text-light text-sm font-medium">{ordenDetalle.ideaObjetivo}</p>
                     </div>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-text-muted text-xs">Categoría:</span>
+                      <p className="text-text-light font-medium">{ordenDetalle.ideaCategoria || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-text-muted text-xs">Creado por:</span>
+                      <p className="text-text-light font-medium">{ordenDetalle.ideaCreatedByName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-text-muted text-xs">Fecha:</span>
+                      <p className="text-text-light font-medium">
+                        {ordenDetalle.ideaCreatedAt ? new Date(ordenDetalle.ideaCreatedAt).toLocaleDateString('es-ES') : 'N/A'}
+                      </p>
+                    </div>
+                    {ordenDetalle.ideaAsignadoANombre && (
+                      <div>
+                        <span className="text-text-muted text-xs">Asignado a:</span>
+                        <p className="text-text-light font-medium">{ordenDetalle.ideaAsignadoANombre}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-lg bg-card-dark border border-border-dark">
-          <div className="p-4 border-b border-border-dark flex items-center justify-between">
-            <h2 className="text-text-light font-semibold">Detalles de la Orden</h2>
-            {selectedOrden && (
-              <button
-                onClick={() => {
-                  setSelectedOrden(null)
-                  setOrdenDetalle(null)
-                }}
-                className="text-text-muted hover:text-text-light"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            )}
-          </div>
-          
-          {!selectedOrden ? (
-            <div className="p-8 text-center text-text-muted">
-              <span className="material-symbols-outlined text-4xl mb-2 block">info</span>
-              <p className="text-sm">Seleccione una orden para ver los detalles</p>
-            </div>
-          ) : loadingDetalle ? (
-            <div className="p-8 text-center text-text-muted">Cargando detalles...</div>
-          ) : ordenDetalle ? (
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-text-light font-semibold mb-2">{ordenDetalle.codigo}</h3>
-                <p className="text-text-muted text-sm">{ordenDetalle.ideaTitulo}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-text-muted text-sm mb-1">Cantidad Requerida</p>
-                  <p className="text-text-light font-semibold">{ordenDetalle.cantidad} unidades</p>
-                </div>
-                <div>
-                  <p className="text-text-muted text-sm mb-1">Supervisor</p>
-                  <p className="text-text-light">{ordenDetalle.supervisorCalidadNombre || 'N/A'}</p>
-                </div>
               </div>
 
               <div>
-                <h4 className="text-text-light font-semibold mb-3">Materiales Necesarios</h4>
+                <h3 className="text-text-light font-semibold text-lg mb-3">Ingredientes</h3>
                 {ordenDetalle.materiales && ordenDetalle.materiales.length > 0 ? (
                   <div className="space-y-2">
                     {ordenDetalle.materiales.map((material, index) => (
-                      <div key={index} className="p-3 rounded-lg bg-input-dark border border-border-dark">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-text-light font-medium">{material.materialNombre}</p>
-                            {material.materialCodigo && (
-                              <p className="text-text-muted text-xs">Código: {material.materialCodigo}</p>
+                      <div key={index} className="p-4 rounded-lg bg-input-dark border border-border-dark">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-text-light font-medium text-base mb-1">{material.materialNombre}</p>
+                            {material.funcion && (
+                              <p className="text-text-muted text-xs mb-2">{material.funcion}</p>
                             )}
                           </div>
-                          <div className="text-right">
-                            <p className="text-text-light font-semibold">
+                          <div className="text-right ml-4">
+                            <p className="text-text-light font-semibold text-sm mb-1">
                               {material.cantidadRequerida} {material.unidadRequerida}
                             </p>
                             {material.porcentaje && (
-                              <p className="text-text-muted text-xs">
+                              <p className="text-primary font-medium text-sm">
                                 {material.porcentaje}%
                               </p>
                             )}
@@ -216,15 +281,34 @@ const Produccion = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-text-muted text-sm">No hay materiales definidos</p>
+                  <p className="text-text-muted text-sm">No hay ingredientes definidos</p>
                 )}
               </div>
 
               {!ordenDetalle.loteId && (
                 <button
-                  onClick={handleGenerarLote}
+                  onClick={async () => {
+                    if (!window.confirm('¿Está seguro de que desea iniciar la producción? Se generará un lote automáticamente.')) {
+                      return
+                    }
+                    setGenerandoLote(true)
+                    setError('')
+                    try {
+                      await produccionService.generarLote(selectedOrden.id)
+                      alert('Lote generado exitosamente. Puede verlo en la página de Trazabilidad de Lote.')
+                      setShowDetalleModal(false)
+                      setSelectedOrden(null)
+                      setOrdenDetalle(null)
+                      loadOrdenes()
+                    } catch (err) {
+                      setError(err.message || 'Error al generar lote')
+                      console.error('Error al generar lote:', err)
+                    } finally {
+                      setGenerandoLote(false)
+                    }
+                  }}
                   disabled={generandoLote}
-                  className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {generandoLote ? 'Generando Lote...' : 'Producir'}
                 </button>
@@ -239,13 +323,9 @@ const Produccion = () => {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="p-8 text-center text-text-muted">
-              <p className="text-sm">Error al cargar los detalles</p>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

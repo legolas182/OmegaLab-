@@ -11,6 +11,7 @@ import com.plm.plm.dto.MaterialNecesarioDTO;
 import com.plm.plm.dto.OrdenDetalleDTO;
 import com.plm.plm.dto.OrdenProduccionDTO;
 import com.plm.plm.services.ProduccionService;
+import com.plm.plm.services.FormulaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +46,9 @@ public class ProduccionServiceImpl implements ProduccionService {
     @Autowired
     private LoteEventoRepository loteEventoRepository;
 
+    @Autowired
+    private FormulaService formulaService;
+
     @Override
     @Transactional(readOnly = true)
     public List<OrdenProduccionDTO> getOrdenesProduccion() {
@@ -66,7 +70,7 @@ public class ProduccionServiceImpl implements ProduccionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public OrdenDetalleDTO getOrdenDetalle(Integer ordenId) {
         OrdenProduccion orden = ordenProduccionRepository.findById(ordenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden de producción no encontrada"));
@@ -80,7 +84,19 @@ public class ProduccionServiceImpl implements ProduccionService {
         
         List<Formula> formulas = formulaRepository.findByIdeaId(idea.getId());
         if (formulas.isEmpty()) {
-            throw new ResourceNotFoundException("No se encontró una fórmula asociada a la idea. La fórmula es obligatoria para generar la producción");
+            if (idea.getDetallesIA() == null || idea.getDetallesIA().trim().isEmpty()) {
+                throw new ResourceNotFoundException("No se encontró una fórmula asociada a la idea y la idea no tiene detalles de IA para crear la fórmula. La fórmula es obligatoria para generar la producción");
+            }
+            User creador = orden.getSupervisorCalidad() != null ? orden.getSupervisorCalidad() : 
+                          (idea.getCreador() != null ? idea.getCreador() : null);
+            if (creador == null) {
+                throw new BadRequestException("No se puede crear la fórmula: no se encontró un usuario válido para asignar como creador");
+            }
+            formulaService.createFormulaFromIdea(idea.getId(), creador.getId());
+            formulas = formulaRepository.findByIdeaId(idea.getId());
+            if (formulas.isEmpty()) {
+                throw new ResourceNotFoundException("No se pudo crear la fórmula asociada a la idea. La fórmula es obligatoria para generar la producción");
+            }
         }
         
         Formula formula = formulas.stream()
@@ -136,6 +152,7 @@ public class ProduccionServiceImpl implements ProduccionService {
             materialDTO.setUnidadRequerida(ingrediente.getUnidad() != null ? ingrediente.getUnidad() : "g");
             materialDTO.setPorcentaje(ingrediente.getPorcentaje() != null ? ingrediente.getPorcentaje() : BigDecimal.ZERO);
             materialDTO.setSecuencia(ingrediente.getSecuencia() != null ? ingrediente.getSecuencia() : 0);
+            materialDTO.setFuncion(ingrediente.getFuncion());
             return materialDTO;
         }).collect(Collectors.toList());
         
@@ -143,6 +160,12 @@ public class ProduccionServiceImpl implements ProduccionService {
         dto.setId(orden.getId());
         dto.setCodigo(orden.getCodigo());
         dto.setIdeaTitulo(idea.getTitulo());
+        dto.setIdeaDescripcion(idea.getDescripcion());
+        dto.setIdeaObjetivo(idea.getObjetivo());
+        dto.setIdeaCategoria(idea.getCategoriaEntity() != null ? idea.getCategoriaEntity().getNombre() : null);
+        dto.setIdeaCreatedByName(idea.getCreador() != null ? idea.getCreador().getNombre() : null);
+        dto.setIdeaCreatedAt(idea.getCreatedAt());
+        dto.setIdeaAsignadoANombre(idea.getAsignadoA() != null ? idea.getAsignadoA().getNombre() : null);
         dto.setCantidad(cantidadOrden);
         dto.setEstado(orden.getEstado());
         dto.setSupervisorCalidadNombre(orden.getSupervisorCalidad() != null ? orden.getSupervisorCalidad().getNombre() : null);

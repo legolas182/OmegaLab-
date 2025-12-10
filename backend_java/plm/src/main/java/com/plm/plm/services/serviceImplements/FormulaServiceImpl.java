@@ -360,9 +360,7 @@ public class FormulaServiceImpl implements FormulaService {
         version.setDescripcion("Versión inicial creada desde aprobación QA");
         formulaVersionRepository.save(version);
         
-        List<FormulaIngredient> ingredientes = formulaIngredientRepository
-            .findByFormulaIdOrderBySecuenciaAsc(formula.getId());
-        formula.setIngredientes(ingredientes);
+        formula = formulaRepository.findById(formula.getId()).orElse(formula);
         
         return formula.getDTO();
     }
