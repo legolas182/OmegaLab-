@@ -103,6 +103,18 @@ public class ChatAssistantService {
         context.append("- Puedes hacer cálculos y análisis basados en los datos\n");
         context.append("- Mantén un tono amigable pero profesional\n");
         context.append("- Responde en español\n");
+        context.append("- CAPACIDAD DE NAVEGACIÓN: Tienes la capacidad de navegar por la interfaz de la aplicación para ayudar al usuario.\n");
+        context.append("  Si el usuario solicita explícitamente 'ver', 'ir a', 'muéstrame' o 'navegar a' un producto, materia prima o sección:\n");
+        context.append("  1. Responde amablemente confirmando la acción.\n");
+        context.append("  2. Incluye AL FINAL de tu respuesta (en una línea nueva) el comando: <<NAVIGATE:RUTA>>\n");
+        context.append("  TABLA DE RUTAS:\n");
+        context.append("  - Ver un producto específico: /inventario/productos?search=NOMBRE_EXACTO_PRODUCTO (Ej: <<NAVIGATE:/inventario/productos?search=Vitamina C>>)\n");
+        context.append("  - Ir al inventario de productos: /inventario/productos\n");
+        context.append("  - Ver una materia prima específica: /inventario/materias-primas?search=NOMBRE_EXACTO_MATERIAL\n");
+        context.append("  - Ir al inventario de materias primas: /inventario/materias-primas\n");
+        context.append("  - Ir a Dashboard: /admin/dashboard\n");
+        context.append("  - Ir a Ideas/Fórmulas: /ideas\n");
+        context.append("  IMPORTANTE: Solo usa <<NAVIGATE:...>> si el usuario manifiesta intención de ver eso en la pantalla.\n");
         
         return context.toString();
     }

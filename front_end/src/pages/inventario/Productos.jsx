@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { hasAnyRole } from '../../utils/rolePermissions'
 import productService from '../../services/productService'
@@ -11,6 +12,7 @@ const Productos = () => {
   const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
   const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
   const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
+  const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [bom, setBom] = useState(null)
@@ -49,10 +51,25 @@ const Productos = () => {
   const [bomTotals, setBomTotals] = useState(null)
   const [stockVerification, setStockVerification] = useState(null)
 
+  // Ref para controlar condiciones de carrera en búsquedas
+  const lastRequestId = useRef(0)
+
   useEffect(() => {
-    loadProducts()
+    const searchFromUrl = searchParams.get('search')
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl)
+    }
+  }, [searchParams])
+
+  // Cargar datos iniciales que no dependen de la búsqueda
+  useEffect(() => {
     loadMaterials()
     loadCategories()
+  }, [])
+
+  // Cargar productos cuando cambia el término de búsqueda
+  useEffect(() => {
+    loadProducts()
   }, [searchTerm])
 
   useEffect(() => {
@@ -62,16 +79,25 @@ const Productos = () => {
   }, [selectedProduct])
 
   const loadProducts = async () => {
+    const currentRequestId = ++lastRequestId.current
     try {
       setLoading(true)
       const filters = {}
       if (searchTerm) filters.search = searchTerm
       const data = await productService.getProducts(filters)
-      setProducts(data)
+
+      // Solo actualizar si esta es la solicitud más reciente
+      if (currentRequestId === lastRequestId.current) {
+        setProducts(data)
+      }
     } catch (err) {
-      setError(err.message)
+      if (currentRequestId === lastRequestId.current) {
+        setError(err.message)
+      }
     } finally {
-      setLoading(false)
+      if (currentRequestId === lastRequestId.current) {
+        setLoading(false)
+      }
     }
   }
 
@@ -93,9 +119,9 @@ const Productos = () => {
         const filtered = all.filter(cat => {
           const tipo = cat.tipoProducto
           const tipoStr = typeof tipo === 'string' ? tipo : (tipo?.name || tipo?.toString() || '')
-          return tipoStr === 'PRODUCTO_TERMINADO' || 
-                 tipoStr === 'producto_terminado' ||
-                 tipoStr.toUpperCase() === 'PRODUCTO_TERMINADO'
+          return tipoStr === 'PRODUCTO_TERMINADO' ||
+            tipoStr === 'producto_terminado' ||
+            tipoStr.toUpperCase() === 'PRODUCTO_TERMINADO'
         })
         setCategories(filtered)
       } else {
@@ -121,13 +147,13 @@ const Productos = () => {
       if (data.bom) {
         const bomWithItems = await productService.getBOMWithItems(data.bom.id)
         setBom(bomWithItems)
-        
+
         // Validar y calcular totales del BOM usando procedimientos almacenados
         if (bomWithItems.id) {
           try {
             const validation = await productService.validateBOM(bomWithItems.id)
             setBomValidation(validation)
-            
+
             const totals = await productService.calculateBOMTotals(bomWithItems.id)
             setBomTotals(totals)
           } catch (err) {
@@ -183,9 +209,9 @@ const Productos = () => {
           if (selectedProduct?.id === id) {
             setSelectedProduct(null)
             setBom(null)
-        setBomValidation(null)
-        setBomTotals(null)
-        setStockVerification(null)
+            setBomValidation(null)
+            setBomTotals(null)
+            setStockVerification(null)
             setBomValidation(null)
             setBomTotals(null)
             setStockVerification(null)
@@ -236,30 +262,30 @@ const Productos = () => {
     try {
       setLoading(true)
       setError('')
-      
+
       if (!newMaterial.materialId || newMaterial.materialId === '') {
         setError('Debes seleccionar un material')
         setLoading(false)
         return
       }
-      
+
       const materialId = parseInt(newMaterial.materialId)
       if (isNaN(materialId)) {
         setError('El ID del material no es válido')
         setLoading(false)
         return
       }
-      
+
       await productService.addMaterialToBOM(bom.id, {
         materialId: materialId,
         cantidad: parseFloat(newMaterial.cantidad),
         unidad: newMaterial.unidad,
         porcentaje: newMaterial.porcentaje ? parseFloat(newMaterial.porcentaje) : 0
       })
-      
+
       // Recargar BOM y validar porcentajes
       await loadProductBOM(selectedProduct.id)
-      
+
       setShowAddMaterial(false)
       setNewMaterial({
         materialId: '',
@@ -298,7 +324,7 @@ const Productos = () => {
 
   const handleVerifyStock = async () => {
     if (!selectedProduct) return
-    
+
     try {
       setLoading(true)
       setError('')
@@ -307,9 +333,9 @@ const Productos = () => {
         setError('Debe ingresar una cantidad válida')
         return
       }
-      
+
       const verification = await productService.verifyStockProduction(
-        selectedProduct.id, 
+        selectedProduct.id,
         parseFloat(cantidad)
       )
       setStockVerification(verification)
@@ -382,9 +408,8 @@ const Productos = () => {
                 {products.map((product) => (
                   <tr
                     key={product.id}
-                    className={`hover:bg-input-dark/30 transition-colors ${
-                      selectedProduct?.id === product.id ? 'bg-primary/10' : ''
-                    }`}
+                    className={`hover:bg-input-dark/30 transition-colors ${selectedProduct?.id === product.id ? 'bg-primary/10' : ''
+                      }`}
                   >
                     <td className="px-3 py-2.5">
                       <span className="text-text-light text-xs font-medium">{product.codigo}</span>
@@ -405,7 +430,7 @@ const Productos = () => {
                     {isSupervisorCalidad && (
                       <td className="px-3 py-2.5">
                         <span className="text-text-light text-xs font-medium">
-                          {product.cantidadStock !== null && product.cantidadStock !== undefined 
+                          {product.cantidadStock !== null && product.cantidadStock !== undefined
                             ? Math.round(parseFloat(product.cantidadStock))
                             : '0'}
                         </span>
@@ -451,9 +476,9 @@ const Productos = () => {
               setShowDetailsModal(false)
               setSelectedProduct(null)
               setBom(null)
-        setBomValidation(null)
-        setBomTotals(null)
-        setStockVerification(null)
+              setBomValidation(null)
+              setBomTotals(null)
+              setStockVerification(null)
             }
           }}
         >
@@ -470,9 +495,9 @@ const Productos = () => {
                     setShowDetailsModal(false)
                     setSelectedProduct(null)
                     setBom(null)
-        setBomValidation(null)
-        setBomTotals(null)
-        setStockVerification(null)
+                    setBomValidation(null)
+                    setBomTotals(null)
+                    setStockVerification(null)
                   }}
                   className="text-text-muted hover:text-text-light"
                 >
@@ -504,17 +529,15 @@ const Productos = () => {
                   <h3 className="text-text-light font-semibold">Lista de Materiales (BOM)</h3>
                   {bom ? (
                     <div className="flex gap-2 items-center">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        bom.estado === 'APROBADO' ? 'bg-success/20 text-success' :
+                      <span className={`px-2 py-1 rounded text-xs ${bom.estado === 'APROBADO' ? 'bg-success/20 text-success' :
                         bom.estado === 'BORRADOR' ? 'bg-warning/20 text-warning' :
-                        'bg-text-muted/20 text-text-muted'
-                      }`}>
+                          'bg-text-muted/20 text-text-muted'
+                        }`}>
                         {bom.version} - {bom.estado}
                       </span>
                       {bomValidation && (
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          bomValidation.valido ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                        }`}>
+                        <span className={`px-2 py-1 rounded text-xs ${bomValidation.valido ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
+                          }`}>
                           {bomValidation.valido ? '✓ Válido' : '✗ Inválido'}
                         </span>
                       )}
@@ -566,9 +589,8 @@ const Productos = () => {
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <p className="text-text-muted text-xs mb-1">Total Porcentaje</p>
-                        <p className={`text-text-light font-semibold ${
-                          bomTotals.totalPorcentaje === 100 ? 'text-success' : 'text-danger'
-                        }`}>
+                        <p className={`text-text-light font-semibold ${bomTotals.totalPorcentaje === 100 ? 'text-success' : 'text-danger'
+                          }`}>
                           {bomTotals.totalPorcentaje}%
                         </p>
                       </div>
@@ -586,26 +608,22 @@ const Productos = () => {
 
                 {/* Verificación de Stock */}
                 {stockVerification && (
-                  <div className={`mb-4 rounded-lg border p-3 ${
-                    stockVerification.disponible 
-                      ? 'bg-success/20 border-success/50' 
-                      : 'bg-danger/20 border-danger/50'
-                  }`}>
+                  <div className={`mb-4 rounded-lg border p-3 ${stockVerification.disponible
+                    ? 'bg-success/20 border-success/50'
+                    : 'bg-danger/20 border-danger/50'
+                    }`}>
                     <div className="flex items-start gap-3">
-                      <span className={`material-symbols-outlined ${
-                        stockVerification.disponible ? 'text-success' : 'text-danger'
-                      }`}>
+                      <span className={`material-symbols-outlined ${stockVerification.disponible ? 'text-success' : 'text-danger'
+                        }`}>
                         {stockVerification.disponible ? 'check_circle' : 'error'}
                       </span>
                       <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          stockVerification.disponible ? 'text-success' : 'text-danger'
-                        }`}>
+                        <p className={`text-sm font-medium ${stockVerification.disponible ? 'text-success' : 'text-danger'
+                          }`}>
                           {stockVerification.disponible ? 'Stock suficiente' : 'Stock insuficiente'}
                         </p>
-                        <p className={`text-xs mt-1 ${
-                          stockVerification.disponible ? 'text-success/80' : 'text-danger/80'
-                        }`}>
+                        <p className={`text-xs mt-1 ${stockVerification.disponible ? 'text-success/80' : 'text-danger/80'
+                          }`}>
                           {stockVerification.mensaje}
                         </p>
                       </div>
@@ -671,22 +689,22 @@ const Productos = () => {
 
               {/* Botón Cerrar */}
               <div className="flex justify-end pt-4 border-t border-border-dark">
-              <button
-                onClick={() => {
-                  setShowDetailsModal(false)
-                  setSelectedProduct(null)
-                  setBom(null)
-        setBomValidation(null)
-        setBomTotals(null)
-        setStockVerification(null)
-                  setBomValidation(null)
-                  setBomTotals(null)
-                  setStockVerification(null)
-                }}
-                className="px-4 py-2 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark"
-              >
-                Cerrar
-              </button>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false)
+                    setSelectedProduct(null)
+                    setBom(null)
+                    setBomValidation(null)
+                    setBomTotals(null)
+                    setStockVerification(null)
+                    setBomValidation(null)
+                    setBomTotals(null)
+                    setStockVerification(null)
+                  }}
+                  className="px-4 py-2 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark"
+                >
+                  Cerrar
+                </button>
               </div>
             </div>
           </div>
@@ -744,8 +762,8 @@ const Productos = () => {
                   <select
                     value={newProduct.categoriaId || ''}
                     onChange={(e) => {
-                      setNewProduct({ 
-                        ...newProduct, 
+                      setNewProduct({
+                        ...newProduct,
                         categoriaId: e.target.value ? parseInt(e.target.value) : null
                       })
                     }}
@@ -900,7 +918,7 @@ const Productos = () => {
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-        onConfirm={confirmDialog.onConfirm || (() => {})}
+        onConfirm={confirmDialog.onConfirm || (() => { })}
         title={confirmDialog.title}
         message={confirmDialog.message}
         type={confirmDialog.type}

@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import chatAssistantService from '../services/chatAssistantService'
 
+import { useNavigate } from 'react-router-dom'
+
 const ChatAssistant = () => {
+    const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
-            content: '¡Hola! Soy tu asistente de IA. Puedo ayudarte con información sobre productos, materias primas, stock y más. ¿En qué puedo ayudarte?',
+            content: '¡Hola! Soy tu asistente de IA.¿En qué puedo ayudarte?',
             timestamp: new Date()
         }
     ])
@@ -47,9 +50,23 @@ const ChatAssistant = () => {
         try {
             const response = await chatAssistantService.sendMessage(inputMessage)
 
+            // Procesar comandos de navegación
+            let content = response.response
+            const navigateMatch = content.match(/<<NAVIGATE:(.*?)>>/)
+
+            if (navigateMatch) {
+                const route = navigateMatch[1]
+                // Eliminar el comando del mensaje visible
+                content = content.replace(navigateMatch[0], '').trim()
+
+                // Ejecutar navegación
+                console.log('Navegando a:', route)
+                navigate(route)
+            }
+
             const assistantMessage = {
                 role: 'assistant',
-                content: response.response,
+                content: content,
                 timestamp: new Date()
             }
 
