@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { hasAnyRole } from '../utils/rolePermissions'
 import ideaService from '../services/ideaService'
@@ -86,19 +87,22 @@ const Aprobacion = () => {
 
   const handleConfirmarProduccion = async () => {
     if (!selectedSupervisorId) {
-      alert('Por favor selecciona un supervisor de calidad')
+      toast.error('Por favor selecciona un supervisor de calidad')
       return
     }
 
     const cantidad = parseInt(cantidadProduccion)
     if (!cantidad || cantidad <= 0) {
-      alert('Por favor ingresa una cantidad válida')
+      toast.error('Por favor ingresa una cantidad válida')
       return
     }
 
     try {
       await ideaService.confirmarProduccion(selectedFormula.id, selectedSupervisorId, cantidad)
-      alert('Fórmula confirmada para producción exitosamente. El lote ha sido creado automáticamente.')
+      toast.success('Fórmula confirmada para producción exitosamente. El lote ha sido creado automáticamente.', {
+        duration: 5000,
+        icon: '✅',
+      })
       setShowConfirmarModal(false)
       setSelectedFormula(null)
       setSelectedSupervisorId(null)
@@ -111,7 +115,7 @@ const Aprobacion = () => {
       }))
     } catch (error) {
       console.error('Error al confirmar producción:', error)
-      alert('Error al confirmar producción: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al confirmar producción: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -122,7 +126,9 @@ const Aprobacion = () => {
 
     try {
       await ideaService.changeEstado(selectedFormula.id, 'rechazada')
-      alert('Fórmula rechazada y movida al historial')
+      toast.success('Fórmula rechazada y movida al historial', {
+        icon: '📁',
+      })
       setShowRechazarModal(false)
       setSelectedFormula(null)
       loadFormulas()
@@ -133,7 +139,7 @@ const Aprobacion = () => {
       }))
     } catch (error) {
       console.error('Error al rechazar fórmula:', error)
-      alert('Error al rechazar fórmula: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al rechazar fórmula: ' + (error.message || 'Error desconocido'))
     }
   }
 

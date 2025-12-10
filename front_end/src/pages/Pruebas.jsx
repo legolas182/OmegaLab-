@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import toast from 'react-hot-toast'
 import { hasAnyRole } from '../utils/rolePermissions'
 import pruebaService from '../services/pruebaService'
 import ideaService from '../services/ideaService'
@@ -7,14 +8,14 @@ import ideaService from '../services/ideaService'
 const Pruebas = () => {
   const { user } = useAuth()
   const isAnalista = hasAnyRole(user, 'ANALISTA_LABORATORIO')
-  
+
   const [pruebas, setPruebas] = useState([])
   const [loadingPruebas, setLoadingPruebas] = useState(false)
   const [selectedPrueba, setSelectedPrueba] = useState(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [ideasAsignadas, setIdeasAsignadas] = useState([])
   const [updatingEstado, setUpdatingEstado] = useState(false)
-  
+
   // Formulario para nueva prueba
   const [nuevaPrueba, setNuevaPrueba] = useState({
     ideaId: '',
@@ -30,7 +31,7 @@ const Pruebas = () => {
     if (isAnalista) {
       loadIdeasAsignadas()
     }
-    
+
     // Verificar si hay un pruebaId en la URL para seleccionarla automáticamente
     const urlParams = new URLSearchParams(window.location.search)
     const pruebaId = urlParams.get('pruebaId')
@@ -59,9 +60,9 @@ const Pruebas = () => {
         // 2. Y cuya idea asociada NO esté en estado PRUEBA_APROBADA
         // Las pruebas completadas o con ideas aprobadas se mostrarán en el Historial
         const pruebasActivas = data.filter(p => {
-          const estadoPruebaActivo = p.estado !== 'COMPLETADA' && 
-                                     p.estado !== 'OOS' && 
-                                     p.estado !== 'RECHAZADA'
+          const estadoPruebaActivo = p.estado !== 'COMPLETADA' &&
+            p.estado !== 'OOS' &&
+            p.estado !== 'RECHAZADA'
           const ideaNoAprobada = p.ideaEstado !== 'PRUEBA_APROBADA'
           return estadoPruebaActivo && ideaNoAprobada
         })
@@ -90,7 +91,7 @@ const Pruebas = () => {
 
   const handleCreatePrueba = async () => {
     if (!nuevaPrueba.ideaId || !nuevaPrueba.codigoMuestra || !nuevaPrueba.tipoPrueba) {
-      alert('Por favor completa todos los campos requeridos')
+      toast.error('Por favor completa todos los campos requeridos')
       return
     }
 
@@ -116,13 +117,13 @@ const Pruebas = () => {
       loadPruebas()
     } catch (error) {
       console.error('Error al crear prueba:', error)
-      alert('Error al crear prueba: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al crear prueba: ' + (error.message || 'Error desconocido'))
     }
   }
 
   const handleChangeEstado = async (nuevoEstado) => {
     if (!selectedPrueba) return
-    
+
     setUpdatingEstado(true)
     try {
       const pruebaActualizada = await pruebaService.updatePrueba(selectedPrueba.id, {
@@ -134,7 +135,7 @@ const Pruebas = () => {
       loadPruebas()
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      alert('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
     } finally {
       setUpdatingEstado(false)
     }
@@ -143,7 +144,7 @@ const Pruebas = () => {
   // Función para agregar resultado de checklist directamente (Sí/No)
   const handleAgregarResultadoChecklist = async (parametro, especificacion, valor) => {
     if (!selectedPrueba) return
-    
+
     const ahora = new Date()
     const fechaHora = ahora.toLocaleString('es-ES', {
       year: 'numeric',
@@ -153,7 +154,7 @@ const Pruebas = () => {
       minute: '2-digit',
       second: '2-digit'
     })
-    
+
     const resultadoChecklist = {
       parametro: parametro,
       especificacion: especificacion || '',
@@ -164,19 +165,19 @@ const Pruebas = () => {
       cumpleEspecificacion: valor === 'si',
       observaciones: `Registrado el ${fechaHora}`
     }
-    
+
     try {
       const pruebaActualizada = await pruebaService.addResultado(selectedPrueba.id, resultadoChecklist)
       // Recargar la prueba completa para obtener los resultados actualizados
       const pruebaCompleta = await pruebaService.getPruebaById(pruebaActualizada.id)
       setSelectedPrueba(pruebaCompleta)
       loadPruebas()
-      
+
       // Evaluar automáticamente el estado de la prueba basado en los resultados
       await evaluarEstadoPrueba(pruebaCompleta)
     } catch (error) {
       console.error('Error al agregar resultado de checklist:', error)
-      alert('Error al agregar resultado: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al agregar resultado: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -185,9 +186,9 @@ const Pruebas = () => {
     if (!pruebaCompleta.resultados || pruebaCompleta.resultados.length === 0 || !pruebaCompleta.pruebasRequeridas) {
       return
     }
-    
+
     const pruebasRequeridas = parsePruebasRequeridas(pruebaCompleta.pruebasRequeridas)
-    
+
     // Verificar que todas las pruebas requeridas tengan resultados registrados
     const todasLasPruebasTienenResultados = pruebasRequeridas.every(pruebaReq => {
       return pruebaCompleta.resultados.some(resultado => {
@@ -196,12 +197,12 @@ const Pruebas = () => {
         return parametroLower.includes(pruebaReqLower) || pruebaReqLower.includes(parametroLower)
       })
     })
-    
+
     if (todasLasPruebasTienenResultados) {
       // Todas las pruebas requeridas tienen resultados, ahora evaluar cumplimiento
       const todosCumplen = pruebaCompleta.resultados.every(r => r.cumpleEspecificacion !== false)
       const hayOOS = pruebaCompleta.resultados.some(r => r.cumpleEspecificacion === false)
-      
+
       // Solo cambiar estado si todas las pruebas requeridas están completas
       if (todosCumplen && (pruebaCompleta.estado || '').toLowerCase() === 'en_proceso') {
         await pruebaService.updatePrueba(pruebaCompleta.id, { estado: 'completada' })
@@ -272,14 +273,14 @@ const Pruebas = () => {
   // Función para parsear las pruebas requeridas y extraer parámetros con especificaciones
   const parsePruebasRequeridas = (texto) => {
     if (!texto) return []
-    
+
     const pruebas = []
     const lineas = texto.split('\n')
-    
+
     lineas.forEach(linea => {
       linea = linea.trim()
       if (!linea || !linea.startsWith('-')) return
-      
+
       // Buscar patrón: "- Parámetro (especificación: valor)"
       const match = linea.match(/^-\s*(.+?)\s*\([^:]*:\s*(.+?)\)/i)
       if (match) {
@@ -294,21 +295,21 @@ const Pruebas = () => {
         }
       }
     })
-    
+
     return pruebas
   }
 
   // Función para comparar un resultado con una especificación
   const evaluarCumplimiento = (resultado, especificacion) => {
     if (!resultado || !especificacion) return null
-    
+
     // Extraer número del resultado (ignorar unidades)
     const resultadoNum = parseFloat(resultado.toString().replace(/[^\d.-]/g, ''))
     if (isNaN(resultadoNum)) return null // Si no es numérico, no se puede evaluar
-    
+
     // Evaluar diferentes tipos de especificaciones
     const espec = especificacion.trim()
-    
+
     // Rango: "6.5 - 7.5" o "6.5-7.5"
     const rangoMatch = espec.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/)
     if (rangoMatch) {
@@ -316,7 +317,7 @@ const Pruebas = () => {
       const max = parseFloat(rangoMatch[2])
       return resultadoNum >= min && resultadoNum <= max
     }
-    
+
     // Menor o igual: "≤ 5" o "<= 5" o "≤5%"
     const menorIgualMatch = espec.match(/≤|<=/i)
     if (menorIgualMatch) {
@@ -325,7 +326,7 @@ const Pruebas = () => {
         return resultadoNum <= valor
       }
     }
-    
+
     // Mayor o igual: "≥ 80" o ">= 80" o "≥80%"
     const mayorIgualMatch = espec.match(/≥|>=/i)
     if (mayorIgualMatch) {
@@ -334,44 +335,44 @@ const Pruebas = () => {
         return resultadoNum >= valor
       }
     }
-    
+
     // Menor que: "< 5" o "<5%"
     const menorMatch = espec.match(/<\s*(\d+\.?\d*)/)
     if (menorMatch) {
       const valor = parseFloat(menorMatch[1])
       return resultadoNum < valor
     }
-    
+
     // Mayor que: "> 80" o ">80%"
     const mayorMatch = espec.match(/>\s*(\d+\.?\d*)/)
     if (mayorMatch) {
       const valor = parseFloat(mayorMatch[1])
       return resultadoNum > valor
     }
-    
+
     // Igual: "= 7" o "7"
     const igualMatch = espec.match(/=\s*(\d+\.?\d*)|^(\d+\.?\d*)$/)
     if (igualMatch) {
       const valor = parseFloat(igualMatch[1] || igualMatch[2])
       return Math.abs(resultadoNum - valor) < 0.01 // Tolerancia para comparación de flotantes
     }
-    
+
     return null // No se pudo evaluar
   }
 
   // Función para detectar parámetro y auto-completar especificación
   const detectarParametro = (parametroIngresado) => {
     if (!selectedPrueba?.pruebasRequeridas || !parametroIngresado) return null
-    
+
     const pruebasRequeridas = parsePruebasRequeridas(selectedPrueba.pruebasRequeridas)
     const parametroLower = parametroIngresado.toLowerCase().trim()
-    
+
     // Buscar coincidencia exacta o parcial
-    const coincidencia = pruebasRequeridas.find(p => 
-      p.parametro.toLowerCase().includes(parametroLower) || 
+    const coincidencia = pruebasRequeridas.find(p =>
+      p.parametro.toLowerCase().includes(parametroLower) ||
       parametroLower.includes(p.parametro.toLowerCase())
     )
-    
+
     return coincidencia || null
   }
 
@@ -381,30 +382,30 @@ const Pruebas = () => {
         <div>
           <h1 className="text-text-light text-3xl font-bold tracking-tight">Pruebas / Control de Calidad (LIMS)</h1>
           <p className="text-text-muted text-sm mt-1">
-            {isAnalista 
-              ? 'Pruebas de laboratorio vinculadas a ideas asignadas' 
+            {isAnalista
+              ? 'Pruebas de laboratorio vinculadas a ideas asignadas'
               : 'Trazabilidad completa de muestras y resultados analíticos'}
           </p>
         </div>
         {isAnalista && ideasAsignadas.length > 0 && (
-          <button 
+          <button
             onClick={() => setShowCreateDialog(true)}
             className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
           >
             Nueva Prueba
-        </button>
+          </button>
         )}
       </div>
 
       {/* Alertas OOS - Solo si hay pruebas OOS */}
       {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length > 0 && (
-      <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
-        <span className="material-symbols-outlined text-danger text-2xl">error</span>
-        <div className="flex-1">
+        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+          <span className="material-symbols-outlined text-danger text-2xl">error</span>
+          <div className="flex-1">
             <p className="text-text-light font-semibold">
               {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length} Resultado{pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length === 1 ? '' : 's'} Fuera de Especificación (OOS)
             </p>
-          <p className="text-text-muted text-sm">Requieren investigación y documentación</p>
+            <p className="text-text-muted text-sm">Requieren investigación y documentación</p>
           </div>
         </div>
       )}
@@ -424,8 +425,8 @@ const Pruebas = () => {
           <div className="p-6 text-center">
             <span className="material-symbols-outlined text-4xl text-text-muted mb-2">science</span>
             <p className="text-text-muted text-sm">
-              {isAnalista 
-                ? 'No tienes pruebas asignadas. Crea una nueva prueba desde una idea asignada.' 
+              {isAnalista
+                ? 'No tienes pruebas asignadas. Crea una nueva prueba desde una idea asignada.'
                 : 'No hay pruebas disponibles'}
             </p>
           </div>
@@ -571,32 +572,31 @@ const Pruebas = () => {
               )}
               {selectedPrueba.pruebasRequeridas && (
                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start gap-2 flex-1">
-                            <span className="material-symbols-outlined text-primary text-lg">assignment</span>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
-                              </div>
-                              <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start gap-2 flex-1">
+                      <span className="material-symbols-outlined text-primary text-lg">assignment</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
+                        </div>
+                        <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
                         <div className="space-y-2">
                           {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
                             // Verificar si ya se registró un resultado para este parámetro
-                            const resultadoRegistrado = selectedPrueba.resultados?.find(r => 
+                            const resultadoRegistrado = selectedPrueba.resultados?.find(r =>
                               r.parametro.toLowerCase().includes(prueba.parametro.toLowerCase()) ||
                               prueba.parametro.toLowerCase().includes(r.parametro.toLowerCase())
                             )
-                            
+
                             return (
-                              <div 
-                                key={index} 
-                                className={`p-4 rounded-lg border ${
-                                  resultadoRegistrado 
-                                    ? resultadoRegistrado.cumpleEspecificacion === false
-                                      ? 'bg-danger/10 border-danger/30'
-                                      : 'bg-success/10 border-success/30'
-                                    : 'bg-input-dark border-border-dark'
-                                }`}
+                              <div
+                                key={index}
+                                className={`p-4 rounded-lg border ${resultadoRegistrado
+                                  ? resultadoRegistrado.cumpleEspecificacion === false
+                                    ? 'bg-danger/10 border-danger/30'
+                                    : 'bg-success/10 border-success/30'
+                                  : 'bg-input-dark border-border-dark'
+                                  }`}
                               >
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
@@ -609,11 +609,10 @@ const Pruebas = () => {
                                   </div>
                                   {resultadoRegistrado ? (
                                     <div className="flex flex-col items-end gap-1">
-                                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                        resultadoRegistrado.cumpleEspecificacion === false
-                                          ? 'bg-danger/20 text-danger'
-                                          : 'bg-success/20 text-success'
-                                      }`}>
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${resultadoRegistrado.cumpleEspecificacion === false
+                                        ? 'bg-danger/20 text-danger'
+                                        : 'bg-success/20 text-success'
+                                        }`}>
                                         {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
                                       </span>
                                       {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
@@ -650,7 +649,7 @@ const Pruebas = () => {
                                     </div>
                                   )}
                                 </div>
-                                
+
                                 {/* Mostrar resultado si está registrado */}
                                 {resultadoRegistrado && (
                                   <div className="mt-3 pt-3 border-t border-border-dark">
@@ -658,9 +657,8 @@ const Pruebas = () => {
                                       <div className="flex-1">
                                         {resultadoRegistrado.tipoResultado === 'checklist' ? (
                                           <div className="flex items-center gap-3">
-                                            <span className={`material-symbols-outlined text-2xl ${
-                                              resultadoRegistrado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                                            }`}>
+                                            <span className={`material-symbols-outlined text-2xl ${resultadoRegistrado.cumpleEspecificacion ? 'text-success' : 'text-danger'
+                                              }`}>
                                               {resultadoRegistrado.cumpleEspecificacion ? 'check_circle' : 'cancel'}
                                             </span>
                                             <div>
@@ -720,13 +718,13 @@ const Pruebas = () => {
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <h3 className="text-text-light text-lg font-semibold">Nueva Prueba</h3>
-              <button
+                <button
                   onClick={() => setShowCreateDialog(false)}
-                className="text-text-muted hover:text-text-light"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
+                  className="text-text-muted hover:text-text-light"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
 
               <div className="space-y-4">
                 <div>
