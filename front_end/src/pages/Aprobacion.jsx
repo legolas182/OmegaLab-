@@ -215,15 +215,15 @@ const Aprobacion = () => {
                 {formulas.map((idea) => {
                   const pruebas = pruebasPorFormula.get(idea.id) || []
                   const pruebasCompletadas = pruebas.filter(p => {
-                    const estado = (p.estado || '').toLowerCase()
-                    return estado === 'completada' || estado === 'oos' || estado === 'rechazada'
-                  })
+                const estado = (p.estado || '').toLowerCase()
+                return estado === 'completada' || estado === 'oos' || estado === 'rechazada'
+              })
                   const todasPasaron = pruebasCompletadas.every(p => {
                     const estado = (p.estado || '').toLowerCase()
                     return estado === 'completada'
                   })
 
-                  return (
+              return (
                     <tr key={idea.id} className="border-b border-border-dark hover:bg-card-dark/30 transition-colors">
                       <td className="px-4 py-3">
                         <span className="text-text-light font-medium text-sm">{idea.titulo}</span>
@@ -235,7 +235,7 @@ const Aprobacion = () => {
                             : 'bg-emerald-500/20 text-emerald-400'
                         }`}>
                           {todasPasaron ? 'Pruebas Aprobadas' : 'Aprobada para Pruebas'}
-                        </span>
+                      </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-text-light text-sm">{idea.createdByName || 'N/A'}</span>
@@ -246,13 +246,13 @@ const Aprobacion = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button
+                      <button
                           onClick={() => setSelectedFormula(idea)}
                           className="w-8 h-8 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors flex items-center justify-center"
                           title="Ver Detalles"
-                        >
+                      >
                           <span className="material-symbols-outlined text-sm">visibility</span>
-                        </button>
+                      </button>
                       </td>
                     </tr>
                   )

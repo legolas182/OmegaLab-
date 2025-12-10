@@ -125,9 +125,9 @@ const Produccion = () => {
                 </tr>
               </thead>
               <tbody>
-                {ordenes.map((orden) => (
+            {ordenes.map((orden) => (
                   <tr
-                    key={orden.id}
+              key={orden.id}
                     className={`border-b border-border-dark hover:bg-card-dark/30 transition-colors cursor-pointer ${
                       selectedOrden?.id === orden.id ? 'bg-primary/10' : ''
                     }`}
@@ -150,19 +150,19 @@ const Produccion = () => {
                       }`}>
                         {orden.estado === 'EN_PROCESO' ? 'En Proceso' : 
                          orden.estado === 'EN_PRODUCCION' ? 'En Producción' : orden.estado}
-                      </span>
+                  </span>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
                           handleSelectOrden(orden)
                         }}
                         className="w-8 h-8 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition-colors flex items-center justify-center"
                         title="Ver Detalles"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span>
-                      </button>
+                  </button>
                     </td>
                   </tr>
                 ))}
@@ -197,17 +197,17 @@ const Produccion = () => {
                      ordenDetalle.estado === 'EN_PRODUCCION' ? 'En Producción' : ordenDetalle.estado}
                   </span>
                 </div>
-                <button
+              <button
                   onClick={() => {
                     setShowDetalleModal(false)
                     setSelectedOrden(null)
                     setOrdenDetalle(null)
                   }}
                   className="p-2 rounded-lg text-text-muted hover:text-text-light hover:bg-border-dark transition-colors"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
             </div>
 
             <div className="p-6 space-y-6">
@@ -233,24 +233,24 @@ const Produccion = () => {
                       <span className="text-text-muted text-xs">Categoría:</span>
                       <p className="text-text-light font-medium">{ordenDetalle.ideaCategoria || 'N/A'}</p>
                     </div>
-                    <div>
+                      <div>
                       <span className="text-text-muted text-xs">Creado por:</span>
                       <p className="text-text-light font-medium">{ordenDetalle.ideaCreatedByName || 'N/A'}</p>
-                    </div>
+                      </div>
                     <div>
                       <span className="text-text-muted text-xs">Fecha:</span>
                       <p className="text-text-light font-medium">
                         {ordenDetalle.ideaCreatedAt ? new Date(ordenDetalle.ideaCreatedAt).toLocaleDateString('es-ES') : 'N/A'}
                       </p>
-                    </div>
+                      </div>
                     {ordenDetalle.ideaAsignadoANombre && (
                       <div>
                         <span className="text-text-muted text-xs">Asignado a:</span>
                         <p className="text-text-light font-medium">{ordenDetalle.ideaAsignadoANombre}</p>
-                      </div>
+                    </div>
                     )}
+                    </div>
                   </div>
-                </div>
               </div>
 
               <div>
@@ -265,7 +265,7 @@ const Produccion = () => {
                             {material.funcion && (
                               <p className="text-text-muted text-xs mb-2">{material.funcion}</p>
                             )}
-                          </div>
+              </div>
                           <div className="text-right ml-4">
                             <p className="text-text-light font-semibold text-sm mb-1">
                               {material.cantidadRequerida} {material.unidadRequerida}
@@ -275,11 +275,11 @@ const Produccion = () => {
                                 {material.porcentaje}%
                               </p>
                             )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+            </div>
+          </div>
+        </div>
+                ))}
+              </div>
                 ) : (
                   <p className="text-text-muted text-sm">No hay ingredientes definidos</p>
                 )}
@@ -320,7 +320,7 @@ const Produccion = () => {
                     <span className="material-symbols-outlined align-middle">check_circle</span>
                     Lote generado: {ordenDetalle.loteCodigo}
                   </p>
-                </div>
+              </div>
               )}
             </div>
           </div>

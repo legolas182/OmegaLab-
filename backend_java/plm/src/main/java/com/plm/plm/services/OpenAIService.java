@@ -109,7 +109,7 @@ public class OpenAIService {
             
             requestBody.put("messages", List.of(message));
             requestBody.put("temperature", 0.7);
-            requestBody.put("max_tokens", 3000);
+            requestBody.put("max_tokens", 8000);
 
             // Headers
             HttpHeaders headers = new HttpHeaders();
@@ -173,9 +173,8 @@ public class OpenAIService {
             throw new RuntimeException("No se recibió respuesta válida de OpenAI");
 
         } catch (Exception e) {
-            System.err.println("==========================================");
             System.err.println("ERROR AL LLAMAR A OPENAI");
-            System.err.println("==========================================");
+
             System.err.println("Mensaje: " + e.getMessage());
             System.err.println("Tipo: " + e.getClass().getName());
             e.printStackTrace();
