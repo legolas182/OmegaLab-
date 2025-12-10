@@ -99,9 +99,9 @@ const ChatAssistant = () => {
 
             {/* Ventana de chat */}
             {isOpen && (
-                <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-card-dark border border-border-dark rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
+                <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:w-96 h-full sm:h-[600px] sm:max-h-[90vh] bg-card-dark border-0 sm:border border-border-dark sm:rounded-2xl shadow-2xl flex flex-col z-50 animate-slide-up">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-border-dark bg-gradient-to-r from-accent-blue/10 to-accent-purple/10 rounded-t-2xl">
+                    <div className="flex items-center justify-between p-4 border-b border-border-dark bg-gradient-to-r from-accent-blue/10 to-accent-purple/10 sm:rounded-t-2xl">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-accent-blue to-accent-purple rounded-full flex items-center justify-center">
                                 <span className="material-symbols-outlined text-white text-xl">
@@ -132,19 +132,19 @@ const ChatAssistant = () => {
                                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${message.role === 'user'
-                                            ? 'bg-gradient-to-br from-accent-blue to-accent-purple text-white'
-                                            : message.isError
-                                                ? 'bg-red-500/10 border border-red-500/30 text-red-400'
-                                                : 'bg-surface-dark text-text-light border border-border-dark'
+                                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-2 ${message.role === 'user'
+                                        ? 'bg-gradient-to-br from-accent-blue to-accent-purple text-white'
+                                        : message.isError
+                                            ? 'bg-red-500/10 border border-red-500/30 text-red-400'
+                                            : 'bg-surface-dark text-text-light border border-border-dark'
                                         }`}
                                 >
                                     <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                                     <p className={`text-xs mt-1 ${message.role === 'user'
-                                            ? 'text-white/70'
-                                            : message.isError
-                                                ? 'text-red-400/70'
-                                                : 'text-text-muted'
+                                        ? 'text-white/70'
+                                        : message.isError
+                                            ? 'text-red-400/70'
+                                            : 'text-text-muted'
                                         }`}>
                                         {formatTime(message.timestamp)}
                                     </p>
@@ -169,7 +169,7 @@ const ChatAssistant = () => {
                     </div>
 
                     {/* Input */}
-                    <div className="p-4 border-t border-border-dark">
+                    <div className="p-4 border-t border-border-dark bg-card-dark sm:rounded-b-2xl">
                         <div className="flex gap-2">
                             <input
                                 ref={inputRef}
@@ -179,7 +179,8 @@ const ChatAssistant = () => {
                                 onKeyPress={handleKeyPress}
                                 placeholder="Escribe tu pregunta..."
                                 disabled={isLoading}
-                                className="flex-1 bg-surface-dark border border-border-dark rounded-xl px-4 py-2 text-text-light placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-blue/50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                className="flex-1 bg-surface-dark border border-border-dark rounded-xl px-4 py-2 text-white placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-blue/50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                style={{ color: '#080202ff' }}
                             />
                             <button
                                 onClick={handleSendMessage}
