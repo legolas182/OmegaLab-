@@ -120,28 +120,6 @@ const Trazabilidad = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="p-8 text-center text-text-muted">Cargando lotes...</div>
-      ) : lotes.length > 0 && (
-        <div className="mb-6 rounded-lg bg-card-dark border border-border-dark p-4">
-          <p className="text-text-muted text-sm mb-2">Lotes disponibles:</p>
-          <div className="flex flex-wrap gap-2">
-            {lotes.map((lote) => (
-              <button
-                key={lote.id}
-                onClick={() => {
-                  setLoteId(lote.codigo)
-                  handleBuscarLote()
-                }}
-                className="px-3 py-1 rounded bg-input-dark text-text-light text-sm hover:bg-border-dark"
-              >
-                {lote.codigo}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {trazabilidad && (
         <>
           <div className="rounded-lg bg-card-dark border border-border-dark p-6 mb-6">
