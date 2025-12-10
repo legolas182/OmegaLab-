@@ -6,13 +6,30 @@ import { useNavigate } from 'react-router-dom'
 const ChatAssistant = () => {
     const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false)
-    const [messages, setMessages] = useState([
-        {
+    const [messages, setMessages] = useState(() => {
+        const savedMessages = localStorage.getItem('chat_messages')
+        if (savedMessages) {
+            try {
+                const parsed = JSON.parse(savedMessages)
+                return parsed.map(msg => ({
+                    ...msg,
+                    timestamp: new Date(msg.timestamp)
+                }))
+            } catch (e) {
+                console.error('Error parsing chat messages:', e)
+            }
+        }
+        return [{
             role: 'assistant',
             content: '¡Hola! Soy tu asistente de IA.¿En qué puedo ayudarte?',
             timestamp: new Date()
-        }
-    ])
+        }]
+    })
+
+    // Persistir mensajes
+    useEffect(() => {
+        localStorage.setItem('chat_messages', JSON.stringify(messages))
+    }, [messages])
     const [inputMessage, setInputMessage] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const messagesEndRef = useRef(null)
@@ -27,10 +44,14 @@ const ChatAssistant = () => {
         scrollToBottom()
     }, [messages])
 
-    // Focus en el input cuando se abre el chat
+    // Focus en el input y scroll al fondo cuando se abre el chat
     useEffect(() => {
-        if (isOpen && inputRef.current) {
-            inputRef.current.focus()
+        if (isOpen) {
+            if (inputRef.current) {
+                inputRef.current.focus()
+            }
+            // Asegurar que el scroll baje al abrir
+            setTimeout(scrollToBottom, 100)
         }
     }, [isOpen])
 
