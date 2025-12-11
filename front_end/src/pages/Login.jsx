@@ -67,11 +67,8 @@ const Login = () => {
               {/* Main Title */}
               <div className="flex flex-col items-center gap-3 text-center">
                 <h1 className="text-4xl font-bold text-white leading-tight">
-                  Bienvenido a OMEGA LAB
+                  OMEGA LAB
                 </h1>
-                <p className="text-white/60 text-base">
-                  Sistema PLM/LIMS - Accede a tu espacio de trabajo
-                </p>
               </div>
 
               {/* Login Form */}
@@ -99,10 +96,8 @@ const Login = () => {
                 <label className="flex flex-col">
                   <div className="flex items-baseline justify-between pb-2">
                     <p className="text-sm font-medium text-white/90">Contraseña</p>
-                    <a className="text-sm text-primary hover:underline transition-colors" href="#">
-                      ¿Olvidaste tu contraseña?
-                    </a>
                   </div>
+                  
                   <div className="relative flex w-full items-stretch">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -123,6 +118,9 @@ const Login = () => {
                       </span>
                     </button>
                   </div>
+                  <a className="text-sm text-primary hover:underline transition-colors" href="#">
+                      ¿Olvidaste tu contraseña?
+                    </a>
                 </label>
 
                 {/* Action Buttons */}
@@ -134,7 +132,6 @@ const Login = () => {
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
-                        <span className="animate-spin">⏳</span>
                         Iniciando...
                       </span>
                     ) : (

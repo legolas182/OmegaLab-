@@ -1,5 +1,7 @@
 package com.plm.plm.Enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum EstadoIdea {
     GENERADA("generada"),           // Generada por IA, pendiente revisión
     EN_REVISION("en_revision"),     // SUPERVISOR_QA revisando
@@ -15,6 +17,7 @@ public enum EstadoIdea {
         this.valor = valor;
     }
 
+    @JsonValue
     public String getValor() {
         return valor;
     }

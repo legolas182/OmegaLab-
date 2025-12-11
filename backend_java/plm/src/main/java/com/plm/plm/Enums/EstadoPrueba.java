@@ -1,5 +1,7 @@
 package com.plm.plm.Enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum EstadoPrueba {
     PENDIENTE("pendiente"),
     EN_PROCESO("en_proceso"),
@@ -13,6 +15,7 @@ public enum EstadoPrueba {
         this.valor = valor;
     }
 
+    @JsonValue
     public String getValor() {
         return valor;
     }
