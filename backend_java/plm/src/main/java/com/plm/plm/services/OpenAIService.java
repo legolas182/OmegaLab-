@@ -16,11 +16,11 @@ import java.util.Map;
 @Service
 public class OpenAIService {
 
-    @Value("${openai.api.key:}")
+    @Value("${groq.api.key:}")
     private String apiKey;
 
     private final RestTemplate restTemplate;
-    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
     public OpenAIService() {
         this.restTemplate = new RestTemplate();
@@ -28,7 +28,7 @@ public class OpenAIService {
 
     public String generateIdeaFromProduct(Product product, String objetivo, BOM bom, List<BOMItem> bomItems, List<Material> materialesDisponibles) {
         System.out.println("==========================================");
-        System.out.println("LLAMANDO A API DE OPENAI");
+        System.out.println("LLAMANDO A API DE GROQ AI");
         System.out.println("==========================================");
         System.out.println("Producto ID: " + product.getId());
         System.out.println("Producto: " + product.getNombre());
@@ -101,7 +101,7 @@ public class OpenAIService {
 
             // Preparar la solicitud a OpenAI
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "gpt-4o-mini");
+            requestBody.put("model", "llama-3.3-70b-versatile"); // Modelo de Groq
             
             Map<String, String> message = new HashMap<>();
             message.put("role", "user");
@@ -109,7 +109,7 @@ public class OpenAIService {
             
             requestBody.put("messages", List.of(message));
             requestBody.put("temperature", 0.7);
-            requestBody.put("max_tokens", 3000);
+            requestBody.put("max_tokens", 8000);
 
             // Headers
             HttpHeaders headers = new HttpHeaders();
@@ -118,21 +118,21 @@ public class OpenAIService {
             
             if (apiKey == null || apiKey.isEmpty()) {
                 System.err.println("==========================================");
-                System.err.println("ERROR: API Key de OpenAI no configurada");
+                System.err.println("ERROR: API Key de Groq no configurada");
                 System.err.println("==========================================");
-                System.err.println("Configura la variable de entorno OPENAI_API_KEY o crea application-local.properties");
-                throw new RuntimeException("API Key de OpenAI no configurada. Configura OPENAI_API_KEY como variable de entorno.");
+                System.err.println("Configura groq.api.key en application.properties");
+                throw new RuntimeException("API Key de Groq no configurada. Configura groq.api.key en application.properties.");
             }
             System.out.println("API Key configurada: Sí (longitud: " + apiKey.length() + ")");
-            System.out.println("URL de API: " + OPENAI_API_URL);
-            System.out.println("Enviando solicitud a OpenAI...");
+            System.out.println("URL de API: " + GROQ_API_URL);
+            System.out.println("Enviando solicitud a Groq AI...");
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
             // Llamar a la API
-            System.out.println("Realizando llamada HTTP POST a OpenAI...");
+            System.out.println("Realizando llamada HTTP POST a Groq AI...");
             ResponseEntity<Map> response = restTemplate.exchange(
-                OPENAI_API_URL,
+                GROQ_API_URL,
                 HttpMethod.POST,
                 request,
                 Map.class
@@ -156,7 +156,7 @@ public class OpenAIService {
                         Map<String, Object> firstChoice = choices.get(0);
                         Map<String, Object> messageResponse = (Map<String, Object>) firstChoice.get("message");
                         String content = (String) messageResponse.get("content");
-                        System.out.println("Contenido recibido de OpenAI (primeros 200 caracteres): " + 
+                        System.out.println("Contenido recibido de Groq AI (primeros 200 caracteres): " + 
                             (content != null ? content.substring(0, Math.min(200, content.length())) : "null"));
                         System.out.println("==========================================");
                         return content;
@@ -164,18 +164,17 @@ public class OpenAIService {
                 } else if (responseBody.containsKey("error")) {
                     Map<String, Object> error = (Map<String, Object>) responseBody.get("error");
                     String errorMessage = error != null ? (String) error.get("message") : "Error desconocido";
-                    System.err.println("ERROR de OpenAI: " + errorMessage);
-                    throw new RuntimeException("Error de OpenAI: " + errorMessage);
+                    System.err.println("ERROR de Groq AI: " + errorMessage);
+                    throw new RuntimeException("Error de Groq AI: " + errorMessage);
                 }
             }
 
-            System.err.println("No se recibió respuesta válida de OpenAI");
-            throw new RuntimeException("No se recibió respuesta válida de OpenAI");
+            System.err.println("No se recibió respuesta válida de Groq AI");
+            throw new RuntimeException("No se recibió respuesta válida de Groq AI");
 
         } catch (Exception e) {
-            System.err.println("==========================================");
-            System.err.println("ERROR AL LLAMAR A OPENAI");
-            System.err.println("==========================================");
+            System.err.println("ERROR AL LLAMAR A GROQ AI");
+
             System.err.println("Mensaje: " + e.getMessage());
             System.err.println("Tipo: " + e.getClass().getName());
             e.printStackTrace();
@@ -254,7 +253,7 @@ public class OpenAIService {
             List<com.plm.plm.Models.ChemicalCompound> compoundsFromDB) {
         
         System.out.println("==========================================");
-        System.out.println("LLAMANDO A API DE OPENAI - DESDE MATERIAS PRIMAS");
+        System.out.println("LLAMANDO A API DE GROQ AI - DESDE MATERIAS PRIMAS");
         System.out.println("==========================================");
         System.out.println("Objetivo: " + objetivo);
         System.out.println("Materiales seleccionados: " + (materialIds != null ? materialIds.size() : 0));
@@ -434,11 +433,8 @@ public class OpenAIService {
             promptBuilder.append("4. Optimización: Recomendaciones basadas en evidencia científica para mejorar la fórmula\n");
             promptBuilder.append("5. Consideraciones regulatorias: Cumplimiento con normativas aplicables\n\n");
             
-            promptBuilder.append("IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido y bien formateado. NO uses markdown code blocks (```json).\n");
-            promptBuilder.append("CRÍTICO: Todos los strings dentro del JSON deben tener saltos de línea escapados como \\n, NO uses saltos de línea reales dentro de strings.\n");
-            promptBuilder.append("CRÍTICO: Todas las comillas dentro de strings deben estar escapadas como \\\".\n");
-            promptBuilder.append("CRÍTICO: El JSON debe ser una sola línea o usar \\n para saltos de línea dentro de strings.\n\n");
-            promptBuilder.append("Estructura JSON requerida (CRÍTICO: respeta exactamente esta estructura):\n");
+            promptBuilder.append("IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido. NO uses markdown code blocks. Escapa saltos de línea como \\\\n y comillas como \\\\\". La suma de porcentajes debe ser exactamente 100%.\n\n");
+            promptBuilder.append("Estructura JSON requerida:\n");
             promptBuilder.append("{\n");
             promptBuilder.append("  \"titulo\": \"Título descriptivo de la fórmula\",\n");
             promptBuilder.append("  \"descripcion\": \"Descripción detallada. Usa \\\\n para saltos de línea.\",\n");
@@ -566,7 +562,7 @@ public class OpenAIService {
 
             // Preparar la solicitud a OpenAI
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "gpt-4o-mini");
+            requestBody.put("model", "llama-3.3-70b-versatile"); // Modelo de Groq
             
             Map<String, String> message = new HashMap<>();
             message.put("role", "user");
@@ -582,14 +578,14 @@ public class OpenAIService {
             headers.setBearerAuth(apiKey);
             
             if (apiKey == null || apiKey.isEmpty()) {
-                throw new RuntimeException("API Key de OpenAI no configurada");
+                throw new RuntimeException("API Key de Groq no configurada");
             }
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
             // Llamar a la API
             ResponseEntity<Map> response = restTemplate.exchange(
-                OPENAI_API_URL,
+                GROQ_API_URL,
                 HttpMethod.POST,
                 request,
                 Map.class
@@ -611,26 +607,26 @@ public class OpenAIService {
                     Map<String, Object> messageResponse = (Map<String, Object>) firstChoice.get("message");
                     if (messageResponse != null) {
                         String content = (String) messageResponse.get("content");
-                        System.out.println("Respuesta recibida de OpenAI (desde materias primas)");
+                        System.out.println("Respuesta recibida de Groq AI (desde materias primas)");
                         System.out.println("Longitud de contenido: " + (content != null ? content.length() : 0));
                         System.out.println("Primeros 300 caracteres: " + 
                             (content != null ? content.substring(0, Math.min(300, content.length())) : "null"));
                         
                         if (content == null || content.trim().isEmpty()) {
-                            throw new RuntimeException("La respuesta de OpenAI está vacía");
+                            throw new RuntimeException("La respuesta de Groq AI está vacía");
                         }
                         
                         return content;
                     } else {
-                        throw new RuntimeException("No se encontró 'message' en la respuesta de OpenAI");
+                        throw new RuntimeException("No se encontró 'message' en la respuesta de Groq AI");
                     }
                 } else {
-                    throw new RuntimeException("No se encontraron 'choices' en la respuesta de OpenAI");
+                    throw new RuntimeException("No se encontraron 'choices' en la respuesta de Groq AI");
                 }
             } else {
                 System.err.println("ERROR: Response body no contiene 'choices'");
                 System.err.println("Response body completo: " + responseBody);
-                throw new RuntimeException("No se recibió respuesta válida de OpenAI. Response body: " + responseBody);
+                throw new RuntimeException("No se recibió respuesta válida de Groq AI. Response body: " + responseBody);
             }
 
         } catch (Exception e) {

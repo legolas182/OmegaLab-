@@ -11,8 +11,15 @@ import com.plm.plm.Reposotory.IdeaRepository;
 import com.plm.plm.Reposotory.ProductRepository;
 import com.plm.plm.Reposotory.UserRepository;
 import com.plm.plm.Reposotory.CategoryRepository;
+import com.plm.plm.Reposotory.OrdenProduccionRepository;
+import com.plm.plm.Reposotory.FormulaRepository;
+import com.plm.plm.Models.OrdenProduccion;
+import com.plm.plm.Models.Formula;
+import java.math.BigDecimal;
 import com.plm.plm.dto.IdeaDTO;
 import com.plm.plm.services.IdeaService;
+import com.plm.plm.services.ProduccionService;
+import com.plm.plm.services.FormulaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +42,18 @@ public class IdeaServiceImpl implements IdeaService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private OrdenProduccionRepository ordenProduccionRepository;
+
+    @Autowired
+    private FormulaRepository formulaRepository;
+
+    @Autowired
+    private ProduccionService produccionService;
+
+    @Autowired
+    private FormulaService formulaService;
 
     @Override
     @Transactional
@@ -229,9 +248,40 @@ public class IdeaServiceImpl implements IdeaService {
         User aprobador = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         idea.setAprobador(aprobador);
-        idea.setApprovedAt(LocalDateTime.now());
+        LocalDateTime ahora = LocalDateTime.now();
+        idea.setApprovedAt(ahora);
+        
+        idea = ideaRepository.save(idea);
+        
+        List<Formula> formulasExistentes = formulaRepository.findByIdeaId(idea.getId());
+        if (formulasExistentes.isEmpty()) {
+            formulaService.createFormulaFromIdea(idea.getId(), userId);
+        }
+        
+        List<OrdenProduccion> ordenesExistentes = ordenProduccionRepository.findByIdeaId(idea.getId());
+        OrdenProduccion orden;
+        if (ordenesExistentes.isEmpty()) {
+            orden = new OrdenProduccion();
+            orden.setCodigo("OP-" + idea.getId());
+            orden.setIdea(idea);
+            orden.setCantidad(BigDecimal.valueOf(cantidad));
+            orden.setEstado("EN_PROCESO");
+            orden.setSupervisorCalidad(supervisor);
+            orden.setFechaInicio(ahora);
+            orden = ordenProduccionRepository.save(orden);
+        } else {
+            orden = ordenesExistentes.get(0);
+            orden.setCantidad(BigDecimal.valueOf(cantidad));
+            orden.setSupervisorCalidad(supervisor);
+            orden.setFechaInicio(ahora);
+            orden = ordenProduccionRepository.save(orden);
+        }
+        
+        if (orden.getLote() == null) {
+            produccionService.generarLote(orden.getId(), userId);
+        }
 
-        return ideaRepository.save(idea).getDTO();
+        return idea.getDTO();
     }
 
     private void validateIdeaData(IdeaDTO ideaDTO) {

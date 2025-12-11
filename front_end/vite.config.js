@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Prosience Lab PLM/LIMS',
-        short_name: 'PLM/LIMS',
+        name: 'Omega Lab',
+        short_name: 'Omega Lab',
         description: 'Sistema de gestión integral para nutracéuticos y suplementos dietarios',
         theme_color: '#0f1923',
         background_color: '#0f1923',

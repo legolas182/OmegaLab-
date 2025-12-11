@@ -78,6 +78,9 @@ public class Idea {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+    @Column(name = "cantidad_sugerida", precision = 15, scale = 4)
+    private java.math.BigDecimal cantidadSugerida;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -106,6 +109,7 @@ public class Idea {
         dto.setApprovedBy(aprobador != null ? aprobador.getId() : null);
         dto.setApprovedByName(aprobador != null ? aprobador.getNombre() : null);
         dto.setApprovedAt(approvedAt);
+        dto.setCantidadSugerida(cantidadSugerida != null ? cantidadSugerida.doubleValue() : null);
         dto.setCreatedAt(createdAt);
         dto.setUpdatedAt(updatedAt);
         return dto;

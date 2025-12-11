@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
+import ChatAssistant from './ChatAssistant'
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const location = useLocation()
+  const { user } = useAuth()
 
   return (
     <div className="flex h-screen w-full bg-background-dark overflow-hidden">
@@ -14,6 +17,9 @@ const Layout = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Asistente de IA - Solo para Supervisor de Calidad */}
+      {user?.rol === 'SUPERVISOR_CALIDAD' && <ChatAssistant />}
     </div>
   )
 }

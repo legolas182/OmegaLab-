@@ -1,19 +1,27 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
+import toast from 'react-hot-toast'
 import { hasAnyRole } from '../utils/rolePermissions'
 import pruebaService from '../services/pruebaService'
 import ideaService from '../services/ideaService'
+import produccionService from '../services/produccionService'
+import loteService from '../services/loteService'
 
 const Historial = () => {
   const { user } = useAuth()
   const isAnalista = hasAnyRole(user, 'ANALISTA_LABORATORIO')
   const isSupervisorQA = hasAnyRole(user, 'SUPERVISOR_QA')
+  const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
   const isAdmin = hasAnyRole(user, 'ADMINISTRADOR')
-  
+
   const [pruebas, setPruebas] = useState([])
   const [ideas, setIdeas] = useState([])
+  const [ordenes, setOrdenes] = useState([])
+  const [lotes, setLotes] = useState([])
   const [loadingPruebas, setLoadingPruebas] = useState(false)
   const [loadingIdeas, setLoadingIdeas] = useState(false)
+  const [loadingOrdenes, setLoadingOrdenes] = useState(false)
+  const [loadingLotes, setLoadingLotes] = useState(false)
   const [selectedPrueba, setSelectedPrueba] = useState(null)
   const [selectedIdea, setSelectedIdea] = useState(null)
   const [loadingIdea, setLoadingIdea] = useState(false)
@@ -28,30 +36,30 @@ const Historial = () => {
       // Por ahora, usar el mismo endpoint para todos los roles
       // El backend debería devolver todas las pruebas si el usuario tiene permisos
       const data = await pruebaService.getMisPruebas()
-      
+
       // Filtrar pruebas que deben estar en el historial:
       // 1. Pruebas completadas (COMPLETADA, OOS, RECHAZADA)
       // 2. O pruebas cuya idea asociada esté en estado PRUEBA_APROBADA
       let pruebasCompletadas = data.filter(p => {
-        const pruebaCompletada = p.estado === 'COMPLETADA' || 
-                                 p.estado === 'OOS' || 
-                                 p.estado === 'RECHAZADA'
-        const ideaAprobada = p.ideaEstado === 'PRUEBA_APROBADA'
+        const pruebaCompletada = (p.estado || '').toUpperCase() === 'COMPLETADA' ||
+          (p.estado || '').toUpperCase() === 'OOS' ||
+          (p.estado || '').toUpperCase() === 'RECHAZADA'
+        const ideaAprobada = (p.ideaEstado || '').toLowerCase() === 'prueba_aprobada'
         return pruebaCompletada || ideaAprobada
       })
-      
+
       // Aplicar filtro adicional si está seleccionado
       if (filterEstado !== 'TODAS') {
         pruebasCompletadas = pruebasCompletadas.filter(p => p.estado === filterEstado)
       }
-      
+
       // Ordenar por fecha más reciente primero
       pruebasCompletadas.sort((a, b) => {
         const fechaA = new Date(a.fechaFin || a.fechaMuestreo || a.createdAt || 0)
         const fechaB = new Date(b.fechaFin || b.fechaMuestreo || b.createdAt || 0)
         return fechaB - fechaA
       })
-      
+
       setPruebas(pruebasCompletadas)
     } catch (error) {
       console.error('Error al cargar pruebas:', error)
@@ -66,16 +74,16 @@ const Historial = () => {
       // Cargar todas las fórmulas que han pasado por QA
       // Estados: APROBADA, PRUEBA_APROBADA, EN_PRODUCCION, RECHAZADA
       const data = await ideaService.getIdeas({ estado: '', categoria: '', prioridad: '', search: '' })
-      
+
       // Filtrar fórmulas que han pasado por el proceso de QA
       let formulasQA = data.filter(idea => {
-        const estado = idea.estado || ''
-        return estado === 'APROBADA' || 
-               estado === 'PRUEBA_APROBADA' || 
-               estado === 'EN_PRODUCCION' || 
-               estado === 'RECHAZADA'
+        const estado = (idea.estado || '').toLowerCase()
+        return estado === 'aprobada' ||
+          estado === 'prueba_aprobada' ||
+          estado === 'en_produccion' ||
+          estado === 'rechazada'
       })
-      
+
       // Aplicar filtro por estado si está seleccionado
       if (filterEstado !== 'TODAS') {
         formulasQA = formulasQA.filter(idea => {
@@ -83,14 +91,14 @@ const Historial = () => {
           return estado === filterEstado
         })
       }
-      
+
       // Ordenar por fecha más reciente primero
       formulasQA.sort((a, b) => {
         const fechaA = new Date(a.updatedAt || a.createdAt || 0)
         const fechaB = new Date(b.updatedAt || b.createdAt || 0)
         return fechaB - fechaA
       })
-      
+
       setIdeas(formulasQA)
     } catch (error) {
       console.error('Error al cargar fórmulas:', error)
@@ -99,19 +107,76 @@ const Historial = () => {
     }
   }, [filterEstado])
 
+  const loadOrdenes = useCallback(async () => {
+    setLoadingOrdenes(true)
+    try {
+      const data = await produccionService.getOrdenesProduccion()
+      let ordenesFiltradas = data
+
+      if (filterEstado !== 'TODAS') {
+        ordenesFiltradas = ordenesFiltradas.filter(orden => {
+          const estado = (orden.estado || '').toUpperCase()
+          return estado === filterEstado.toUpperCase()
+        })
+      }
+
+      ordenesFiltradas.sort((a, b) => {
+        const fechaA = new Date(a.createdAt || a.fechaInicio || 0)
+        const fechaB = new Date(b.createdAt || b.fechaInicio || 0)
+        return fechaB - fechaA
+      })
+
+      setOrdenes(ordenesFiltradas)
+    } catch (error) {
+      console.error('Error al cargar órdenes:', error)
+    } finally {
+      setLoadingOrdenes(false)
+    }
+  }, [filterEstado])
+
+  const loadLotes = useCallback(async () => {
+    setLoadingLotes(true)
+    try {
+      const data = await loteService.getAllLotes()
+      let lotesFiltrados = data
+
+      if (filterEstado !== 'TODAS') {
+        lotesFiltrados = lotesFiltrados.filter(lote => {
+          const estado = (lote.estado || '').toUpperCase()
+          return estado === filterEstado.toUpperCase()
+        })
+      }
+
+      lotesFiltrados.sort((a, b) => {
+        const fechaA = new Date(a.fechaCreacion || a.createdAt || 0)
+        const fechaB = new Date(b.fechaCreacion || b.createdAt || 0)
+        return fechaB - fechaA
+      })
+
+      setLotes(lotesFiltrados)
+    } catch (error) {
+      console.error('Error al cargar lotes:', error)
+    } finally {
+      setLoadingLotes(false)
+    }
+  }, [filterEstado])
+
   useEffect(() => {
     if (isAnalista) {
       loadPruebas()
+    } else if (isSupervisorCalidad) {
+      loadOrdenes()
+      loadLotes()
     } else {
       loadFormulas()
     }
-  }, [isAnalista, loadPruebas, loadFormulas])
+  }, [isAnalista, isSupervisorCalidad, loadPruebas, loadFormulas, loadOrdenes, loadLotes])
 
   const handleVerDetalles = async (pruebaId) => {
     try {
       const prueba = await pruebaService.getPruebaById(pruebaId)
       setSelectedPrueba(prueba)
-      
+
       // Cargar la idea asociada si existe para obtener el BOM modificado
       if (prueba.ideaId) {
         setLoadingIdea(true)
@@ -127,11 +192,11 @@ const Historial = () => {
       } else {
         setSelectedIdea(null)
       }
-      
+
       setShowDetailsModal(true)
     } catch (error) {
       console.error('Error al cargar prueba:', error)
-      alert('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -146,7 +211,7 @@ const Historial = () => {
 
   const handleEnviarASupervisor = async (prueba) => {
     if (!prueba.ideaId) {
-      alert('Esta prueba no está asociada a una idea')
+      toast.error('Esta prueba no está asociada a una idea')
       return
     }
 
@@ -157,11 +222,14 @@ const Historial = () => {
     try {
       // Cambiar el estado de la idea a EN_REVISION para que el supervisor pueda revisarla
       await ideaService.changeEstado(prueba.ideaId, 'en_revision')
-      alert('Prueba enviada al Supervisor QA exitosamente')
+      toast.success('Prueba enviada al Supervisor QA exitosamente', {
+        duration: 5000,
+        icon: '✅',
+      })
       loadPruebas() // Recargar para actualizar la lista
     } catch (error) {
       console.error('Error al enviar al supervisor:', error)
-      alert('Error al enviar al supervisor: ' + (error.message || 'Error desconocido'))
+      toast.error('Error al enviar al supervisor: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -222,7 +290,7 @@ const Historial = () => {
   }
 
   // Calcular paginación
-  const currentData = isAnalista ? pruebas : ideas
+  const currentData = isAnalista ? pruebas : isSupervisorCalidad ? ordenes : ideas
   const totalPages = Math.ceil(currentData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
@@ -238,7 +306,7 @@ const Historial = () => {
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-text-light">
-            {isAnalista ? 'Historial de Pruebas' : 'Historial de QA'}
+            {isAnalista ? 'Historial de Pruebas' : isSupervisorCalidad ? 'Historial de Producción' : 'Historial de QA'}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -255,6 +323,12 @@ const Historial = () => {
                 <option value="OOS">OOS</option>
                 <option value="RECHAZADA">Rechazadas</option>
               </>
+            ) : isSupervisorCalidad ? (
+              <>
+                <option value="EN_PROCESO">En Proceso</option>
+                <option value="EN_PRODUCCION">En Producción</option>
+                <option value="COMPLETADO">Completado</option>
+              </>
             ) : (
               <>
                 <option value="APROBADA">Aprobadas</option>
@@ -267,8 +341,139 @@ const Historial = () => {
         </div>
       </div>
 
+      {/* Lista de Órdenes de Producción (para Supervisor Calidad) */}
+      {isSupervisorCalidad && (
+        <div className="flex-1 flex flex-col bg-card-dark rounded-lg border border-border-dark overflow-hidden min-h-0 max-h-full">
+          {loadingOrdenes ? (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-text-muted text-sm">Cargando...</p>
+            </div>
+          ) : ordenes.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <span className="material-symbols-outlined text-text-muted text-4xl mb-2">inbox</span>
+                <p className="text-text-muted text-sm">No hay órdenes de producción en el historial</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex-1 overflow-auto min-h-0">
+                <table className="w-full">
+                  <thead className="bg-input-dark/50 border-b border-border-dark sticky top-0 z-10">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Código</th>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Título</th>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Cantidad</th>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Estado</th>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Supervisor</th>
+                      <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Fecha</th>
+                      <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Lote</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-dark">
+                    {paginatedData.map((orden) => (
+                      <tr
+                        key={orden.id}
+                        className="hover:bg-input-dark/30 transition-colors"
+                      >
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-light text-xs font-medium">{orden.codigo}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs truncate block max-w-[200px]" title={orden.ideaTitulo || '-'}>
+                            {orden.ideaTitulo || '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-light text-xs">{orden.cantidad} unidades</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${orden.estado === 'EN_PROCESO' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                              orden.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary border-primary/30' :
+                                'bg-success/20 text-success border-success/30'
+                            }`}>
+                            {orden.estado === 'EN_PROCESO' ? 'En Proceso' :
+                              orden.estado === 'EN_PRODUCCION' ? 'En Producción' : orden.estado}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">{orden.supervisorCalidadNombre || '-'}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">
+                            {orden.fechaInicio
+                              ? new Date(orden.fechaInicio).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                              : orden.createdAt
+                                ? new Date(orden.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                : '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-light text-xs">{orden.loteCodigo || '-'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border-dark bg-input-dark/30 flex-shrink-0">
+                  <div className="text-text-muted text-xs">
+                    Mostrando {startIndex + 1} - {Math.min(endIndex, currentData.length)} de {currentData.length}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
+                      Anterior
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        if (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
+                                  ? 'bg-primary text-white'
+                                  : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
+                                }`}
+                            >
+                              {page}
+                            </button>
+                          )
+                        } else if (page === currentPage - 2 || page === currentPage + 2) {
+                          return <span key={page} className="text-text-muted text-xs">...</span>
+                        }
+                        return null
+                      })}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                      Siguiente
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {/* Lista de Fórmulas (para Supervisor QA y Admin) */}
-      {!isAnalista && (
+      {!isAnalista && !isSupervisorCalidad && (
         <div className="flex-1 flex flex-col bg-card-dark rounded-lg border border-border-dark overflow-hidden min-h-0 max-h-full">
           {loadingIdeas ? (
             <div className="flex-1 flex items-center justify-center">
@@ -297,59 +502,59 @@ const Historial = () => {
                   </thead>
                   <tbody className="divide-y divide-border-dark">
                     {paginatedData.map((idea) => (
-                    <tr
-                      key={idea.id}
-                      className="hover:bg-input-dark/30 transition-colors"
-                    >
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-light text-xs font-medium">{idea.titulo}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-muted text-xs truncate block max-w-[200px]" title={idea.objetivo || '-'}>
-                          {idea.objetivo || '-'}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getIdeaEstadoColor(idea.estado)}`}>
-                          {getIdeaEstadoLabel(idea.estado)}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-muted text-xs">{idea.createdByName || '-'}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-muted text-xs">
-                          {idea.updatedAt
-                            ? new Date(idea.updatedAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                            : idea.createdAt
-                            ? new Date(idea.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                            : '-'}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={async () => {
-                              try {
-                                const ideaCompleta = await ideaService.getIdeaById(idea.id)
-                                setSelectedIdea(ideaCompleta)
-                                setShowDetailsModal(true)
-                              } catch (error) {
-                                console.error('Error al cargar idea:', error)
-                                alert('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
-                              }
-                            }}
-                            className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                            title="Ver detalles"
-                          >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      <tr
+                        key={idea.id}
+                        className="hover:bg-input-dark/30 transition-colors"
+                      >
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-light text-xs font-medium">{idea.titulo}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs truncate block max-w-[200px]" title={idea.objetivo || '-'}>
+                            {idea.objetivo || '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getIdeaEstadoColor(idea.estado)}`}>
+                            {getIdeaEstadoLabel(idea.estado)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">{idea.createdByName || '-'}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">
+                            {idea.updatedAt
+                              ? new Date(idea.updatedAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                              : idea.createdAt
+                                ? new Date(idea.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                : '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const ideaCompleta = await ideaService.getIdeaById(idea.id)
+                                  setSelectedIdea(ideaCompleta)
+                                  setShowDetailsModal(true)
+                                } catch (error) {
+                                  console.error('Error al cargar idea:', error)
+                                  toast.error('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
+                                }
+                              }}
+                              className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                              title="Ver detalles"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
               {/* Paginación */}
               {totalPages > 1 && (
@@ -377,11 +582,10 @@ const Historial = () => {
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                                currentPage === page
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
                                   ? 'bg-primary text-white'
                                   : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
-                              }`}
+                                }`}
                             >
                               {page}
                             </button>
@@ -438,54 +642,54 @@ const Historial = () => {
                   </thead>
                   <tbody className="divide-y divide-border-dark">
                     {paginatedData.map((prueba) => (
-                    <tr
-                      key={prueba.id}
-                      className="hover:bg-input-dark/30 transition-colors"
-                    >
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-light text-xs font-medium">{prueba.codigoMuestra}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-muted text-xs">{prueba.tipoPrueba}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {prueba.ideaTitulo ? (
-                          <span className="text-text-muted text-xs truncate block max-w-[200px]" title={prueba.ideaTitulo}>
-                            {prueba.ideaTitulo}
+                      <tr
+                        key={prueba.id}
+                        className="hover:bg-input-dark/30 transition-colors"
+                      >
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-light text-xs font-medium">{prueba.codigoMuestra}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">{prueba.tipoPrueba}</span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {prueba.ideaTitulo ? (
+                            <span className="text-text-muted text-xs truncate block max-w-[200px]" title={prueba.ideaTitulo}>
+                              {prueba.ideaTitulo}
+                            </span>
+                          ) : (
+                            <span className="text-text-muted/50 text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getEstadoColor(prueba.estado)}`}>
+                            {getEstadoLabel(prueba.estado)}
                           </span>
-                        ) : (
-                          <span className="text-text-muted/50 text-xs">-</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getEstadoColor(prueba.estado)}`}>
-                          {getEstadoLabel(prueba.estado)}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-muted text-xs">
-                          {prueba.fechaFin
-                            ? new Date(prueba.fechaFin).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                            : prueba.fechaMuestreo
-                            ? new Date(prueba.fechaMuestreo).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                            : '-'}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleVerDetalles(prueba.id)}
-                            className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                            title="Ver detalles"
-                          >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="text-text-muted text-xs">
+                            {prueba.fechaFin
+                              ? new Date(prueba.fechaFin).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                              : prueba.fechaMuestreo
+                                ? new Date(prueba.fechaMuestreo).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                : '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleVerDetalles(prueba.id)}
+                              className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                              title="Ver detalles"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
               {/* Paginación */}
               {totalPages > 1 && (
@@ -513,11 +717,10 @@ const Historial = () => {
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                                currentPage === page
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
                                   ? 'bg-primary text-white'
                                   : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
-                              }`}
+                                }`}
                             >
                               {page}
                             </button>
@@ -715,10 +918,10 @@ const Historial = () => {
                 <div>
                   <p className="text-text-muted text-xs mb-1">Fecha de Finalización</p>
                   <p className="text-text-light text-sm">
-                    {new Date(selectedPrueba.fechaFin).toLocaleDateString('es-ES', { 
-                      day: '2-digit', 
-                      month: 'long', 
-                      year: 'numeric' 
+                    {new Date(selectedPrueba.fechaFin).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
                     })}
                   </p>
                 </div>
@@ -735,11 +938,10 @@ const Historial = () => {
                     {selectedPrueba.resultados.map((result) => (
                       <div
                         key={result.id}
-                        className={`p-3 rounded-lg border ${
-                          result.cumpleEspecificacion === false
+                        className={`p-3 rounded-lg border ${result.cumpleEspecificacion === false
                             ? 'bg-danger/10 border-danger/30'
                             : 'bg-success/10 border-success/30'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -757,11 +959,10 @@ const Historial = () => {
                             )}
                           </div>
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              result.cumpleEspecificacion === false
+                            className={`px-2 py-1 rounded text-xs font-medium ${result.cumpleEspecificacion === false
                                 ? 'bg-danger/20 text-danger'
                                 : 'bg-success/20 text-success'
-                            }`}
+                              }`}
                           >
                             {result.cumpleEspecificacion === false ? 'OOS' : 'Cumple'}
                           </span>
@@ -828,7 +1029,7 @@ const Historial = () => {
               })()}
 
               <div className="flex justify-end gap-3 pt-4 border-t border-border-dark">
-                {selectedPrueba.ideaId && selectedPrueba.ideaEstado === 'PRUEBA_APROBADA' && (
+                {selectedPrueba.ideaId && (selectedPrueba.ideaEstado || '').toLowerCase() === 'prueba_aprobada' && (
                   <button
                     onClick={() => handleEnviarASupervisor(selectedPrueba)}
                     className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 flex items-center gap-2"
