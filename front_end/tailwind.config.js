@@ -19,7 +19,10 @@ export default {
         "success": "#0bda5b",
         "warning": "#ffa726",
         "danger": "#fa6238",
-        "info": "#29b6f6"
+        "info": "#29b6f6",
+        "accent-blue": "#2563eb",
+        "accent-purple": "#7c3aed",
+        "surface-dark": "var(--bg-input)"
       },
       fontFamily: {
         "display": ["Inter", "sans-serif"]
