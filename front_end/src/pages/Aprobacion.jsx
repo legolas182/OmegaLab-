@@ -1065,10 +1065,10 @@ const Aprobacion = () => {
                               <p className="text-text-muted text-sm mt-1">{prueba.descripcion}</p>
                             )}
                           </div>
-                          <span className={`px-3 py-1 rounded text-sm font-medium ${(prueba.estado || '').toLowerCase() === 'completada' ? 'bg-success/20 text-success' :
-                            (prueba.estado || '').toLowerCase() === 'oos' ? 'bg-danger/20 text-danger' :
-                              (prueba.estado || '').toLowerCase() === 'rechazada' ? 'bg-danger/20 text-danger' :
-                                'bg-warning/20 text-warning'
+                          <span className={`px-3 py-1 rounded text-sm font-medium ${(prueba.estado || '').toLowerCase() === 'completada' ? 'badge-success bg-success/20 text-success' :
+                            (prueba.estado || '').toLowerCase() === 'oos' ? 'badge-danger bg-danger/20 text-danger' :
+                              (prueba.estado || '').toLowerCase() === 'rechazada' ? 'badge-danger bg-danger/20 text-danger' :
+                                'badge-warning bg-warning/20 text-warning'
                             }`}>
                             {prueba.estado}
                           </span>
@@ -1104,8 +1104,8 @@ const Aprobacion = () => {
                                       )}
                                     </div>
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${resultado.cumpleEspecificacion === false
-                                      ? 'bg-danger/20 text-danger'
-                                      : 'bg-success/20 text-success'
+                                      ? 'badge-danger bg-danger/20 text-danger'
+                                      : 'badge-success bg-success/20 text-success'
                                       }`}>
                                       {resultado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
                                     </span>

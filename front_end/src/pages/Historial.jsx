@@ -241,13 +241,13 @@ const Historial = () => {
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'COMPLETADA':
-        return 'bg-success/20 text-success border-success/30'
+        return 'badge-success bg-success/20 text-success border border-success/30'
       case 'OOS':
-        return 'bg-danger/20 text-danger border-danger/30'
+        return 'badge-danger bg-danger/20 text-danger border border-danger/30'
       case 'RECHAZADA':
-        return 'bg-warning/20 text-warning border-warning/30'
+        return 'badge-warning bg-warning/20 text-warning border border-warning/30'
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+        return 'badge-gray bg-gray-500/20 text-gray-400 border border-gray-500/30'
     }
   }
 
@@ -400,7 +400,7 @@ const Historial = () => {
                         <td className="px-3 py-2.5">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${orden.estado === 'EN_PROCESO' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
                               orden.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary border-primary/30' :
-                                'bg-success/20 text-success border-success/30'
+                                'badge-success bg-success/20 text-success border-success/30'
                             }`}>
                             {orden.estado === 'EN_PROCESO' ? 'En Proceso' :
                               orden.estado === 'EN_PRODUCCION' ? 'En Producción' : orden.estado}
@@ -970,8 +970,8 @@ const Historial = () => {
                           </div>
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${result.cumpleEspecificacion === false
-                                ? 'bg-danger/20 text-danger'
-                                : 'bg-success/20 text-success'
+                                ? 'badge-danger bg-danger/20 text-danger'
+                                : 'badge-success bg-success/20 text-success'
                               }`}
                           >
                             {result.cumpleEspecificacion === false ? 'OOS' : 'Cumple'}
@@ -1042,7 +1042,7 @@ const Historial = () => {
                 {selectedPrueba.ideaId && (selectedPrueba.ideaEstado || '').toLowerCase() === 'prueba_aprobada' && (
                   <button
                     onClick={() => handleEnviarASupervisor(selectedPrueba)}
-                    className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 flex items-center gap-2"
+                    className="btn-enviar-supervisor px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">send</span>
                     Enviar a Supervisor QA

@@ -83,14 +83,22 @@ body {
 [data-theme="light"] .badge-success {
   background-color: #bbf7d0 !important;
   color: #166534 !important;
+  border-color: #86efac !important;
 }
 [data-theme="light"] .badge-warning {
   background-color: #fed7aa !important;
   color: #9a3412 !important;
+  border-color: #fdba74 !important;
 }
 [data-theme="light"] .badge-danger {
   background-color: #fecaca !important;
   color: #991b1b !important;
+  border-color: #f87171 !important;
+}
+[data-theme="light"] .badge-gray {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+  border-color: #94a3b8 !important;
 }
 
 /* Estados globales (incluye fórmulas creadas) */
@@ -160,6 +168,17 @@ body {
   background-color: #fecaca !important;
   border-color: #f87171 !important;
   color: #991b1b !important;
+}
+
+/* Botón Enviar a Supervisor QA - mejor contraste en modo claro */
+[data-theme="light"] .btn-enviar-supervisor {
+  background-color: #a7f3d0 !important;
+  color: #065f46 !important;
+  border: 1px solid #6ee7b7 !important;
+}
+[data-theme="light"] .btn-enviar-supervisor:hover {
+  background-color: #6ee7b7 !important;
+  color: #064e3b !important;
 }
 
 /* Animación del chatbot */

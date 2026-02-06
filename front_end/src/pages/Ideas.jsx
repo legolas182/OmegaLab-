@@ -1449,11 +1449,11 @@ const Ideas = () => {
                               </p>
                             )}
                           </div>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${(prueba.estado || '').toLowerCase() === 'pendiente' ? 'bg-warning/20 text-warning' :
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${(prueba.estado || '').toLowerCase() === 'pendiente' ? 'badge-warning bg-warning/20 text-warning' :
                             (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'bg-primary/20 text-primary' :
-                              (prueba.estado || '').toLowerCase() === 'completada' ? 'bg-success/20 text-success' :
-                                (prueba.estado || '').toLowerCase() === 'oos' ? 'bg-danger/20 text-danger' :
-                                  'bg-gray-500/20 text-gray-400'
+                              (prueba.estado || '').toLowerCase() === 'completada' ? 'badge-success bg-success/20 text-success' :
+                                (prueba.estado || '').toLowerCase() === 'oos' ? 'badge-danger bg-danger/20 text-danger' :
+                                  'badge-gray bg-gray-500/20 text-gray-400'
                             }`}>
                             {(prueba.estado || '').toLowerCase() === 'pendiente' ? 'Pendiente' :
                               (prueba.estado || '').toLowerCase() === 'en_proceso' ? 'En Proceso' :
