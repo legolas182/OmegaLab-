@@ -35,12 +35,9 @@ jwt.header=Authorization
 jwt.prefix=Bearer 
 
 # ============================================
-# Configuración de OpenAI/ChatGPT
+# Configuración de GROQ api
 # ============================================
-# IMPORTANTE: Agrega tu API key de OpenAI aquí
-# O configura la variable de entorno OPENAI_API_KEY
-# Obtén tu API key en: https://platform.openai.com/api-keys
-openai.api.key=${OPENAI_API_KEY:tu_api_key_de_openai_aqui}
+groq.api.key=${OPENAI_API_KEY:tu_api_key_de_openai_aqui}
 
 # ============================================
 # Configuración de Logging
