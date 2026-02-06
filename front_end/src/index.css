@@ -35,6 +35,10 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 20px;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -73,4 +77,44 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
+}
+
+/* Badges - mejor contraste en modo claro */
+[data-theme="light"] .badge-success {
+  background-color: #bbf7d0 !important;
+  color: #166534 !important;
+}
+[data-theme="light"] .badge-warning {
+  background-color: #fed7aa !important;
+  color: #9a3412 !important;
+}
+[data-theme="light"] .badge-danger {
+  background-color: #fecaca !important;
+  color: #991b1b !important;
+}
+
+/* Estados globales (incluye fórmulas creadas) */
+[data-theme="light"] .bg-success\/20.text-success {
+  background-color: #bbf7d0 !important;
+  color: #166534 !important;
+}
+[data-theme="light"] .bg-warning\/20.text-warning {
+  background-color: #fed7aa !important;
+  color: #9a3412 !important;
+}
+[data-theme="light"] .bg-danger\/20.text-danger {
+  background-color: #fecaca !important;
+  color: #991b1b !important;
+}
+
+/* Materias primas seleccionadas por IA - mejor contraste en modo claro */
+[data-theme="light"] .badge-ia-material {
+  background-color: #bbf7d0 !important;
+  color: #166534 !important;
+  border-color: #86efac !important;
+}
+[data-theme="light"] .badge-ia-source {
+  background-color: #e9d5ff !important;
+  color: #6b21a8 !important;
+  border-color: #d8b4fe !important;
 }

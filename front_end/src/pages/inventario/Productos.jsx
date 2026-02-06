@@ -529,14 +529,14 @@ const Productos = () => {
                   <h3 className="text-text-light font-semibold">Lista de Materiales (BOM)</h3>
                   {bom ? (
                     <div className="flex gap-2 items-center">
-                      <span className={`px-2 py-1 rounded text-xs ${bom.estado === 'APROBADO' ? 'bg-success/20 text-success' :
-                        bom.estado === 'BORRADOR' ? 'bg-warning/20 text-warning' :
+                      <span className={`px-2 py-1 rounded text-xs ${bom.estado === 'APROBADO' ? 'bg-success/20 text-success badge-success' :
+                        bom.estado === 'BORRADOR' ? 'bg-warning/20 text-warning badge-warning' :
                           'bg-text-muted/20 text-text-muted'
                         }`}>
                         {bom.version} - {bom.estado}
                       </span>
                       {bomValidation && (
-                        <span className={`px-2 py-1 rounded text-xs ${bomValidation.valido ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
+                        <span className={`px-2 py-1 rounded text-xs ${bomValidation.valido ? 'bg-success/20 text-success badge-success' : 'bg-danger/20 text-danger badge-danger'
                           }`}>
                           {bomValidation.valido ? '✓ Válido' : '✗ Inválido'}
                         </span>

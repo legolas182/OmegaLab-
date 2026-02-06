@@ -643,7 +643,7 @@ const Ideas = () => {
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {aiDetails.materialesSeleccionados.map((materialId, idx) => (
-                                  <span key={idx} className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30">
+                                  <span key={idx} className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30 badge-ia-material">
                                     ID: {materialId}
                                   </span>
                                 ))}
@@ -690,7 +690,7 @@ const Ideas = () => {
                                     <div className="flex items-start justify-between mb-2">
                                       <h5 className="text-text-light font-semibold text-base">{compuesto.nombre || 'Compuesto'}</h5>
                                       {(compuesto.fuente || compuesto.source) && (
-                                        <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-400 text-xs">
+                                        <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-400 text-xs badge-ia-source">
                                           {compuesto.fuente || compuesto.source}
                                         </span>
                                       )}

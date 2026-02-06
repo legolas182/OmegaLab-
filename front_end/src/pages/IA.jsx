@@ -245,8 +245,8 @@ const IA = () => {
             <div className="flex items-start gap-3">
               <span className="material-symbols-outlined text-blue-400 text-xl">info</span>
               <div className="flex-1">
-                <p className="text-text-light text-sm font-medium mb-1">¿Cómo funciona la selección automática?</p>
-                <ul className="text-text-muted text-xs space-y-1 list-disc list-inside">
+                <p className="text-text-light text-lg font-medium mb-2">¿Cómo funciona la selección automática?</p>
+                <ul className="text-text-muted text-base space-y-2 list-disc list-inside">
                   <li>La IA analiza el inventario completo de materias primas</li>
                   <li>Selecciona automáticamente las más adecuadas para tu objetivo</li>
                   <li>Sugiere nuevos compuestos de bases de datos externas si son necesarios</li>
