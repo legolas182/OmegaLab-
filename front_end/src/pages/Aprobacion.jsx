@@ -48,9 +48,9 @@ const Aprobacion = () => {
   const loadFormulas = async () => {
     setLoadingFormulas(true)
     try {
-      // En Aprobación / QA mostramos ideas que ya fueron enviadas al SUPERVISOR_QA,
-      // es decir, las que están en estado EN_REVISION según el flujo de estados del backend.
-      const data = await ideaService.getIdeas({ estado: 'en_revision', categoria: '', prioridad: '', search: '' })
+      // En Aprobación / QA mostramos ideas que ya han pasado todas las pruebas
+      // de laboratorio y están listas para producción: estado PRUEBA_APROBADA.
+      const data = await ideaService.getIdeas({ estado: 'prueba_aprobada', categoria: '', prioridad: '', search: '' })
       if (data.length > 0) {
         console.log('📋 Aprobación: Primera idea:', data[0])
       }

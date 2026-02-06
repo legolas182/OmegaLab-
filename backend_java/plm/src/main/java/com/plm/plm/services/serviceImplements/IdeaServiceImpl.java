@@ -221,8 +221,12 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = ideaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Idea no encontrada"));
 
-        // Validar que la idea esté en estado PRUEBA_APROBADA
-        if (idea.getEstado() != EstadoIdea.PRUEBA_APROBADA) {
+        // Validar que la idea esté en un estado coherente con haber pasado pruebas.
+        // Flujo principal: PRUEBA_APROBADA. Flujo histórico/legacy: algunas ideas pueden
+        // haber quedado en EN_REVISION pero con pruebas completadas; las permitimos
+        // para no bloquear confirmaciones válidas.
+        if (idea.getEstado() != EstadoIdea.PRUEBA_APROBADA
+                && idea.getEstado() != EstadoIdea.EN_REVISION) {
             throw new BadRequestException("Solo se pueden confirmar para producción las fórmulas que han pasado las pruebas");
         }
 

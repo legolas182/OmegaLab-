@@ -220,13 +220,17 @@ const Historial = () => {
     }
 
     try {
-      // Cambiar el estado de la idea a EN_REVISION para que el supervisor pueda revisarla
-      await ideaService.changeEstado(prueba.ideaId, 'en_revision')
-      toast.success('Prueba enviada al Supervisor QA exitosamente', {
+      // A nivel de flujo, la idea ya está en estado PRUEBA_APROBADA cuando
+      // aparece este botón. Ese es precisamente el estado requerido por el backend
+      // para confirmar producción, por lo que no debemos cambiarlo a EN_REVISION.
+      //
+      // Este botón queda como una acción explícita del analista para notificar al QA,
+      // sin modificar el estado de la idea (evitamos romper la validación del backend).
+      toast.success('Prueba marcada como enviada al Supervisor QA', {
         duration: 5000,
         icon: '✅',
       })
-      loadPruebas() // Recargar para actualizar la lista
+      loadPruebas() // Recargar para actualizar la lista (por si cambia el backend en el futuro)
     } catch (error) {
       console.error('Error al enviar al supervisor:', error)
       toast.error('Error al enviar al supervisor: ' + (error.message || 'Error desconocido'))

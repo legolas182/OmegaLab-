@@ -23,25 +23,30 @@ const Dashboard = () => {
   const isSupervisorCalidad = hasAnyRole(user, 'SUPERVISOR_CALIDAD')
   const isAnalistaLab = hasAnyRole(user, 'ANALISTA_LABORATORIO')
 
-  const userRole = isAdmin ? 'ADMINISTRADOR' :
-    isSupervisorQA ? 'SUPERVISOR_QA' :
-      isSupervisorCalidad ? 'SUPERVISOR_CALIDAD' :
-        isAnalistaLab ? 'ANALISTA_LABORATORIO' : null
+  // Solo ADMIN puede ver el dashboard.
+  // Para el resto de roles, redirigimos a su vista principal.
+  useEffect(() => {
+    if (!isAdmin) {
+      if (isAnalistaLab) {
+        navigate('/pruebas', { replace: true })
+      } else if (isSupervisorQA) {
+        navigate('/aprobacion', { replace: true })
+      } else if (isSupervisorCalidad) {
+        navigate('/produccion', { replace: true })
+      } else {
+        navigate('/historial', { replace: true })
+      }
+    }
+  }, [isAdmin, isAnalistaLab, isSupervisorQA, isSupervisorCalidad, navigate])
+
+  const userRole = isAdmin ? 'ADMINISTRADOR' : null
 
   const getDashboardTitle = () => {
-    if (isAdmin) return 'Dashboard Administrativo'
-    if (isSupervisorQA) return 'Dashboard Supervisor QA'
-    if (isSupervisorCalidad) return 'Dashboard Supervisor Calidad'
-    if (isAnalistaLab) return 'Dashboard Analista de Laboratorio'
-    return 'Dashboard'
+    return 'Dashboard Administrativo'
   }
 
   const getDashboardDescription = () => {
-    if (isAdmin) return 'Vista completa del sistema y gestión administrativa'
-    if (isSupervisorQA) return 'Vista consolidada de QA, fórmulas y cumplimiento BPM'
-    if (isSupervisorCalidad) return 'Gestión de materias primas, análisis y trazabilidad'
-    if (isAnalistaLab) return 'Ideas asignadas para pruebas de laboratorio'
-    return 'Vista consolidada del estado operativo'
+    return 'Vista completa del sistema y gestión administrativa'
   }
 
   useEffect(() => {

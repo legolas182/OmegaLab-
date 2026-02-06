@@ -509,14 +509,6 @@ const Pruebas = () => {
                 {(selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
                   <>
                     <button
-                      onClick={() => handleChangeEstado('completada')}
-                      disabled={updatingEstado}
-                      className="px-4 py-2 rounded-lg bg-success text-white text-sm font-medium hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">check_circle</span>
-                      Completar Prueba
-                    </button>
-                    <button
                       onClick={() => handleChangeEstado('oos')}
                       disabled={updatingEstado}
                       className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
