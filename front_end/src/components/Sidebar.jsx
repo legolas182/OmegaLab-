@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { getRoleName, hasAnyRole } from '../utils/rolePermissions'
 
 const Sidebar = ({ isOpen, onToggle, currentPath }) => {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   const handleLogout = () => {
     logout()
@@ -91,6 +93,14 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
 
             {/* Footer Actions */}
             <div className="flex flex-col gap-2">
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-muted hover:bg-border-dark/50 transition-colors"
+                title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              >
+                <span className="material-symbols-outlined">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+                <p className="text-sm font-medium leading-normal">{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</p>
+              </button>
               <button className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-muted hover:bg-border-dark/50 transition-colors">
                 <span className="material-symbols-outlined">help_outline</span>
                 <p className="text-sm font-medium leading-normal">Ayuda</p>
@@ -175,6 +185,14 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
               )}
 
               <div className="flex flex-col gap-2">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-muted hover:bg-border-dark/50 transition-colors"
+                  title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                >
+                  <span className="material-symbols-outlined">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+                  <p className="text-sm font-medium leading-normal">{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</p>
+                </button>
                 <button className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-muted hover:bg-border-dark/50 transition-colors">
                   <span className="material-symbols-outlined">help_outline</span>
                   <p className="text-sm font-medium leading-normal">Ayuda</p>
