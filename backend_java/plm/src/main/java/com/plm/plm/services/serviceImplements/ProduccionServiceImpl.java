@@ -1,6 +1,6 @@
 package com.plm.plm.services.serviceImplements;
 
-import com.plm.plm.Config.Exception.BadRequestException;
+import com.plm.plm.Config.exception.BadRequestException;
 import com.plm.plm.Config.exception.ResourceNotFoundException;
 import com.plm.plm.Enums.EstadoFormula;
 import com.plm.plm.Enums.EstadoIdea;
@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProduccionServiceImpl implements ProduccionService {
-
-    @Autowired
-    private IdeaRepository ideaRepository;
 
     @Autowired
     private OrdenProduccionRepository ordenProduccionRepository;

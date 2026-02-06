@@ -1,7 +1,7 @@
 package com.plm.plm.services.serviceImplements;
 
-import com.plm.plm.Config.Exception.BadRequestException;
-import com.plm.plm.Config.Exception.DuplicateResourceException;
+import com.plm.plm.Config.exception.BadRequestException;
+import com.plm.plm.Config.exception.DuplicateResourceException;
 import com.plm.plm.Config.exception.ResourceNotFoundException;
 import com.plm.plm.Enums.EstadoUsuario;
 import com.plm.plm.Enums.TipoProducto;

@@ -1,4 +1,4 @@
-package com.plm.plm.Config.Exception;
+package com.plm.plm.Config.exception;
 
 /**
  * Excepción lanzada cuando se intenta crear un recurso que ya existe.

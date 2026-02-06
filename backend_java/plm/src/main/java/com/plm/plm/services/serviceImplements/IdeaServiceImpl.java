@@ -1,6 +1,6 @@
 package com.plm.plm.services.serviceImplements;
 
-import com.plm.plm.Config.Exception.BadRequestException;
+import com.plm.plm.Config.exception.BadRequestException;
 import com.plm.plm.Config.exception.ResourceNotFoundException;
 import com.plm.plm.Enums.EstadoIdea;
 import com.plm.plm.Models.Idea;

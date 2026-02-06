@@ -1,4 +1,4 @@
-package com.plm.plm.Config.Exception;
+package com.plm.plm.Config.exception;
 
 /**
  * Excepción lanzada cuando el usuario no tiene permisos para realizar una acción.

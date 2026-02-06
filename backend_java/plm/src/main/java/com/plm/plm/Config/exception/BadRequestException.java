@@ -1,4 +1,4 @@
-package com.plm.plm.Config.Exception;
+package com.plm.plm.Config.exception;
 
 /**
  * Excepción lanzada cuando la solicitud del cliente es inválida o mal formada.

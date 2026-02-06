@@ -1,6 +1,7 @@
 package com.plm.plm.Controllers;
 
-import com.plm.plm.Config.Exception.DuplicateResourceException;
+
+import com.plm.plm.Config.exception.DuplicateResourceException;
 import com.plm.plm.Config.exception.UnauthorizedException;
 import com.plm.plm.Reposotory.UserRepository;
 import com.plm.plm.dto.UserDTO;

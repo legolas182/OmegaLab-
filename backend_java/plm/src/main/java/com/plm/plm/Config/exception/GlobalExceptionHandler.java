@@ -1,4 +1,4 @@
-package com.plm.plm.Config.Exception;
+package com.plm.plm.Config.exception;
 
 import com.plm.plm.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     /**
      * Maneja excepciones de solicitudes inválidas (400)
      */
-    @ExceptionHandler(com.plm.plm.Config.Exception.BadRequestException.class)
+    @ExceptionHandler(com.plm.plm.Config.exception.BadRequestException.class)
     public ResponseEntity<ErrorResponseDTO> handleBadRequestException(
             BadRequestException ex, HttpServletRequest request) {
         
@@ -63,9 +63,9 @@ public class GlobalExceptionHandler {
     /**
      * Maneja excepciones de recursos duplicados (409)
      */
-    @ExceptionHandler(com.plm.plm.Config.Exception.DuplicateResourceException.class)
+    @ExceptionHandler(com.plm.plm.Config.exception.DuplicateResourceException.class)
     public ResponseEntity<ErrorResponseDTO> handleDuplicateResourceException(
-            com.plm.plm.Config.Exception.DuplicateResourceException ex, HttpServletRequest request) {
+            com.plm.plm.Config.exception.DuplicateResourceException ex, HttpServletRequest request) {
         
         ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
                 .status(HttpStatus.CONFLICT.value())
@@ -81,9 +81,9 @@ public class GlobalExceptionHandler {
     /**
      * Maneja excepciones de autenticación (401)
      */
-    @ExceptionHandler(com.plm.plm.Config.exception.UnauthorizedException.class)
+    @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponseDTO> handleUnauthorizedException(
-            com.plm.plm.Config.exception.UnauthorizedException ex, HttpServletRequest request) {
+            UnauthorizedException ex, HttpServletRequest request) {
         
         ErrorResponseDTO errorResponse = ErrorResponseDTO.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
