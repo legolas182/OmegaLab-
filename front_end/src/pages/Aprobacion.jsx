@@ -48,7 +48,9 @@ const Aprobacion = () => {
   const loadFormulas = async () => {
     setLoadingFormulas(true)
     try {
-      const data = await ideaService.getIdeas({ estado: 'prueba_aprobada', categoria: '', prioridad: '', search: '' })
+      // En Aprobación / QA mostramos ideas que ya fueron enviadas al SUPERVISOR_QA,
+      // es decir, las que están en estado EN_REVISION según el flujo de estados del backend.
+      const data = await ideaService.getIdeas({ estado: 'en_revision', categoria: '', prioridad: '', search: '' })
       if (data.length > 0) {
         console.log('📋 Aprobación: Primera idea:', data[0])
       }
@@ -160,7 +162,11 @@ const Aprobacion = () => {
 
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
+      case 'en_revision':
+        // Estado cuando el analista ya envió la idea al Supervisor QA
+        return 'bg-amber-500/20 text-amber-400'
       case 'prueba_aprobada':
+        // Estado previo interno de laboratorio (todas las pruebas aprobadas)
         return 'bg-emerald-500/20 text-emerald-400'
       default:
         return 'bg-gray-500/20 text-gray-400'
