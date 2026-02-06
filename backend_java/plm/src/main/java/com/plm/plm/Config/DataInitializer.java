@@ -157,6 +157,7 @@ public class DataInitializer implements CommandLineRunner {
                     jdbcTemplate.update("UPDATE ideas SET estado = 'APROBADA' WHERE LOWER(estado) = 'aprobada'");
                     jdbcTemplate.update("UPDATE ideas SET estado = 'EN_PRUEBA' WHERE LOWER(estado) = 'en_prueba'");
                     jdbcTemplate.update("UPDATE ideas SET estado = 'PRUEBA_APROBADA' WHERE LOWER(estado) = 'prueba_aprobada'");
+                    jdbcTemplate.update("UPDATE ideas SET estado = 'OOS' WHERE LOWER(estado) = 'oos'");
                     jdbcTemplate.update("UPDATE ideas SET estado = 'RECHAZADA' WHERE LOWER(estado) = 'rechazada'");
                     jdbcTemplate.update("UPDATE ideas SET estado = 'EN_PRODUCCION' WHERE LOWER(estado) = 'en_produccion' OR estado = 'convertida'");
                     System.out.println("Valores de estado actualizados a mayúsculas exitosamente");

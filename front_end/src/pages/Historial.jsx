@@ -72,7 +72,7 @@ const Historial = () => {
     setLoadingIdeas(true)
     try {
       // Cargar todas las fórmulas que han pasado por QA
-      // Estados: APROBADA, PRUEBA_APROBADA, EN_PRODUCCION, RECHAZADA
+      // Estados: APROBADA, PRUEBA_APROBADA, EN_PRODUCCION, OOS, RECHAZADA
       const data = await ideaService.getIdeas({ estado: '', categoria: '', prioridad: '', search: '' })
 
       // Filtrar fórmulas que han pasado por el proceso de QA
@@ -81,14 +81,15 @@ const Historial = () => {
         return estado === 'aprobada' ||
           estado === 'prueba_aprobada' ||
           estado === 'en_produccion' ||
+          estado === 'oos' ||
           estado === 'rechazada'
       })
 
       // Aplicar filtro por estado si está seleccionado
       if (filterEstado !== 'TODAS') {
         formulasQA = formulasQA.filter(idea => {
-          const estado = idea.estado || ''
-          return estado === filterEstado
+          const estado = (idea.estado || '').toUpperCase()
+          return estado === filterEstado.toUpperCase()
         })
       }
 
@@ -271,6 +272,8 @@ const Historial = () => {
         return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
       case 'EN_PRODUCCION':
         return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+      case 'OOS':
+        return 'bg-amber-500/20 text-amber-600 border-amber-500/30'
       case 'RECHAZADA':
         return 'bg-red-500/20 text-red-400 border-red-500/30'
       default:
@@ -286,6 +289,8 @@ const Historial = () => {
         return 'Pruebas Aprobadas'
       case 'EN_PRODUCCION':
         return 'En Producción'
+      case 'OOS':
+        return 'OOS (En Investigación)'
       case 'RECHAZADA':
         return 'Rechazada'
       default:
@@ -338,6 +343,7 @@ const Historial = () => {
                 <option value="APROBADA">Aprobadas</option>
                 <option value="PRUEBA_APROBADA">Pruebas Aprobadas</option>
                 <option value="EN_PRODUCCION">En Producción</option>
+                <option value="OOS">OOS (En Investigación)</option>
                 <option value="RECHAZADA">Rechazadas</option>
               </>
             )}

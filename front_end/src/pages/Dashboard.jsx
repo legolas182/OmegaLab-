@@ -100,6 +100,8 @@ const Dashboard = () => {
 
   const formatEstado = (estado) => {
     if (!estado) return '-'
+    const e = estado.toLowerCase()
+    if (e === 'oos') return 'OOS (En Investigación)'
     return estado.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 

@@ -8,8 +8,9 @@ public enum EstadoIdea {
     APROBADA("aprobada"),           // Aprobada para pruebas
     EN_PRUEBA("en_prueba"),         // Asignada a analista para pruebas
     PRUEBA_APROBADA("prueba_aprobada"), // Pruebas pasadas, lista para producción
-    RECHAZADA("rechazada"),         // Rechazada en cualquier etapa
-    EN_PRODUCCION("en_produccion"); // En producción
+    OOS("oos"),                       // Fuera de especificación - requiere investigación
+    RECHAZADA("rechazada"),           // Rechazada explícitamente
+    EN_PRODUCCION("en_produccion");   // En producción
 
     private final String valor;
 

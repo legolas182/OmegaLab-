@@ -228,8 +228,19 @@ public class PruebaServiceImpl implements PruebaService {
                     Integer userId = idea.getAsignadoA() != null ? idea.getAsignadoA().getId() : 
                                     (idea.getCreador() != null ? idea.getCreador().getId() : null);
                     
-                    // Determinar el nuevo estado basado en los resultados de las pruebas
-                    EstadoIdea nuevoEstado = todasPasaron ? EstadoIdea.PRUEBA_APROBADA : EstadoIdea.RECHAZADA;
+                    // Determinar el nuevo estado: OOS = investigación, RECHAZADA = rechazo explícito
+                    boolean algunaOOS = pruebasDeIdea.stream().anyMatch(p -> p.getEstado() == EstadoPrueba.OOS);
+                    boolean algunaRechazada = pruebasDeIdea.stream().anyMatch(p -> p.getEstado() == EstadoPrueba.RECHAZADA);
+                    EstadoIdea nuevoEstado;
+                    if (todasPasaron) {
+                        nuevoEstado = EstadoIdea.PRUEBA_APROBADA;
+                    } else if (algunaRechazada) {
+                        nuevoEstado = EstadoIdea.RECHAZADA;
+                    } else if (algunaOOS) {
+                        nuevoEstado = EstadoIdea.OOS;  // Requiere investigación del QA
+                    } else {
+                        nuevoEstado = EstadoIdea.RECHAZADA;
+                    }
                     
                     if (todasPasaron && idea.getCantidadSugerida() == null) {
                         idea.setCantidadSugerida(java.math.BigDecimal.valueOf(1000.0));

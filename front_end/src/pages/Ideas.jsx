@@ -191,6 +191,8 @@ const Ideas = () => {
         return 'bg-emerald-500/20 text-emerald-400'
       case 'rechazada':
         return 'bg-red-500/20 text-red-400'
+      case 'oos':
+        return 'bg-amber-500/20 text-amber-600'
       case 'en_produccion':
         return 'bg-indigo-500/20 text-indigo-400'
       default:
@@ -212,6 +214,8 @@ const Ideas = () => {
         return 'Aprobación Final'
       case 'rechazada':
         return 'Archivada'
+      case 'oos':
+        return 'OOS (En Investigación)'
       case 'en_produccion':
         return 'En Producción'
       default:
@@ -228,12 +232,11 @@ const Ideas = () => {
     { id: 'en_produccion', label: 'En Producción', borderClass: 'border-indigo-500/30', bgClass: 'bg-indigo-500/10', dotClass: 'bg-indigo-500', badgeClass: 'bg-indigo-500/20 text-indigo-400' }
   ]
 
-  // Agrupar fórmulas por estado (excluyendo rechazada y prueba_aprobada del kanban)
-  // rechazada se archiva, prueba_aprobada se gestiona en la página de Aprobación
+  // Agrupar fórmulas por estado (excluyendo rechazada, oos y prueba_aprobada del kanban)
+  // rechazada y oos se archivan en historial, prueba_aprobada se gestiona en Aprobación
   const formulasByEstado = ideas.reduce((acc, idea) => {
     const estado = (idea.estado || 'generada').toLowerCase()
-    // Las fórmulas rechazadas y prueba_aprobada no aparecen en el kanban
-    if (estado === 'rechazada' || estado === 'prueba_aprobada') {
+    if (estado === 'rechazada' || estado === 'oos' || estado === 'prueba_aprobada') {
       return acc
     }
     if (!acc[estado]) {

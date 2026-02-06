@@ -151,9 +151,9 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = ideaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Idea no encontrada"));
 
-        // Solo se puede eliminar si está en generada o rechazada
-        if (idea.getEstado() != EstadoIdea.GENERADA && idea.getEstado() != EstadoIdea.RECHAZADA) {
-            throw new BadRequestException("Solo se pueden eliminar ideas en estado Generada o Rechazada");
+        // Solo se puede eliminar si está en generada, rechazada u OOS
+        if (idea.getEstado() != EstadoIdea.GENERADA && idea.getEstado() != EstadoIdea.RECHAZADA && idea.getEstado() != EstadoIdea.OOS) {
+            throw new BadRequestException("Solo se pueden eliminar ideas en estado Generada, Rechazada u OOS");
         }
 
         ideaRepository.delete(idea);

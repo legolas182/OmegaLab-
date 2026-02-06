@@ -156,10 +156,10 @@ const IA = () => {
     <div className="w-full h-full">
       {/* Mensaje */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg ${
+        <div className={`mb-6 p-4 rounded-lg alert-message ${
           message.type === 'success' 
-            ? 'bg-green-500/20 border border-green-500/50 text-green-400' 
-            : 'bg-red-500/20 border border-red-500/50 text-red-400'
+            ? 'alert-success bg-green-500/20 border border-green-500/50 text-green-400' 
+            : 'alert-error bg-red-500/20 border border-red-500/50 text-red-400'
         }`}>
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined">
