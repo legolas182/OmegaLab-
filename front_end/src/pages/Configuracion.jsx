@@ -112,7 +112,7 @@ const Configuracion = () => {
           <div className="rounded-lg bg-card-dark border border-border-dark p-6">
             <h3 className="text-text-light font-semibold mb-4">Trazabilidad de Roles y Formación</h3>
             <p className="text-text-muted text-sm mb-4">
-              OmegaLab registra quién hace qué, con qué permisos y con qué formación mínima.
+              Omega Lab registra quién hace qué, con qué permisos y con qué formación mínima.
               Esto permite demostrar en auditorías que solo personal calificado y autorizado ejecuta
               actividades críticas de PLM / LIMS.
             </p>

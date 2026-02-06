@@ -48,7 +48,7 @@ const Login = () => {
             <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM11.9999 12.88L5.5 9.43999L6.49997 8.86001L11.9999 12.01L17.5 8.86001L18.5 9.43999L11.9999 12.88ZM12 4.33L19.5 8.5L12 12.67L4.5 8.5L12 4.33ZM4 15.67V9.6L11.5 13.83V19.89L4 15.67ZM13.5 19.89V13.83L21 9.6V15.67L13.5 19.89Z" />
             </svg>
-            <span className="text-white text-sm font-medium">OMEGA LAB</span>
+            <span className="text-white text-sm font-medium">Omega Lab</span>
           </div>
         </div>
       </header>
@@ -67,7 +67,7 @@ const Login = () => {
               {/* Main Title */}
               <div className="flex flex-col items-center gap-3 text-center">
                 <h1 className="text-4xl font-bold text-white leading-tight">
-                  OMEGA LAB
+                  Omega Lab
                 </h1>
               </div>
 

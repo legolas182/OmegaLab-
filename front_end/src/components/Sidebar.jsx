@@ -51,7 +51,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 <span className="material-symbols-outlined text-primary text-2xl">science</span>
               </div>
               <div className="flex flex-col">
-                <h1 className="text-text-light text-base font-bold leading-normal">OMEGA LAB</h1>
+                <h1 className="text-text-light text-base font-bold leading-normal">Omega Lab</h1>
                 <p className="text-text-muted text-sm font-normal leading-normal">PLM/LIMS System</p>
               </div>
             </div>
@@ -140,7 +140,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                     <span className="material-symbols-outlined text-primary text-2xl">science</span>
                   </div>
                   <div className="flex flex-col">
-                    <h1 className="text-text-light text-base font-bold leading-normal">OMEGA LAB</h1>
+                    <h1 className="text-text-light text-base font-bold leading-normal">Omega Lab</h1>
                     <p className="text-text-muted text-sm font-normal leading-normal">PLM/LIMS System</p>
                   </div>
                 </div>
