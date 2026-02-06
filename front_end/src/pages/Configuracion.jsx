@@ -112,25 +112,58 @@ const Configuracion = () => {
           <div className="rounded-lg bg-card-dark border border-border-dark p-6">
             <h3 className="text-text-light font-semibold mb-4">Trazabilidad de Roles y Formación</h3>
             <p className="text-text-muted text-sm mb-4">
-              El sistema registra la formación y el rol de las personas, asegurando que solo el personal
-              calificado y autorizado pueda ejecutar actividades críticas.
+              OmegaLab registra quién hace qué, con qué permisos y con qué formación mínima.
+              Esto permite demostrar en auditorías que solo personal calificado y autorizado ejecuta
+              actividades críticas de PLM / LIMS.
             </p>
             <div className="space-y-3">
               {[
-                { rol: 'Administrador / Usuario Avanzado', actividades: ['Soporte Técnico', 'Otorgar Roles', 'Acceso Completo'], requiere: 'Administrador del Sistema' },
-                { rol: 'Supervisor QA', actividades: ['Acceso a Fórmulas Reales', 'Visión Total del Sistema', 'Notificaciones de Stock/Lotes', 'Trazabilidad Completa', 'Documentos y Reportes'], requiere: 'Formulador, Analista QA, Administrador de Documentos' },
-                { rol: 'Supervisor Calidad', actividades: ['Recibir Materias Primas', 'Ingresar Datos de Proveedor', 'Gestionar Lotes', 'Trazabilidad', 'Análisis de Materias Primas', 'Devoluciones'], requiere: 'Jefe de Calidad, Analista de Trazabilidad, Supervisor' },
-                { rol: 'Analista de Laboratorio', actividades: ['Recibir Órdenes de Formulación', 'Desarrollo de Formulaciones', 'Análisis Sensorial'], requiere: 'Auxiliar de I+D' }
+                {
+                  rol: 'ADMINISTRADOR DEL SISTEMA',
+                  actividades: [
+                    'Configuración de módulos y parámetros',
+                    'Alta / baja de usuarios y asignación de roles',
+                    'Gestión de integridad de datos y copias de seguridad'
+                  ],
+                  requiere: 'Formación en sistemas computarizados y cGMP; designación formal como administrador'
+                },
+                {
+                  rol: 'SUPERVISOR QA',
+                  actividades: [
+                    'Revisión y aprobación de fórmulas',
+                    'Liberación / rechazo de lotes desde QA',
+                    'Acceso a toda la trazabilidad de cambios y resultados'
+                  ],
+                  requiere: 'Profesional QA con formación en BPM/BPL y manejo de documentación regulatoria'
+                },
+                {
+                  rol: 'SUPERVISOR DE CALIDAD',
+                  actividades: [
+                    'Recepción y liberación de materias primas',
+                    'Gestión de lotes y desviaciones',
+                    'Revisión de resultados analíticos de control de calidad'
+                  ],
+                  requiere: 'Jefe / Supervisor de Calidad con formación en control de calidad y trazabilidad'
+                },
+                {
+                  rol: 'ANALISTA DE LABORATORIO',
+                  actividades: [
+                    'Ejecución de pruebas analíticas y registro de resultados',
+                    'Documentación de OOS y comentarios técnicos',
+                    'Soporte a desarrollo de formulaciones'
+                  ],
+                  requiere: 'Analista con formación técnica en laboratorio y entrenamiento documentado en el LIMS'
+                }
               ].map((rol, idx) => (
                 <div key={idx} className="p-4 rounded-lg bg-input-dark border border-border-dark">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="text-text-light font-medium">{rol.rol}</p>
-                      <p className="text-text-muted text-xs">Requisito: {rol.requiere}</p>
+                      <p className="text-text-muted text-xs">Formación / requisito mínimo: {rol.requiere}</p>
                     </div>
                   </div>
                   <div className="mt-2">
-                    <p className="text-text-muted text-xs mb-1">Actividades Autorizadas:</p>
+                    <p className="text-text-muted text-xs mb-1">Actividades Autorizadas en el Sistema:</p>
                     <div className="flex flex-wrap gap-2">
                       {rol.actividades.map((act, i) => (
                         <span key={i} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
