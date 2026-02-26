@@ -22,6 +22,9 @@ export default {
         "info": "#29b6f6",
         "accent-blue": "#2563eb",
         "accent-purple": "#7c3aed",
+        "accent-teal": "#0d9488",
+        "accent-amber": "#f59e0b",
+        "accent-cyan": "#06b6d4",
         "surface-dark": "var(--bg-input)"
       },
       fontFamily: {

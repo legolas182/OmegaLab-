@@ -120,7 +120,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 <div
                   className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
                     theme === 'dark'
-                      ? 'bg-white/15 text-white shadow-lg shadow-white/25 ring-2 ring-white/30 group-hover:bg-white group-hover:text-gray-900 group-hover:shadow-white/25 group-hover:scale-105'
+                      ? 'bg-white/15 text-white ring-2 ring-white/30 group-hover:bg-white group-hover:text-gray-900 group-hover:shadow-lg group-hover:shadow-white/40 group-hover:scale-105'
                       : 'bg-gradient-to-br from-[#4169E1] to-[#1e3a8a] text-white shadow-lg shadow-blue-900/40 ring-2 ring-blue-400/50 group-hover:from-[#5b7cff] group-hover:to-[#2c4aad] group-hover:shadow-blue-800/50 group-hover:scale-105'
                   }`}
                 >

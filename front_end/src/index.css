@@ -2,31 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables para modo oscuro (por defecto) */
+/* Variables para modo oscuro (por defecto) - estilo futurista */
 :root,
 [data-theme="dark"] {
-  --bg-body: #0f1923;
-  --bg-card: #16222e;
-  --bg-input: #20364b;
-  --text-primary: #EAEAEA;
-  --text-muted: #8dadce;
-  --border-color: #2e4d6b;
-  --scrollbar-track: #16222e;
-  --scrollbar-thumb: #2e4d6b;
-  --scrollbar-thumb-hover: #3a5f7f;
+  --bg-body: #050a12;
+  --bg-card: rgba(15, 25, 40, 0.75);
+  --bg-card-solid: #0f1928;
+  --bg-input: rgba(20, 40, 65, 0.8);
+  --text-primary: #e8eef4;
+  --text-muted: #8ba3c2;
+  --border-color: rgba(100, 160, 220, 0.15);
+  --scrollbar-track: rgba(10, 20, 35, 0.8);
+  --scrollbar-thumb: rgba(100, 160, 220, 0.25);
+  --scrollbar-thumb-hover: rgba(100, 160, 220, 0.4);
+  /* Nebula / glow accents */
+  --nebula-teal: rgba(0, 200, 220, 0.12);
+  --nebula-blue: rgba(0, 127, 255, 0.1);
+  --nebula-purple: rgba(100, 80, 200, 0.06);
+  --glow-primary: rgba(0, 127, 255, 0.25);
 }
 
-/* Variables para modo claro */
+/* Variables para modo claro - fondo blanco */
 [data-theme="light"] {
-  --bg-body: #f5f7f8;
+  --bg-body: #ffffff;
   --bg-card: #ffffff;
-  --bg-input: #e8eef3;
+  --bg-input: #f1f5f9;
   --text-primary: #1a1a2e;
   --text-muted: #64748b;
-  --border-color: #cbd5e1;
-  --scrollbar-track: #e2e8f0;
-  --scrollbar-thumb: #94a3b8;
-  --scrollbar-thumb-hover: #64748b;
+  --border-color: #e2e8f0;
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+}
+
+[data-theme="light"] .holographic-panel {
+  background: #ffffff;
+  border-color: #e2e8f0;
 }
 
 * {
@@ -50,6 +61,216 @@ body {
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Canvas 3D global (React Three Fiber) - fullscreen background */
+.energy-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.energy-bg canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+}
+
+/* Glass effect para UI translúcida sobre el background */
+.glass {
+  background: rgba(5, 12, 22, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-soft {
+  background: rgba(5, 12, 22, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* ---- Sistema visual futurista (holographic panel, cursor) ---- */
+.holographic-panel {
+  position: relative;
+  background: rgba(5, 12, 22, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 40px rgba(0, 229, 255, 0.08),
+    0 0 80px rgba(168, 85, 247, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.holographic-panel:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 60px rgba(0, 229, 255, 0.14),
+    0 0 100px rgba(168, 85, 247, 0.06);
+}
+.holographic-panel-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+}
+.holographic-panel-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Efecto de luz vertical desactivado */
+  display: none;
+}
+.holographic-panel-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.holographic-panel-border-glow {
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 13px;
+  box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.08);
+  animation: holographic-border-pulse 4s ease-in-out infinite;
+}
+@keyframes holographic-scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 200%; }
+}
+@keyframes holographic-border-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.energy-cursor {
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 229, 255, 0.2) 0%,
+    rgba(168, 85, 247, 0.1) 35%,
+    transparent 70%
+  );
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.25);
+  will-change: transform;
+  transition: opacity 0.2s ease;
+}
+
+/* ---- Fondo estelar / neblina azul (modo oscuro) ---- */
+/* Mitad derecha: ola vertical tipo neblina teal/cian/azul (referencia primera imagen) */
+html[data-theme="dark"] body {
+  position: relative;
+}
+
+/* Capa 1: Neblina intensa en la MITAD DERECHA - ola vertical teal/cian/azul eléctrico */
+html[data-theme="dark"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: 
+    /* Ola vertical derecha - núcleo más brillante */
+    radial-gradient(ellipse 100% 140% at 85% 50%, rgba(0, 230, 255, 0.45) 0%, rgba(0, 180, 220, 0.28) 25%, transparent 55%),
+    radial-gradient(ellipse 80% 120% at 75% 45%, rgba(0, 200, 240, 0.38) 0%, rgba(0, 140, 210, 0.2) 30%, transparent 55%),
+    /* Extensión hacia el centro y tonos más suaves */
+    radial-gradient(ellipse 90% 100% at 65% 55%, rgba(0, 170, 230, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 90% at 55% 40%, rgba(90, 150, 255, 0.22) 0%, transparent 45%),
+    /* Toques violeta/rosa suave en zonas brillantes */
+    radial-gradient(ellipse 50% 80% at 78% 35%, rgba(120, 100, 220, 0.12) 0%, transparent 40%),
+    /* Ambiente general izquierda más sutil */
+    radial-gradient(ellipse 80% 100% at 25% 60%, rgba(0, 120, 200, 0.18) 0%, transparent 45%);
+  animation: nebula-drift 28s ease-in-out infinite alternate;
+}
+
+/* Capa 2: Estrellas sobre la neblina */
+html[data-theme="dark"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ccircle cx='40' cy='30' r='0.8' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='120' cy='80' r='0.6' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='200' cy='20' r='1' fill='%23fff' opacity='0.8'/%3E%3Ccircle cx='280' cy='150' r='0.5' fill='%23fff' opacity='0.55'/%3E%3Ccircle cx='50' cy='180' r='0.7' fill='%23fff' opacity='0.65'/%3E%3Ccircle cx='160' cy='220' r='0.5' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='240' cy='260' r='0.9' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='20' cy='100' r='0.6' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='180' cy='40' r='0.5' fill='%23fff' opacity='0.55'/%3E%3Ccircle cx='260' cy='200' r='0.7' fill='%23fff' opacity='0.65'/%3E%3Ccircle cx='100' cy='140' r='0.5' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='220' cy='90' r='0.6' fill='%23fff' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  opacity: 1;
+}
+
+/* Refuerzo en .cosmic-backdrop (misma mitad derecha más intensa) */
+html[data-theme="dark"] .cosmic-backdrop {
+  position: relative;
+}
+
+html[data-theme="dark"] .cosmic-backdrop::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: 
+    radial-gradient(ellipse 95% 130% at 88% 50%, rgba(0, 220, 250, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 75% 110% at 70% 50%, rgba(0, 180, 230, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 90% at 58% 45%, rgba(80, 140, 255, 0.2) 0%, transparent 45%);
+  animation: nebula-drift 26s ease-in-out infinite alternate;
+}
+
+html[data-theme="dark"] .cosmic-backdrop::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Ccircle cx='40' cy='30' r='0.8' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='120' cy='80' r='0.6' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='200' cy='20' r='1' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='280' cy='150' r='0.5' fill='%23fff' opacity='0.45'/%3E%3Ccircle cx='50' cy='180' r='0.7' fill='%23fff' opacity='0.55'/%3E%3Ccircle cx='160' cy='220' r='0.5' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='240' cy='260' r='0.9' fill='%23fff' opacity='0.6'/%3E%3Ccircle cx='20' cy='100' r='0.6' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='180' cy='40' r='0.5' fill='%23fff' opacity='0.45'/%3E%3Ccircle cx='260' cy='200' r='0.7' fill='%23fff' opacity='0.55'/%3E%3Ccircle cx='100' cy='140' r='0.5' fill='%23fff' opacity='0.4'/%3E%3Ccircle cx='220' cy='90' r='0.6' fill='%23fff' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  opacity: 0.9;
+}
+
+@keyframes nebula-drift {
+  0% { opacity: 1; transform: scale(1) translate(0, 0); }
+  100% { opacity: 0.96; transform: scale(1.04) translate(-2%, -1%); }
+}
+
+/* Paneles tipo glass (futurista) */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.glass-panel-soft {
+  background: rgba(15, 28, 45, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(100, 160, 220, 0.1);
+}
+
+/* Cards con ligero efecto glass en modo oscuro (futurista) */
+html[data-theme="dark"] .card-futuristic {
+  background: rgba(15, 28, 48, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(100, 160, 220, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
 .material-symbols-outlined {

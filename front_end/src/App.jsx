@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { VisualSystemProvider } from './components/futuristic/VisualSystemProvider'
+import EnergyBackground from './components/background'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
@@ -24,9 +26,10 @@ function App() {
   return (
     <ThemeProvider>
     <AuthProvider>
-      <Toaster
-        position="top-right"
-        toastOptions={{
+      <VisualSystemProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
           duration: 4000,
           style: {
             background: '#1e293b',
@@ -48,9 +51,9 @@ function App() {
             },
           },
         }}
-      />
-      <Router>
-        <Routes>
+        />
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route
             path="/"
@@ -77,8 +80,9 @@ function App() {
             <Route path="trazabilidad" element={<Trazabilidad />} />
             <Route path="configuracion" element={<Configuracion />} />
           </Route>
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </VisualSystemProvider>
     </AuthProvider>
     </ThemeProvider>
   )

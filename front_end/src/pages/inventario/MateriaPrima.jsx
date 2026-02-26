@@ -235,6 +235,37 @@ const MateriaPrima = () => {
     })
   }
 
+  const handleToggleStatus = (material) => {
+    const newEstado = material.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO'
+    const action = newEstado === 'ACTIVO' ? 'activar' : 'inactivar'
+
+    setConfirmDialog({
+      isOpen: true,
+      title: `${action === 'activar' ? 'Activar' : 'Inactivar'} Material`,
+      message: `¿Estás seguro de ${action} este material? ${action === 'inactivar' ? 'No estará disponible para su uso.' : 'Estará disponible para su uso.'}`,
+      onConfirm: async () => {
+        try {
+          setLoading(true)
+          await materialService.updateMaterial(material.id, {
+            codigo: material.codigo,
+            nombre: material.nombre,
+            descripcion: material.descripcion || '',
+            categoriaId: material.categoriaId,
+            tipo: material.tipo,
+            unidadMedida: material.unidadMedida,
+            estado: newEstado
+          })
+          await loadMaterials()
+        } catch (err) {
+          setError(err.message)
+        } finally {
+          setLoading(false)
+        }
+      },
+      type: newEstado === 'ACTIVO' ? 'success' : 'warning'
+    })
+  }
+
   const handleViewCompounds = async (material) => {
     setSelectedMaterial(material)
     setShowCompoundsModal(true)
@@ -371,10 +402,24 @@ const MateriaPrima = () => {
                               Compuestos
                             </button>
                             <button
+                              onClick={() => handleToggleStatus(material)}
+                              className={`p-1.5 rounded transition-colors ${
+                                material.estado === 'ACTIVO'
+                                  ? 'text-warning hover:bg-warning/10'
+                                  : 'text-success hover:bg-success/10'
+                              }`}
+                              title={material.estado === 'ACTIVO' ? 'Inactivar material' : 'Activar material'}
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                {material.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off'}
+                              </span>
+                            </button>
+                            <button
                               onClick={() => handleDeleteMaterial(material.id)}
                               className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
+                              title="Eliminar"
                             >
-                              Eliminar
+                              <span className="material-symbols-outlined text-sm">delete</span>
                             </button>
                           </div>
                         </td>

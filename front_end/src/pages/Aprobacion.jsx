@@ -12,6 +12,7 @@ const Aprobacion = () => {
 
   const [formulas, setFormulas] = useState([])
   const [loadingFormulas, setLoadingFormulas] = useState(false)
+  const [errorFormulas, setErrorFormulas] = useState(null)
   const [selectedFormula, setSelectedFormula] = useState(null)
   const [showConfirmarModal, setShowConfirmarModal] = useState(false)
   const [showRechazarModal, setShowRechazarModal] = useState(false)
@@ -47,6 +48,7 @@ const Aprobacion = () => {
 
   const loadFormulas = async () => {
     setLoadingFormulas(true)
+    setErrorFormulas(null)
     try {
       // En Aprobación / QA mostramos ideas que ya han pasado todas las pruebas
       // de laboratorio y están listas para producción: estado PRUEBA_APROBADA.
@@ -54,9 +56,11 @@ const Aprobacion = () => {
       if (data.length > 0) {
         console.log('📋 Aprobación: Primera idea:', data[0])
       }
-      setFormulas(data)
+      setFormulas(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('❌ Aprobación: Error al cargar fórmulas:', error)
+      setErrorFormulas(error?.message || 'No se pudo conectar con el servidor. Comprueba que el backend esté en ejecución (puerto 3001).')
+      setFormulas([])
     } finally {
       setLoadingFormulas(false)
     }
@@ -205,6 +209,20 @@ const Aprobacion = () => {
             <span className="material-symbols-outlined animate-spin text-primary">sync</span>
             <p className="text-text-muted ml-2">Cargando ideas...</p>
           </div>
+        ) : errorFormulas ? (
+          <div className="text-center py-12 px-4">
+            <span className="material-symbols-outlined text-6xl text-danger mb-4">cloud_off</span>
+            <p className="text-text-light text-lg font-semibold mb-2">Error al cargar los datos</p>
+            <p className="text-text-muted text-sm max-w-md mx-auto mb-4">{errorFormulas}</p>
+            <button
+              type="button"
+              onClick={loadFormulas}
+              className="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-sm">refresh</span>
+              Reintentar
+            </button>
+          </div>
         ) : formulas.length === 0 ? (
           <div className="text-center py-12">
             <span className="material-symbols-outlined text-6xl text-text-muted mb-4">check_circle</span>
@@ -332,7 +350,7 @@ const Aprobacion = () => {
                     setShowAnalisisModal(false)
                     openRechazarModal(selectedFormula)
                   }}
-                  className="px-4 py-2 rounded-lg bg-danger/20 text-danger font-medium hover:bg-danger/30 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-danger text-white font-medium hover:bg-danger/90 transition-colors flex items-center gap-2 border border-danger"
                 >
                   <span className="material-symbols-outlined text-sm">cancel</span>
                   Rechazar
