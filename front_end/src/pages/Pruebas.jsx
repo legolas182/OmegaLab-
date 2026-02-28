@@ -15,6 +15,12 @@ const Pruebas = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [ideasAsignadas, setIdeasAsignadas] = useState([])
   const [updatingEstado, setUpdatingEstado] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const pruebasFiltered = (pruebas || []).filter((p) =>
+    (p.codigoMuestra || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.tipoPrueba || '').toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   // Formulario para nueva prueba
   const [nuevaPrueba, setNuevaPrueba] = useState({
@@ -377,10 +383,11 @@ const Pruebas = () => {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* HEADER DE PÁGINA */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
         <div>
-          <h1 className="text-text-light text-3xl font-bold tracking-tight">Pruebas / Control de Calidad (LIMS)</h1>
+          <h1 className="text-text-light text-2xl font-bold">Pruebas / Control de Calidad (LIMS)</h1>
           <p className="text-text-muted text-sm mt-1">
             {isAnalista
               ? 'Pruebas de laboratorio vinculadas a ideas asignadas'
@@ -390,424 +397,452 @@ const Pruebas = () => {
         {isAnalista && ideasAsignadas.length > 0 && (
           <button
             onClick={() => setShowCreateDialog(true)}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
           >
             Nueva Prueba
           </button>
         )}
       </div>
 
-      {/* Alertas OOS - Solo si hay pruebas OOS */}
+      {/* ALERTAS OOS */}
       {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length > 0 && (
-        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3 shrink-0 animate-pulse-subtle">
           <span className="material-symbols-outlined text-danger text-2xl">error</span>
           <div className="flex-1">
             <p className="text-text-light font-semibold">
               {pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length} Resultado{pruebas.filter(p => (p.estado || '').toLowerCase() === 'oos').length === 1 ? '' : 's'} Fuera de Especificación (OOS)
             </p>
-            <p className="text-text-muted text-sm">Requieren investigación y documentación</p>
+            <p className="text-text-muted text-sm">Requieren investigación y documentación inmediata</p>
           </div>
         </div>
       )}
 
-      {/* Lista de Pruebas */}
-      <div className="rounded-lg bg-card-dark border border-border-dark mb-6">
-        <div className="p-4 border-b border-border-dark">
-          <h2 className="text-text-light font-semibold">
-            {isAnalista ? 'Mis Pruebas' : 'Pruebas en Análisis'}
-          </h2>
-        </div>
-        {loadingPruebas ? (
-          <div className="p-6 text-center">
-            <p className="text-text-muted text-sm">Cargando pruebas...</p>
-          </div>
-        ) : pruebas.length === 0 ? (
-          <div className="p-6 text-center">
-            <span className="material-symbols-outlined text-4xl text-text-muted mb-2">science</span>
-            <p className="text-text-muted text-sm">
-              {isAnalista
-                ? 'No tienes pruebas asignadas. Crea una nueva prueba desde una idea asignada.'
-                : 'No hay pruebas disponibles'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-dark">
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Código Muestra</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Idea</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo Prueba</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Fecha Muestreo</th>
-                  <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pruebas.map((prueba) => (
-                  <tr key={prueba.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                    <td className="p-4 text-text-light font-medium">{prueba.codigoMuestra}</td>
-                    <td className="p-4 text-text-muted text-sm">
-                      {prueba.ideaId ? `Idea #${prueba.ideaId}` : 'N/A'}
-                    </td>
-                    <td className="p-4 text-text-muted text-sm">{prueba.tipoPrueba}</td>
-                    <td className="p-4">
-                      <span className={`inline-block px-2 py-1 rounded text-xs ${getEstadoColor(prueba.estado)}`}>
-                        {getEstadoLabel(prueba.estado)}
-                      </span>
-                    </td>
-                    <td className="p-4 text-text-muted text-sm">
-                      {prueba.fechaMuestreo ? new Date(prueba.fechaMuestreo).toLocaleDateString('es-ES') : 'N/A'}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button
-                        onClick={() => handleVerDetalle(prueba)}
-                        className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30"
-                      >
-                        Ver Detalle
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* CONTENEDOR PRINCIPAL FLEX (LISTA + DETALLE) */}
+      <div className="flex flex-1 min-h-0 gap-6 overflow-hidden">
 
-      {/* Detalle de Prueba */}
-      {selectedPrueba && (
-        <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h2 className="text-text-light text-2xl font-bold">{selectedPrueba.codigoMuestra}</h2>
-              <p className="text-text-muted text-sm">{selectedPrueba.tipoPrueba}</p>
-            </div>
-            <button
-              onClick={() => setSelectedPrueba(null)}
-              className="text-text-muted hover:text-text-light"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          {/* Acciones de Estado - Solo para analistas */}
-          {isAnalista && (
-            <div className="mb-6 p-4 rounded-lg bg-input-dark border border-border-dark">
-              <h3 className="text-text-light font-semibold mb-4">Acciones</h3>
-              <div className="flex flex-wrap gap-3">
-                {(selectedPrueba.estado || '').toLowerCase() === 'pendiente' && (
-                  <button
-                    onClick={() => handleChangeEstado('en_proceso')}
-                    disabled={updatingEstado}
-                    className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-sm">play_arrow</span>
-                    Iniciar Prueba
-                  </button>
-                )}
-                {(selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
-                  <>
-                    <button
-                      onClick={() => handleChangeEstado('oos')}
-                      disabled={updatingEstado}
-                      className="px-4 py-2 rounded-lg bg-warning text-white text-sm font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">error</span>
-                      Marcar como OOS
-                    </button>
-                    <button
-                      onClick={() => handleChangeEstado('rechazada')}
-                      disabled={updatingEstado}
-                      className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm">close</span>
-                      Rechazar Prueba
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Información de la Prueba */}
-          <div className="mb-6">
-            <h3 className="text-text-light font-semibold mb-4">Información de la Prueba</h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-muted text-xs mb-1">Estado</p>
-                <span className={`inline-block px-2 py-1 rounded text-xs ${getEstadoColor(selectedPrueba.estado)}`}>
-                  {getEstadoLabel(selectedPrueba.estado)}
+        {/* PANEL IZQUIERDO: LISTA DE PRUEBAS */}
+        <div className={`transition-all duration-500 ease-in-out ${selectedPrueba ? 'w-1/3' : 'w-full'} flex flex-col min-h-0`}>
+          <div className="rounded-xl bg-card-dark border border-border-dark flex-1 flex flex-col min-h-0 overflow-hidden shadow-xl">
+            <div className="p-4 border-b border-border-dark shrink-0 bg-white/5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-text-light font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">biotech</span>
+                  {isAnalista ? 'Mis Pruebas' : 'Pruebas Globales'}
+                </h2>
+                <span className="text-sm font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                  {pruebasFiltered.length}
                 </span>
               </div>
-              <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-muted text-xs mb-1">Idea Asociada</p>
-                <p className="text-text-light">Idea #{selectedPrueba.ideaId}</p>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm scale-75">search</span>
+                <input
+                  type="text"
+                  placeholder="ID Muestra, tipo, etc..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-1.5 pl-9 pr-4 text-sm text-text-light focus:outline-none focus:border-primary/50 transition-all placeholder:text-text-muted/50"
+                />
               </div>
-              {selectedPrueba.fechaMuestreo && (
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-muted text-xs mb-1">Fecha de Muestreo</p>
-                  <p className="text-text-light">{new Date(selectedPrueba.fechaMuestreo).toLocaleString('es-ES')}</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scroll min-h-0">
+              {loadingPruebas ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-text-muted text-sm">Sincronizando con base de datos...</p>
+                </div>
+              ) : pruebasFiltered.length === 0 ? (
+                <div className="p-12 text-center">
+                  <span className="material-symbols-outlined text-5xl text-text-muted/30 mb-4">search_off</span>
+                  <p className="text-text-muted text-sm font-medium">
+                    No se encontraron resultados
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="sticky top-0 bg-card-dark z-10">
+                      <tr className="border-b border-border-dark shadow-sm">
+                        <th className="p-4 text-text-muted text-xs font-semibold uppercase">Muestra</th>
+                        {!selectedPrueba && <th className="p-4 text-text-muted text-xs font-semibold uppercase">Referencia</th>}
+                        {!selectedPrueba && <th className="p-4 text-text-muted text-xs font-semibold uppercase">Ensayo</th>}
+                        <th className="p-4 text-text-muted text-xs font-semibold uppercase text-center">Estado</th>
+                        <th className="p-4 text-right"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-dark/30">
+                      {pruebasFiltered.map((prueba) => (
+                        <tr
+                          key={prueba.id}
+                          onClick={() => handleVerDetalle(prueba)}
+                          className={`group cursor-pointer transition-colors ${selectedPrueba?.id === prueba.id ? 'bg-primary/10 border-l-4 border-l-primary' : 'hover:bg-white/5'}`}
+                        >
+                          <td className="p-4">
+                            <p className="text-text-light font-semibold text-sm leading-none">{prueba.codigoMuestra}</p>
+                            {selectedPrueba && <p className="text-xs text-text-muted mt-1 truncate max-w-[150px]">{prueba.tipoPrueba}</p>}
+                          </td>
+                          {!selectedPrueba && (
+                            <td className="p-4">
+                              <p className="text-text-muted text-xs">Idea #{prueba.ideaId}</p>
+                            </td>
+                          )}
+                          {!selectedPrueba && (
+                            <td className="p-4">
+                              <p className="text-text-light text-xs font-semibold">{prueba.tipoPrueba}</p>
+                            </td>
+                          )}
+                          <td className="p-4 text-center">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold uppercase ${getEstadoColor(prueba.estado)}`}>
+                              {getEstadoLabel(prueba.estado)}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button className="w-8 h-8 rounded-lg bg-primary/0 group-hover:bg-primary/20 text-primary transition-all flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl">chevron_right</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-              {selectedPrueba.equiposUtilizados && (
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-muted text-xs mb-1">Equipos Utilizados</p>
-                  <p className="text-text-light">{selectedPrueba.equiposUtilizados}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* PANEL DERECHO: DETALLE DE PRUEBA */}
+        {selectedPrueba && (
+          <div className="flex-1 flex flex-col min-h-0 bg-slate-900/60 rounded-2xl border border-cyan-500/30 animate-scale-in shadow-2xl relative overflow-hidden backdrop-blur-md">
+            {/* GRADIENTE DE FONDO SUTIL */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+            {/* HEADER FIJO DEL PANEL DERECHO */}
+            <div className="p-6 border-b border-white/10 flex items-start justify-between shrink-0 relative z-10">
+              <div className="flex flex-col">
+                <h2 className="text-text-light text-xl font-bold">
+                  {selectedPrueba.codigoMuestra}
+                </h2>
+                <p className="text-text-muted text-sm mt-1">
+                  {selectedPrueba.tipoPrueba}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedPrueba(null)}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-danger/20 text-text-muted hover:text-danger group shrink-0"
+              >
+                <span className="material-symbols-outlined group-hover:rotate-90 transition-transform">close</span>
+              </button>
+            </div>
+
+            {/* CONTENIDO CON SCROLL INTERNO INDEPENDIENTE */}
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-2 custom-scroll p-6 relative z-10">
+
+              {/* BLOQUE DE ACCIONES RÁPIDAS */}
+              {isAnalista && (
+                <div className="mb-8 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-600/5 border border-cyan-500/20 shadow-inner">
+                  <h3 className="text-text-light text-xs font-semibold mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Control de Fase Analítica
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {(selectedPrueba.estado || '').toLowerCase() === 'pendiente' && (
+                      <button
+                        onClick={() => handleChangeEstado('en_proceso')}
+                        disabled={updatingEstado}
+                        className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center gap-3 shadow-[0_4px_15px_rgba(var(--color-primary),0.3)]"
+                      >
+                        <span className="material-symbols-outlined text-lg">play_circle</span>
+                        Iniciar Protocolo
+                      </button>
+                    )}
+                    {(selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
+                      <>
+                        <button
+                          onClick={() => handleChangeEstado('oos')}
+                          disabled={updatingEstado}
+                          className="px-5 py-2.5 rounded-lg bg-warning/20 text-warning border border-warning/30 text-sm font-medium transition-all hover:bg-warning hover:text-white flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">report_problem</span>
+                          Notificar OOS
+                        </button>
+                        <button
+                          onClick={() => handleChangeEstado('rechazada')}
+                          disabled={updatingEstado}
+                          className="px-5 py-2.5 rounded-lg bg-danger/20 text-danger border border-danger/30 text-sm font-medium transition-all hover:bg-danger hover:text-white flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">block</span>
+                          Invalidar Ciclo
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                {/* INFO ANALÍTICA */}
+                <div>
+                  <h3 className="text-text-light text-xs font-semibold mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    Metadatos de Seguimiento
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                      <p className="text-xs text-text-muted font-semibold uppercase mb-1.5 tracking-tight">Status Actual</p>
+                      <span className={`inline-block px-3 py-1 rounded-lg text-[10px] font-semibold uppercase border border-current/20 ${getEstadoColor(selectedPrueba.estado)}`}>
+                        {getEstadoLabel(selectedPrueba.estado)}
+                      </span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                      <p className="text-xs text-text-muted font-semibold uppercase mb-1.5 tracking-tight">Proyecto Relacionado</p>
+                      <p className="text-text-light text-sm font-semibold tracking-tight">Idea #{selectedPrueba.ideaId}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOGÍSTICA */}
+                <div>
+                  <h3 className="text-text-light text-xs font-semibold mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    Logística y Equipos
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                      <p className="text-xs text-text-muted font-semibold uppercase mb-1.5 tracking-tight">Fecha Apertura</p>
+                      <p className="text-text-light text-sm font-semibold flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm text-primary">calendar_month</span>
+                        {selectedPrueba.fechaMuestreo ? new Date(selectedPrueba.fechaMuestreo).toLocaleString('es-ES') : 'N/A'}
+                      </p>
+                    </div>
+                    {selectedPrueba.equiposUtilizados && (
+                      <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                        <p className="text-xs text-text-muted font-semibold uppercase mb-1.5 tracking-tight">Asset Management</p>
+                        <p className="text-text-light text-sm font-semibold flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm text-primary">precision_manufacturing</span>
+                          {selectedPrueba.equiposUtilizados}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* CONTEXTO / NOTAS */}
               {selectedPrueba.descripcion && (
-                <div className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-muted text-xs mb-1">Descripción</p>
-                  <p className="text-text-light">{selectedPrueba.descripcion}</p>
+                <div className="mb-8">
+                  <h3 className="text-text-light text-xs font-semibold mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    Descripción de Procedimiento
+                  </h3>
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-text-muted text-sm italic leading-relaxed">
+                    "{selectedPrueba.descripcion}"
+                  </div>
                 </div>
               )}
+
+              {/* RESULTADOS OPERATIVOS */}
               {selectedPrueba.pruebasRequeridas && (
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start gap-2 flex-1">
-                      <span className="material-symbols-outlined text-primary text-lg">assignment</span>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-text-light font-semibold">Pruebas Requeridas y Resultados</p>
-                        </div>
-                        <p className="text-text-muted text-xs mb-3">Lista de pruebas que debes realizar y sus resultados:</p>
-                        <div className="space-y-2">
-                          {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
-                            // Verificar si ya se registró un resultado para este parámetro
-                            const resultadoRegistrado = selectedPrueba.resultados?.find(r =>
-                              r.parametro.toLowerCase().includes(prueba.parametro.toLowerCase()) ||
-                              prueba.parametro.toLowerCase().includes(r.parametro.toLowerCase())
-                            )
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-5 leading-none">
+                    <h3 className="text-text-light text-xs font-semibold mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                      Resultados y Especificaciones
+                    </h3>
+                    <span className="text-xs font-medium text-text-muted bg-white/5 px-2 py-1 rounded">
+                      {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).length} Parámetros
+                    </span>
+                  </div>
 
-                            return (
-                              <div
-                                key={index}
-                                className={`p-4 rounded-lg border ${resultadoRegistrado
-                                  ? resultadoRegistrado.cumpleEspecificacion === false
-                                    ? 'bg-danger/10 border-danger/30'
-                                    : 'bg-success/10 border-success/30'
-                                  : 'bg-input-dark border-border-dark'
-                                  }`}
-                              >
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="flex-1">
-                                    <p className="text-text-light font-medium text-sm">{prueba.parametro}</p>
-                                    {prueba.especificacion && (
-                                      <p className="text-text-muted text-xs mt-1">
-                                        Especificación: <span className="text-text-light">{prueba.especificacion}</span>
-                                      </p>
-                                    )}
-                                  </div>
-                                  {resultadoRegistrado ? (
-                                    <div className="flex flex-col items-end gap-1">
-                                      <span className={`px-2 py-1 rounded text-xs font-medium ${resultadoRegistrado.cumpleEspecificacion === false
-                                        ? 'bg-danger/20 text-danger'
-                                        : 'bg-success/20 text-success'
-                                        }`}>
-                                        {resultadoRegistrado.cumpleEspecificacion === false ? '✗ OOS' : '✓ Cumple'}
-                                      </span>
-                                      {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
-                                        <span className="text-text-muted text-xs">
-                                          {resultadoRegistrado.observaciones.replace('Registrado el ', '')}
-                                        </span>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      {isAnalista && (selectedPrueba.estado || '').toLowerCase() === 'en_proceso' && (
-                                        <>
-                                          <button
-                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'si')}
-                                            className="px-4 py-2 rounded-lg bg-success text-white text-sm font-medium hover:bg-success/90 transition-colors flex items-center gap-1"
-                                          >
-                                            <span className="material-symbols-outlined text-sm">check_circle</span>
-                                            Sí
-                                          </button>
-                                          <button
-                                            onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'no')}
-                                            className="px-4 py-2 rounded-lg bg-danger text-white text-sm font-medium hover:bg-danger/90 transition-colors flex items-center gap-1"
-                                          >
-                                            <span className="material-symbols-outlined text-sm">cancel</span>
-                                            No
-                                          </button>
-                                        </>
-                                      )}
-                                      {(!isAnalista || selectedPrueba.estado !== 'EN_PROCESO') && (
-                                        <span className="px-2 py-1 rounded text-xs bg-warning/20 text-warning font-medium">
-                                          Pendiente
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
+                  <div className="space-y-4">
+                    {parsePruebasRequeridas(selectedPrueba.pruebasRequeridas).map((prueba, index) => {
+                      const resultadoRegistrado = selectedPrueba.resultados?.find(r =>
+                        r.parametro.toLowerCase().includes(prueba.parametro.toLowerCase()) ||
+                        prueba.parametro.toLowerCase().includes(r.parametro.toLowerCase())
+                      )
+
+                      return (
+                        <div
+                          key={index}
+                          className={`p-5 rounded-2xl border transition-all duration-300 ${resultadoRegistrado
+                            ? resultadoRegistrado.cumpleEspecificacion === false
+                              ? 'bg-danger/10 border-danger/30 shadow-[0_4px_15px_rgba(239,68,68,0.1)]'
+                              : 'bg-success/5 border-success/30 shadow-[0_4px_15px_rgba(34,197,94,0.05)]'
+                            : 'bg-white/5 border-white/10 hover:border-white/30'
+                            }`}
+                        >
+                          <div className="flex items-start justify-between gap-6 leading-none">
+                            <div className="flex-1">
+                              <p className="text-text-light font-semibold text-sm mb-2">{prueba.parametro}</p>
+                              {prueba.especificacion && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-text-muted uppercase bg-white/5 px-1.5 py-0.5 rounded">Rango Permitido</span>
+                                  <p className="text-cyan-400 font-mono text-xs">{prueba.especificacion}</p>
                                 </div>
+                              )}
+                            </div>
 
-                                {/* Mostrar resultado si está registrado */}
-                                {resultadoRegistrado && (
-                                  <div className="mt-3 pt-3 border-t border-border-dark">
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1">
-                                        {resultadoRegistrado.tipoResultado === 'checklist' ? (
-                                          <div className="flex items-center gap-3">
-                                            <span className={`material-symbols-outlined text-2xl ${resultadoRegistrado.cumpleEspecificacion ? 'text-success' : 'text-danger'
-                                              }`}>
-                                              {resultadoRegistrado.cumpleEspecificacion ? 'check_circle' : 'cancel'}
-                                            </span>
-                                            <div>
-                                              <p className="text-text-light font-semibold text-sm">
-                                                Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span>
-                                              </p>
-                                              {resultadoRegistrado.observaciones && resultadoRegistrado.observaciones.includes('Registrado el') && (
-                                                <p className="text-text-muted text-xs mt-0.5">
-                                                  {resultadoRegistrado.observaciones}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <>
-                                            <p className="text-text-light font-semibold text-sm">
-                                              Resultado: <span className="text-primary">{resultadoRegistrado.resultado}</span> {resultadoRegistrado.unidad || ''}
-                                            </p>
-                                            {resultadoRegistrado.observaciones && (
-                                              <p className="text-text-muted text-xs mt-2 italic">
-                                                {resultadoRegistrado.observaciones}
-                                              </p>
-                                            )}
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
+                            {resultadoRegistrado ? (
+                              <div className="flex flex-col items-end gap-2 shrink-0">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase shadow-lg ${resultadoRegistrado.cumpleEspecificacion === false
+                                  ? 'bg-danger text-white'
+                                  : 'bg-success text-white'
+                                  }`}>
+                                  {resultadoRegistrado.cumpleEspecificacion === false ? 'Out of Spec' : 'Pass'}
+                                </span>
+                                <span className="text-text-muted text-xs font-mono opacity-60">
+                                  {resultadoRegistrado.observaciones?.split('Registrado el ')[1] || 'Reciente'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3 shrink-0">
+                                {isAnalista && (selectedPrueba.estado || '').toLowerCase() === 'en_proceso' ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'si')}
+                                      className="w-12 h-12 rounded-2xl bg-success/20 text-success hover:bg-success hover:text-white transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center border border-success/30"
+                                      title="Configurar como CUMPLE"
+                                    >
+                                      <span className="material-symbols-outlined text-2xl">verified</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleAgregarResultadoChecklist(prueba.parametro, prueba.especificacion, 'no')}
+                                      className="w-12 h-12 rounded-2xl bg-danger/20 text-danger hover:bg-danger hover:text-white transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center border border-danger/30"
+                                      title="Configurar como NO CUMPLE"
+                                    >
+                                      <span className="material-symbols-outlined text-2xl">error_outline</span>
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="px-3 py-1.5 rounded-lg text-xs bg-white/5 text-text-muted font-semibold uppercase border border-white/10">
+                                    En Espera
+                                  </span>
                                 )}
                               </div>
-                            )
-                          })}
+                            )}
+                          </div>
+
+                          {resultadoRegistrado && (
+                            <div className="mt-5 pt-5 border-t border-white/5 flex items-center gap-6 animate-fade-in">
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${resultadoRegistrado.cumpleEspecificacion ? 'bg-success/20 text-success border border-success/30' : 'bg-danger/20 text-danger border border-danger/30'
+                                }`}>
+                                <span className="material-symbols-outlined text-3xl font-light">
+                                  {resultadoRegistrado.cumpleEspecificacion ? 'fingerprint' : 'warning_amber'}
+                                </span>
+                              </div>
+                              <div className="flex-1 leading-none">
+                                <p className="text-text-muted text-xs font-semibold uppercase mb-1.5">Valor Capturado</p>
+                                <p className="text-3xl font-bold text-white flex items-baseline gap-2">
+                                  {resultadoRegistrado.resultado}
+                                  <span className="text-xs font-medium text-text-muted/60 opacity-60">RAW DATA</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
             </div>
           </div>
+        )}
+      </div>
 
-        </div>
-      )}
-
-
-      {/* Diálogo para crear nueva prueba */}
+      {/* DIÁLOGOS MODALES */}
       {showCreateDialog && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowCreateDialog(false)
-            }
-          }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in"
+          onClick={(e) => e.target === e.currentTarget && setShowCreateDialog(false)}
         >
-          <div className="bg-card-dark rounded-lg border border-border-dark max-w-md w-full shadow-xl">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-text-light text-lg font-semibold">Nueva Prueba</h3>
-                <button
-                  onClick={() => setShowCreateDialog(false)}
-                  className="text-text-muted hover:text-text-light"
+          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-lg w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-scale-in overflow-hidden">
+            <div className="p-6 border-b border-white/5 bg-white/5 flex items-center justify-between">
+              <h3 className="text-text-light text-xl font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">add_circle</span>
+                Configurar Nueva Prueba
+              </h3>
+              <button onClick={() => setShowCreateDialog(false)} className="text-text-muted hover:text-white leading-none">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 custom-scroll max-h-[70vh] overflow-y-auto space-y-6">
+              <div>
+                <label className="block text-[10px] font-semibold text-primary uppercase mb-2">Proyecto de Origen *</label>
+                <select
+                  value={nuevaPrueba.ideaId}
+                  onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, ideaId: e.target.value })}
+                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-text-light focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm font-medium"
                 >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
+                  <option value="" className="bg-slate-900">Vincular a Idea existente...</option>
+                  {ideasAsignadas.map((idea) => (
+                    <option key={idea.id} value={idea.id} className="bg-slate-900">
+                      ID: {idea.id} - {idea.titulo}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-text-muted text-sm mb-2">Idea Asociada *</label>
-                  <select
-                    value={nuevaPrueba.ideaId}
-                    onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, ideaId: e.target.value })}
-                    className="w-full h-10 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="">Selecciona una idea</option>
-                    {ideasAsignadas.map((idea) => (
-                      <option key={idea.id} value={idea.id}>
-                        {idea.titulo} (ID: {idea.id})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-text-muted text-sm mb-2">Código de Muestra *</label>
+                  <label className="block text-[10px] font-semibold text-primary uppercase mb-2">Código LIMS *</label>
                   <input
                     type="text"
                     value={nuevaPrueba.codigoMuestra}
                     onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, codigoMuestra: e.target.value })}
-                    placeholder="Ej: MU-2024-001"
-                    className="w-full h-10 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    placeholder="Ej: MU-1102"
+                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-text-light placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm font-mono"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-text-muted text-sm mb-2">Tipo de Prueba *</label>
+                  <label className="block text-[10px] font-semibold text-primary uppercase mb-2">Categoría *</label>
                   <input
                     type="text"
                     value={nuevaPrueba.tipoPrueba}
                     onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, tipoPrueba: e.target.value })}
-                    placeholder="Ej: Control de Calidad, Análisis Sensorial"
-                    className="w-full h-10 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+                    placeholder="Materia Prima, Estabilidad..."
+                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-text-light placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm font-medium"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-text-muted text-sm mb-2">Descripción</label>
-                  <textarea
-                    value={nuevaPrueba.descripcion}
-                    onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, descripcion: e.target.value })}
-                    placeholder="Descripción de la prueba..."
-                    rows="3"
-                    className="w-full px-4 py-2 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-text-muted text-sm mb-2">Equipos Utilizados</label>
-                  <input
-                    type="text"
-                    value={nuevaPrueba.equiposUtilizados}
-                    onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, equiposUtilizados: e.target.value })}
-                    placeholder="Ej: HPLC-001, BAL-002"
-                    className="w-full h-10 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-text-muted text-sm mb-2">Pruebas Requeridas</label>
-                  <textarea
-                    value={nuevaPrueba.pruebasRequeridas}
-                    onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, pruebasRequeridas: e.target.value })}
-                    placeholder="Especifica qué pruebas debe realizar. Ejemplo:&#10;- pH (especificación: 6.5 - 7.5)&#10;- Humedad (especificación: ≤ 5%)&#10;- Proteína (especificación: ≥ 80%)"
-                    rows="5"
-                    className="w-full px-4 py-2 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                  />
-                  <p className="text-text-muted text-xs mt-1">
-                    Lista de los parámetros y pruebas que se deben realizar
-                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end mt-6">
-                <button
-                  onClick={() => setShowCreateDialog(false)}
-                  className="px-4 py-2 rounded-lg bg-input-dark text-text-light text-sm font-medium hover:bg-border-dark transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreatePrueba}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
-                  Crear Prueba
-                </button>
+              <div>
+                <label className="block text-[10px] font-semibold text-primary uppercase mb-2">Workflow de Pruebas</label>
+                <textarea
+                  value={nuevaPrueba.pruebasRequeridas}
+                  onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, pruebasRequeridas: e.target.value })}
+                  placeholder="Formato:&#10;- Parámetro (especificación: valor)&#10;- pH (especificación: 6.5 - 7.5)"
+                  rows="4"
+                  className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-text-light placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-xs font-mono resize-none"
+                />
               </div>
+
+              <div>
+                <label className="block text-[10px] font-semibold text-primary uppercase mb-2">Contexto Adicional</label>
+                <textarea
+                  value={nuevaPrueba.descripcion}
+                  onChange={(e) => setNuevaPrueba({ ...nuevaPrueba, descripcion: e.target.value })}
+                  placeholder="Instrucciones especiales para el analista..."
+                  rows="2"
+                  className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-text-light placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-xs resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 bg-white/5 flex gap-4 justify-end">
+              <button
+                onClick={() => setShowCreateDialog(false)}
+                className="px-6 py-2 rounded-lg text-text-muted text-sm font-medium hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreatePrueba}
+                className="px-8 py-2.5 rounded-lg bg-primary text-white text-sm font-medium shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+              >
+                Registrar Prueba
+              </button>
             </div>
           </div>
         </div>
