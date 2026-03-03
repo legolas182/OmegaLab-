@@ -25,65 +25,65 @@ import Login from './pages/Login'
 function App() {
   return (
     <ThemeProvider>
-    <AuthProvider>
-      <VisualSystemProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#1e293b',
-            color: '#f1f5f9',
-            border: '1px solid #334155',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#f1f5f9',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#f1f5f9',
-            },
-          },
-        }}
-        />
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="ideas" element={<Ideas />} />
-            <Route path="inventario" element={<Inventario />}>
-              <Route index element={<Navigate to="productos" replace />} />
-              <Route path="productos" element={<Productos />} />
-              <Route path="materia-prima" element={<MateriaPrima />} />
-              <Route path="categorias" element={<Categorias />} />
-              <Route path="unidades-medida" element={<UnidadesMedida />} />
-            </Route>
-            <Route path="ia" element={<IA />} />
-            <Route path="produccion" element={<Produccion />} />
-            <Route path="pruebas" element={<Pruebas />} />
-            <Route path="historial" element={<Historial />} />
-            <Route path="aprobacion" element={<Aprobacion />} />
-            <Route path="trazabilidad" element={<Trazabilidad />} />
-            <Route path="configuracion" element={<Configuracion />} />
-          </Route>
-          </Routes>
-        </Router>
-      </VisualSystemProvider>
-    </AuthProvider>
+      <AuthProvider>
+        <VisualSystemProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#1e293b',
+                color: '#f1f5f9',
+                border: '1px solid #334155',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#f1f5f9',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#f1f5f9',
+                },
+              },
+            }}
+          />
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="ideas" element={<Ideas />} />
+                <Route path="inventario" element={<Inventario />}>
+                  <Route index element={<Navigate to="productos" replace />} />
+                  <Route path="productos" element={<Productos />} />
+                  <Route path="materia-prima" element={<MateriaPrima />} />
+                  <Route path="categorias" element={<Categorias />} />
+                  <Route path="unidades-medida" element={<UnidadesMedida />} />
+                </Route>
+                <Route path="ia" element={<IA />} />
+                <Route path="produccion" element={<Produccion />} />
+                <Route path="pruebas" element={<Pruebas />} />
+                <Route path="historial" element={<Historial />} />
+                <Route path="aprobacion" element={<Aprobacion />} />
+                <Route path="trazabilidad" element={<Trazabilidad />} />
+                <Route path="configuracion" element={<Configuracion />} />
+              </Route>
+            </Routes>
+          </Router>
+        </VisualSystemProvider>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

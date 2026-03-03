@@ -52,7 +52,6 @@ const Trazabilidad = () => {
       const lote = await loteService.getLoteByCodigo(loteId.trim())
       setTrazabilidad(lote)
     } catch (error) {
-      toast.error('Lote no encontrado: ' + (error.message || 'Error desconocido'))
       setTrazabilidad(null)
     } finally {
       setLoadingLote(false)
@@ -162,9 +161,9 @@ const Trazabilidad = () => {
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <span className={`px-2 py-1 rounded text-xs ${evento.tipo === 'Origen' ? 'bg-primary/20 text-primary' :
-                                    evento.tipo === 'Proceso' ? 'bg-warning/20 text-warning' :
-                                      evento.tipo === 'Calidad' ? 'bg-info/20 text-info' :
-                                        'bg-success/20 text-success'
+                                  evento.tipo === 'Proceso' ? 'bg-warning/20 text-warning' :
+                                    evento.tipo === 'Calidad' ? 'bg-info/20 text-info' :
+                                      'bg-success/20 text-success'
                                   }`}>
                                   {evento.tipo}
                                 </span>
@@ -219,8 +218,8 @@ const Trazabilidad = () => {
               <div className="p-4 rounded-lg bg-input-dark">
                 <p className="text-text-muted text-xs mb-1">Estado</p>
                 <span className={`inline-block px-2 py-1 rounded text-xs ${trazabilidad.estado === 'EN_PROCESO' ? 'bg-warning/20 text-warning' :
-                    trazabilidad.estado === 'COMPLETADO' ? 'bg-success/20 text-success' :
-                      'bg-primary/20 text-primary'
+                  trazabilidad.estado === 'COMPLETADO' ? 'bg-success/20 text-success' :
+                    'bg-primary/20 text-primary'
                   }`}>
                   {trazabilidad.estado || 'N/A'}
                 </span>

@@ -12,18 +12,14 @@ class AuthService {
    * @returns {Promise<Object>} Usuario y token
    */
   async login(email, password) {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      const { data } = response.data;
-      
-      // Guardar token y usuario en localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      return data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await api.post('/auth/login', { email, password });
+    const { data } = response.data;
+
+    // Guardar token y usuario en localStorage
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    return data;
   }
 
   /**
@@ -32,18 +28,14 @@ class AuthService {
    * @returns {Promise<Object>} Usuario y token
    */
   async register(userData) {
-    try {
-      const response = await api.post('/auth/register', userData);
-      const { data } = response.data;
-      
-      // Guardar token y usuario en localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      return data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await api.post('/auth/register', userData);
+    const { data } = response.data;
+
+    // Guardar token y usuario en localStorage
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    return data;
   }
 
   /**
@@ -51,12 +43,8 @@ class AuthService {
    * @returns {Promise<Object>} Usuario
    */
   async getProfile() {
-    try {
-      const response = await api.get('/auth/profile');
-      return response.data.data.user;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await api.get('/auth/profile');
+    return response.data.data.user;
   }
 
   /**
@@ -91,26 +79,6 @@ class AuthService {
   getToken() {
     return localStorage.getItem('token');
   }
-
-  /**
-   * Maneja errores de la API
-   * @param {Error} error - Error de axios
-   * @returns {Error}
-   */
-  handleError(error) {
-    if (error.response) {
-      // El servidor respondió con un código de error
-      const message = error.response.data?.error?.message || error.response.data?.message || 'Error en la petición';
-      return new Error(message);
-    } else if (error.request) {
-      // La petición se hizo pero no se recibió respuesta
-      return new Error('No se pudo conectar con el servidor');
-    } else {
-      // Algo más causó el error
-      return new Error(error.message || 'Error desconocido');
-    }
-  }
 }
 
 export default new AuthService();
-

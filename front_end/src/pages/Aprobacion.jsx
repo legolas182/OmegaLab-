@@ -121,7 +121,6 @@ const Aprobacion = () => {
       }))
     } catch (error) {
       console.error('Error al confirmar producción:', error)
-      toast.error('Error al confirmar producción: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -145,7 +144,6 @@ const Aprobacion = () => {
       }))
     } catch (error) {
       console.error('Error al rechazar fórmula:', error)
-      toast.error('Error al rechazar fórmula: ' + (error.message || 'Error desconocido'))
     }
   }
 

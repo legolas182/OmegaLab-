@@ -140,7 +140,6 @@ const Ideas = () => {
       }
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
       // En caso de error, recargar para sincronizar
       loadIdeas()
     }
@@ -171,7 +170,6 @@ const Ideas = () => {
       setSelectedAnalistaId(null)
     } catch (error) {
       console.error('Error al asignar a analista:', error)
-      toast.error('Error al asignar analista: ' + (error.message || 'Error desconocido'))
       // En caso de error, recargar para sincronizar
       loadIdeas()
     }
@@ -337,7 +335,6 @@ const Ideas = () => {
       setDragOverColumn(null)
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
       setDraggedFormula(null)
       setDragOverColumn(null)
       // En caso de error, recargar para sincronizar
@@ -1241,7 +1238,6 @@ const Ideas = () => {
                                           navigate(`/pruebas?pruebaId=${nuevaPrueba.id}`)
                                         } catch (error) {
                                           console.error('Error al crear prueba:', error)
-                                          toast.error('Error al crear prueba: ' + (error.message || 'Error desconocido'))
                                         }
                                       }}
                                       className="w-full px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 flex items-center justify-center gap-2"

@@ -197,7 +197,6 @@ const Historial = () => {
       setShowDetailsModal(true)
     } catch (error) {
       console.error('Error al cargar prueba:', error)
-      toast.error('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -234,7 +233,6 @@ const Historial = () => {
       loadPruebas() // Recargar para actualizar la lista (por si cambia el backend en el futuro)
     } catch (error) {
       console.error('Error al enviar al supervisor:', error)
-      toast.error('Error al enviar al supervisor: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -399,8 +397,8 @@ const Historial = () => {
                         </td>
                         <td className="px-3 py-2.5">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${orden.estado === 'EN_PROCESO' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
-                              orden.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary border-primary/30' :
-                                'badge-success bg-success/20 text-success border-success/30'
+                            orden.estado === 'EN_PRODUCCION' ? 'bg-primary/20 text-primary border-primary/30' :
+                              'badge-success bg-success/20 text-success border-success/30'
                             }`}>
                             {orden.estado === 'EN_PROCESO' ? 'En Proceso' :
                               orden.estado === 'EN_PRODUCCION' ? 'En Producción' : orden.estado}
@@ -453,8 +451,8 @@ const Historial = () => {
                               key={page}
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                  ? 'bg-primary text-white'
-                                  : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
+                                ? 'bg-primary text-white'
+                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
                                 }`}
                             >
                               {page}
@@ -551,7 +549,6 @@ const Historial = () => {
                                   setShowDetailsModal(true)
                                 } catch (error) {
                                   console.error('Error al cargar idea:', error)
-                                  toast.error('Error al cargar detalles: ' + (error.message || 'Error desconocido'))
                                 }
                               }}
                               className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
@@ -593,8 +590,8 @@ const Historial = () => {
                               key={page}
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                  ? 'bg-primary text-white'
-                                  : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
+                                ? 'bg-primary text-white'
+                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
                                 }`}
                             >
                               {page}
@@ -728,8 +725,8 @@ const Historial = () => {
                               key={page}
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                  ? 'bg-primary text-white'
-                                  : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
+                                ? 'bg-primary text-white'
+                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
                                 }`}
                             >
                               {page}
@@ -949,8 +946,8 @@ const Historial = () => {
                       <div
                         key={result.id}
                         className={`p-3 rounded-lg border ${result.cumpleEspecificacion === false
-                            ? 'bg-danger/10 border-danger/30'
-                            : 'bg-success/10 border-success/30'
+                          ? 'bg-danger/10 border-danger/30'
+                          : 'bg-success/10 border-success/30'
                           }`}
                       >
                         <div className="flex items-start justify-between">
@@ -970,8 +967,8 @@ const Historial = () => {
                           </div>
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${result.cumpleEspecificacion === false
-                                ? 'badge-danger bg-danger/20 text-danger'
-                                : 'badge-success bg-success/20 text-success'
+                              ? 'badge-danger bg-danger/20 text-danger'
+                              : 'badge-success bg-success/20 text-success'
                               }`}
                           >
                             {result.cumpleEspecificacion === false ? 'OOS' : 'Cumple'}

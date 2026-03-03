@@ -123,7 +123,6 @@ const Pruebas = () => {
       loadPruebas()
     } catch (error) {
       console.error('Error al crear prueba:', error)
-      toast.error('Error al crear prueba: ' + (error.message || 'Error desconocido'))
     }
   }
 
@@ -141,7 +140,6 @@ const Pruebas = () => {
       loadPruebas()
     } catch (error) {
       console.error('Error al cambiar estado:', error)
-      toast.error('Error al cambiar estado: ' + (error.message || 'Error desconocido'))
     } finally {
       setUpdatingEstado(false)
     }
@@ -183,7 +181,6 @@ const Pruebas = () => {
       await evaluarEstadoPrueba(pruebaCompleta)
     } catch (error) {
       console.error('Error al agregar resultado de checklist:', error)
-      toast.error('Error al agregar resultado: ' + (error.message || 'Error desconocido'))
     }
   }
 
