@@ -22,6 +22,47 @@ const Configuracion = () => {
     { id: 'VAL-003', sistema: 'Aire Comprimido', estado: 'Pendiente', fecha: '-', proxima: '01/02/2024' }
   ])
 
+  const getRoleStyles = (rol) => {
+    const baseStyles = {
+      backgroundColor: 'rgba(79, 70, 229, 0.18)',
+      textColor: '#FFFFFF',
+      borderColor: '#4F46E5'
+    }
+
+    switch (rol) {
+      case 'ADMINISTRADOR':
+      case 'ADMINISTRADOR DEL SISTEMA':
+        return {
+          backgroundColor: 'rgba(79, 70, 229, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#4F46E5'
+        } // Admin
+      case 'ANALISTA_LABORATORIO':
+      case 'ANALISTA DE LABORATORIO':
+        return {
+          backgroundColor: 'rgba(14, 116, 144, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#0E7490'
+        } // Analista Lab
+      case 'SUPERVISOR_QA':
+      case 'SUPERVISOR QA':
+        return {
+          backgroundColor: 'rgba(4, 120, 87, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#047857'
+        } // Supervisor QA
+      case 'SUPERVISOR_CALIDAD':
+      case 'SUPERVISOR DE CALIDAD':
+        return {
+          backgroundColor: 'rgba(194, 65, 12, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#C2410C'
+        } // Supervisor Calidad
+      default:
+        return baseStyles
+    }
+  }
+
   return (
     <div className="w-full h-full">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -80,29 +121,43 @@ const Configuracion = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {usuarios.map((usuario) => (
-                    <tr key={usuario.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                      <td className="p-4 text-text-light">{usuario.nombre}</td>
-                      <td className="p-4 text-text-muted text-sm">{usuario.email}</td>
-                      <td className="p-4">
-                        <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                          {usuario.rol}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          usuario.estado === 'Activo' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                        }`}>
-                          {usuario.estado}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30">
-                          Editar Permisos
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {usuarios.map((usuario) => {
+                    const roleStyles = getRoleStyles(usuario.rol)
+                    return (
+                      <tr key={usuario.id} className="border-b border-border-dark hover:bg-border-dark/50">
+                        <td className="p-4 text-text-light">{usuario.nombre}</td>
+                        <td className="p-4 text-text-muted text-sm">{usuario.email}</td>
+                        <td className="p-4">
+                          <span
+                            className="px-2 py-1 rounded text-xs border"
+                            style={{
+                              backgroundColor: roleStyles.backgroundColor,
+                              color: roleStyles.textColor,
+                              borderColor: roleStyles.borderColor
+                            }}
+                          >
+                            {usuario.rol}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs ${
+                              usuario.estado === 'Activo'
+                                ? 'bg-success/20 text-success'
+                                : 'bg-danger/20 text-danger'
+                            }`}
+                          >
+                            {usuario.estado}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <button className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30">
+                            Editar Permisos
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -154,26 +209,48 @@ const Configuracion = () => {
                   ],
                   requiere: 'Analista con formación técnica en laboratorio y entrenamiento documentado en el LIMS'
                 }
-              ].map((rol, idx) => (
-                <div key={idx} className="p-4 rounded-lg bg-input-dark border border-border-dark">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="text-text-light font-medium">{rol.rol}</p>
-                      <p className="text-text-muted text-xs">Formación / requisito mínimo: {rol.requiere}</p>
+              ].map((rol, idx) => {
+                const roleStyles = getRoleStyles(rol.rol)
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-lg border"
+                    style={{
+                      backgroundColor: roleStyles.backgroundColor,
+                      borderColor: roleStyles.borderColor
+                    }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="text-text-light font-medium">{rol.rol}</p>
+                        <p className="text-text-muted text-xs">
+                          Formación / requisito mínimo: {rol.requiere}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-text-muted text-xs mb-1">
+                        Actividades Autorizadas en el Sistema:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {rol.actividades.map((act, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-1 rounded text-xs border"
+                            style={{
+                              backgroundColor: roleStyles.backgroundColor,
+                              color: roleStyles.textColor,
+                              borderColor: roleStyles.borderColor
+                            }}
+                          >
+                            {act}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <p className="text-text-muted text-xs mb-1">Actividades Autorizadas en el Sistema:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {rol.actividades.map((act, i) => (
-                        <span key={i} className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
-                          {act}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>

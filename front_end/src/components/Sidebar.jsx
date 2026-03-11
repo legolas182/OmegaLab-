@@ -8,6 +8,47 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
   const { logout, user } = useAuth()
   const { theme, toggleTheme } = useTheme()
 
+  const getRoleStyles = (rol) => {
+    const baseStyles = {
+      backgroundColor: 'rgba(79, 70, 229, 0.18)',
+      textColor: '#FFFFFF',
+      borderColor: '#4F46E5'
+    }
+
+    switch (rol) {
+      case 'ADMINISTRADOR':
+      case 'ADMINISTRADOR DEL SISTEMA':
+        return {
+          backgroundColor: 'rgba(79, 70, 229, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#4F46E5'
+        }
+      case 'ANALISTA_LABORATORIO':
+      case 'ANALISTA DE LABORATORIO':
+        return {
+          backgroundColor: 'rgba(14, 116, 144, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#0E7490'
+        }
+      case 'SUPERVISOR_QA':
+      case 'SUPERVISOR QA':
+        return {
+          backgroundColor: 'rgba(4, 120, 87, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#047857'
+        }
+      case 'SUPERVISOR_CALIDAD':
+      case 'SUPERVISOR DE CALIDAD':
+        return {
+          backgroundColor: 'rgba(194, 65, 12, 0.18)',
+          textColor: '#FFFFFF',
+          borderColor: '#C2410C'
+        }
+      default:
+        return baseStyles
+    }
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -104,9 +145,21 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
               <div className="flex-shrink-0 mt-auto mb-2 p-3 rounded-lg bg-input-dark border border-border-dark">
                 <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
                 <p className="text-text-muted text-xs truncate">{user.email}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded bg-primary/20 text-primary text-xs">
-                  {getRoleName(user.rol)}
-                </span>
+                {(() => {
+                  const roleStyles = getRoleStyles(user.rol)
+                  return (
+                    <span
+                      className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
+                      style={{
+                        backgroundColor: roleStyles.backgroundColor,
+                        color: roleStyles.textColor,
+                        borderColor: roleStyles.borderColor
+                      }}
+                    >
+                      {getRoleName(user.rol)}
+                    </span>
+                  )
+                })()}
               </div>
             )}
 
@@ -225,9 +278,21 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 <div className="flex-shrink-0 mt-auto mb-2 p-3 rounded-lg bg-input-dark border border-border-dark">
                   <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
                   <p className="text-text-muted text-xs truncate">{user.email}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded bg-primary/20 text-primary text-xs">
-                    {user.rol}
-                  </span>
+                  {(() => {
+                    const roleStyles = getRoleStyles(user.rol)
+                    return (
+                      <span
+                        className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
+                        style={{
+                          backgroundColor: roleStyles.backgroundColor,
+                          color: roleStyles.textColor,
+                          borderColor: roleStyles.borderColor
+                        }}
+                      >
+                        {getRoleName(user.rol)}
+                      </span>
+                    )
+                  })()}
                 </div>
               )}
 
