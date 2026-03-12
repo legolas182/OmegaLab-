@@ -12,6 +12,8 @@ const Categorias = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [filterTipoProducto, setFilterTipoProducto] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -28,7 +30,12 @@ const Categorias = () => {
 
   useEffect(() => {
     loadCategories()
+    setCurrentPage(1)
   }, [searchTerm, filterTipoProducto])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [showInactive])
 
   const loadCategories = async () => {
     try {
@@ -165,130 +172,150 @@ const Categorias = () => {
     })
   }
 
+  // Paginación
+  const filteredCategories = categories.filter(category => showInactive || category.estado === 'ACTIVO')
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage)
+  const currentCategories = filteredCategories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div className="w-full h-full flex flex-col min-h-0">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
         <div className="flex-1 min-w-[200px] flex flex-wrap items-center gap-3">
           <input
             type="text"
             placeholder="Buscar categorías..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 min-w-[200px] h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="flex-1 min-w-[200px] h-12 px-4 rounded-xl bg-slate-950/50 border border-white/5 text-text-light placeholder:text-text-muted/50 focus:outline-none focus:border-primary/50 transition-all text-sm"
           />
           <select
             value={filterTipoProducto}
             onChange={(e) => setFilterTipoProducto(e.target.value)}
-            className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="h-12 px-4 rounded-xl bg-slate-950/50 border border-white/5 text-text-light focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
           >
-            <option value="">Todos los tipos</option>
-            <option value="PRODUCTO_TERMINADO">Producto Terminado</option>
-            <option value="MATERIA_PRIMA">Materia Prima</option>
-            <option value="COMPONENTE">Componente</option>
+            <option value="" className="bg-slate-900">Todos los tipos</option>
+            <option value="PRODUCTO_TERMINADO" className="bg-slate-900">Producto Terminado</option>
+            <option value="MATERIA_PRIMA" className="bg-slate-900">Materia Prima</option>
+            <option value="COMPONENTE" className="bg-slate-900">Componente</option>
           </select>
-          <label className="flex items-center gap-2 text-text-light text-sm cursor-pointer whitespace-nowrap">
+          <label className="flex items-center gap-2 text-text-light text-sm cursor-pointer whitespace-nowrap bg-white/5 px-4 h-12 rounded-xl border border-white/10 hover:border-primary/30 transition-colors">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="w-4 h-4 rounded bg-input-dark border-border-dark text-primary focus:ring-2 focus:ring-primary/50 cursor-pointer"
+              className="w-4 h-4 rounded border-gray-600 text-primary focus:ring-primary/50 cursor-pointer accent-primary"
             />
             <span>Mostrar inactivas</span>
           </label>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+          className="px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2"
         >
+          <span className="material-symbols-outlined text-lg">add</span>
           Nueva Categoría
         </button>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+        <div className="mb-6 rounded-xl bg-danger/20 border border-danger/50 p-4 flex items-center gap-3 shrink-0">
           <span className="material-symbols-outlined text-danger">error</span>
-          <p className="text-danger text-sm">{error}</p>
+          <p className="text-danger text-sm font-medium">{error}</p>
         </div>
       )}
 
-      {loading && !categories.length ? (
-        <div className="text-center py-12 text-text-muted">Cargando...</div>
-      ) : (
-        <div className="rounded-lg bg-card-dark border border-border-dark overflow-hidden">
-          {categories.filter(category => showInactive || category.estado === 'ACTIVO').length === 0 ? (
-            <div className="text-center py-12 text-text-muted">
-              {showInactive ? 'No hay categorías registradas' : 'No hay categorías activas'}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-input-dark border-b border-border-dark">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-text-light">Nombre</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-text-light">Tipo de Producto</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-text-light">Descripción</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-text-light">Estado</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-text-light">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories
-                    .filter(category => showInactive || category.estado === 'ACTIVO')
-                    .map((category) => (
+      <div className="flex flex-1 min-h-0 gap-6 overflow-hidden">
+        <div className="rounded-xl bg-card-dark border border-border-dark flex-1 flex flex-col min-h-0 overflow-hidden shadow-xl">
+          <div className="p-4 border-b border-border-dark shrink-0 bg-white/5 flex justify-between items-center">
+            <h2 className="text-text-light font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">category</span>
+              Catálogo de Categorías
+            </h2>
+            <span className="text-xs font-medium text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">
+              {filteredCategories.length} Registros
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto custom-scroll min-h-0">
+            {loading && !categories.length ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mb-4"></div>
+                <p className="text-text-muted text-sm">Cargando datos...</p>
+              </div>
+            ) : filteredCategories.length === 0 ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-text-muted/30 mb-4">category</span>
+                <p className="text-text-muted text-sm font-medium">
+                  {showInactive ? 'No hay categorías registradas' : 'No hay categorías activas'}
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-left">
+                  <thead className="sticky top-0 bg-card-dark z-10">
+                    <tr className="border-b border-border-dark shadow-sm">
+                      <th className="p-4 w-[20%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Nombre</th>
+                      <th className="p-4 w-[20%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Tipo de Producto</th>
+                      <th className="p-4 w-[40%] text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Descripción</th>
+                      <th className="p-4 w-[10%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Estado</th>
+                      <th className="p-4 w-[10%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Acciones</th>
+                    </tr>
+                  </thead>
+                <tbody className="divide-y divide-border-dark/30">
+                  {currentCategories.map((category) => (
                     <tr
                       key={category.id}
-                      className="border-b border-border-dark hover:bg-input-dark/30 transition-colors"
+                      className="group transition-colors hover:bg-white/5"
                     >
-                      <td className="px-6 py-4">
-                        <span className="text-text-light font-medium">{category.nombre}</span>
+                      <td className="p-4 text-center align-middle">
+                        <span className="text-text-light font-bold text-sm">{category.nombre}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded text-xs bg-primary/20 text-primary">
+                      <td className="p-4 text-center align-middle">
+                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase bg-primary/10 text-primary border border-primary/20">
                           {getTipoProductoLabel(category.tipoProducto)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-text-muted text-sm">
+                      <td className="p-4 align-middle">
+                        <span className="text-text-muted text-sm line-clamp-2">
                           {category.descripcion || '-'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-xs ${
+                      <td className="p-4 text-center align-middle">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase border ${
                           category.estado === 'ACTIVO' 
-                            ? 'bg-success/20 text-success' 
-                            : 'bg-text-muted/20 text-text-muted'
+                            ? 'bg-success/10 text-success border-success/20' 
+                            : 'bg-white/5 text-text-muted border-white/10'
                         }`}>
                           {category.estado}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleEditCategory(category)}
-                            className="text-primary hover:text-primary/80 transition-colors"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-primary hover:bg-primary/20 hover:text-white transition-all border border-white/10 hover:border-primary/30"
                             title="Editar categoría"
                           >
-                            <span className="material-symbols-outlined">edit</span>
+                            <span className="material-symbols-outlined text-sm">edit</span>
                           </button>
                           <button
                             onClick={() => handleToggleStatus(category)}
-                            className={`transition-colors ${
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 transition-all border border-white/10 ${
                               category.estado === 'ACTIVO'
-                                ? 'text-warning hover:text-warning/80'
-                                : 'text-success hover:text-success/80'
+                                ? 'text-warning hover:bg-warning/20 hover:text-warning hover:border-warning/30'
+                                : 'text-success hover:bg-success/20 hover:text-success hover:border-success/30'
                             }`}
                             title={category.estado === 'ACTIVO' ? 'Inactivar categoría' : 'Activar categoría'}
                           >
-                            <span className="material-symbols-outlined">
-                              {category.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off'}
+                            <span className="material-symbols-outlined text-sm">
+                              {category.estado === 'ACTIVO' ? 'power_settings_new' : 'play_arrow'}
                             </span>
                           </button>
                           <button
                             onClick={() => handleDeleteCategory(category.id)}
-                            className="text-danger hover:text-danger/80 transition-colors"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-danger hover:bg-danger/20 hover:text-white transition-all border border-white/10 hover:border-danger/30"
                             title="Eliminar categoría"
                           >
-                            <span className="material-symbols-outlined">delete</span>
+                            <span className="material-symbols-outlined text-sm">delete</span>
                           </button>
                         </div>
                       </td>
@@ -296,10 +323,35 @@ const Categorias = () => {
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+
+          {/* Pagination Controls */}
+          {!loading && filteredCategories.length > 0 && (
+            <div className="p-2.5 border-t border-border-dark bg-white/5 shrink-0 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
+              </button>
+              
+              <span className="text-xs font-medium text-text-muted bg-slate-900/50 px-3 py-1.5 rounded-md border border-white/5">
+                Página <span className="text-text-light font-bold">{currentPage}</span> de <span className="text-text-light font-bold">{totalPages}</span>
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </button>
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

@@ -16,8 +16,8 @@ const Inventario = () => {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="mb-6">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="mb-6 shrink-0">
         <nav className="flex gap-2 border-b border-border-dark">
           {subpages.map((page) => (
             <NavLink
@@ -40,7 +40,9 @@ const Inventario = () => {
         </nav>
       </div>
 
-      <Outlet />
+      <div className="flex-1 min-h-0 relative">
+        <Outlet />
+      </div>
     </div>
   )
 }

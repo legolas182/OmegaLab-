@@ -24,6 +24,8 @@ const Productos = () => {
   const [showAddMaterial, setShowAddMaterial] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -70,6 +72,7 @@ const Productos = () => {
   // Cargar productos cuando cambia el término de búsqueda
   useEffect(() => {
     loadProducts()
+    setCurrentPage(1)
   }, [searchTerm])
 
   useEffect(() => {
@@ -346,125 +349,169 @@ const Productos = () => {
     }
   }
 
+  // Paginación
+  const totalPages = Math.ceil(products.length / itemsPerPage)
+  const currentProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex-1 min-w-[200px]">
+    <div className="w-full h-full flex flex-col min-h-0">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
+        <div className="flex-1 min-w-[200px] flex gap-3">
           <input
             type="text"
             placeholder="Buscar productos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="flex-1 min-w-[200px] h-12 px-4 rounded-xl bg-slate-950/50 border border-white/5 text-text-light placeholder:text-text-muted/50 focus:outline-none focus:border-primary/50 transition-all text-sm"
           />
         </div>
         {!isSupervisorCalidad && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+            className="px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2"
           >
+            <span className="material-symbols-outlined text-lg">add</span>
             Nuevo Producto
           </button>
         )}
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+        <div className="mb-6 rounded-xl bg-danger/20 border border-danger/50 p-4 flex items-center gap-3 shrink-0">
           <span className="material-symbols-outlined text-danger">error</span>
-          <p className="text-danger text-sm">{error}</p>
+          <p className="text-danger text-sm font-medium">{error}</p>
         </div>
       )}
 
-      {/* Tabla de Productos Horizontal */}
-      <div className="bg-card-dark rounded-lg border border-border-dark overflow-hidden mb-6">
-        <div className="p-4 border-b border-border-dark flex items-center justify-between">
-          <h2 className="text-text-light font-semibold">Lista de Productos ({products.length})</h2>
-        </div>
-        {loading && !products.length ? (
-          <div className="p-8 text-center text-text-muted">Cargando...</div>
-        ) : products.length === 0 ? (
-          <div className="p-8 text-center text-text-muted">
-            <span className="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
-            <p className="text-sm">No hay productos registrados</p>
+      {/* Tabla de Productos Flex Container */}
+      <div className="flex flex-1 min-h-0 gap-6 overflow-hidden">
+        <div className="rounded-xl bg-card-dark border border-border-dark flex-1 flex flex-col min-h-0 overflow-hidden shadow-xl">
+          <div className="p-4 border-b border-border-dark shrink-0 bg-white/5 flex items-center justify-between">
+            <h2 className="text-text-light font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">inventory_2</span>
+              Catálogo de Productos
+            </h2>
+            <span className="text-xs font-medium text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">
+              {products.length} Registros
+            </span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-input-dark/50 border-b border-border-dark">
-                <tr>
-                  <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Código</th>
-                  <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Nombre</th>
-                  <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Categoría</th>
-                  <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Unidad</th>
-                  {isSupervisorCalidad && (
-                    <th className="px-3 py-2 text-left text-text-muted text-xs font-semibold uppercase tracking-wider">Cantidad en Stock</th>
-                  )}
-                  {!isSupervisorCalidad && (
-                    <th className="px-3 py-2 text-center text-text-muted text-xs font-semibold uppercase tracking-wider">Acciones</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-dark">
-                {products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className={`hover:bg-input-dark/30 transition-colors ${selectedProduct?.id === product.id ? 'bg-primary/10' : ''
-                      }`}
-                  >
-                    <td className="px-3 py-2.5">
-                      <span className="text-text-light text-xs font-medium">{product.codigo}</span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className={`text-text-light text-xs ${!isSupervisorCalidad ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
-                        onClick={!isSupervisorCalidad ? () => setSelectedProduct(product) : undefined}
+          
+          <div className="flex-1 overflow-y-auto custom-scroll min-h-0">
+            {loading && !products.length ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mb-4"></div>
+                <p className="text-text-muted text-sm">Cargando datos...</p>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-text-muted/30 mb-4 block">inventory_2</span>
+                <p className="text-text-muted text-sm font-medium">No hay productos registrados</p>
+              </div>
+            ) : (
+                <table className="w-full text-left bg-card-dark">
+                  <thead className="sticky top-0 bg-card-dark z-10">
+                    <tr className="border-b border-border-dark shadow-sm">
+                      <th className="p-4 w-[15%] text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Código</th>
+                      <th className="p-4 w-[30%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Nombre</th>
+                      <th className="p-4 w-[15%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Categoría</th>
+                      <th className="p-4 w-[15%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Unidad</th>
+                      {isSupervisorCalidad && (
+                        <th className="p-4 w-[25%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Cantidad en Stock</th>
+                      )}
+                      {!isSupervisorCalidad && (
+                        <th className="p-4 w-[25%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Acciones</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-dark/30">
+                    {currentProducts.map((product) => (
+                      <tr
+                        key={product.id}
+                        className={`group transition-colors ${selectedProduct?.id === product.id ? 'bg-primary/10 border-l-4 border-l-primary' : 'hover:bg-white/5'
+                          }`}
                       >
-                        {product.nombre}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-text-muted text-xs">{getCategoryName(product.categoriaId)}</span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-text-muted text-xs">{product.unidadMedida || '-'}</span>
-                    </td>
-                    {isSupervisorCalidad && (
-                      <td className="px-3 py-2.5">
-                        <span className="text-text-light text-xs font-medium">
-                          {product.cantidadStock !== null && product.cantidadStock !== undefined
-                            ? Math.round(parseFloat(product.cantidadStock))
-                            : '0'}
-                        </span>
-                      </td>
-                    )}
-                    {!isSupervisorCalidad && (
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(product)
-                              setShowDetailsModal(true)
-                            }}
-                            className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                            title="Ver detalles"
+                        <td className="p-4 align-middle">
+                          <span className="text-text-light text-sm font-bold tracking-tight">{product.codigo}</span>
+                        </td>
+                        <td className="p-4 text-center align-middle">
+                          <span className={`text-text-light font-medium text-sm ${!isSupervisorCalidad ? 'cursor-pointer group-hover:text-primary transition-colors' : ''}`}
+                            onClick={!isSupervisorCalidad ? () => setSelectedProduct(product) : undefined}
                           >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product.id)}
-                            className="px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
-                            title="Eliminar"
-                          >
-                            <span className="material-symbols-outlined text-sm">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                            {product.nombre}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center align-middle">
+                          <span className="px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase bg-white/5 text-text-muted border border-white/10 group-hover:border-primary/30 transition-colors">
+                            {getCategoryName(product.categoriaId)}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center align-middle">
+                          <span className="text-text-muted text-sm font-mono">{product.unidadMedida || '-'}</span>
+                        </td>
+                        {isSupervisorCalidad && (
+                          <td className="p-4 text-center align-middle">
+                            <span className="text-text-light font-bold text-sm">
+                              {product.cantidadStock !== null && product.cantidadStock !== undefined
+                                ? Math.round(parseFloat(product.cantidadStock))
+                                : '0'}
+                            </span>
+                          </td>
+                        )}
+                        {!isSupervisorCalidad && (
+                          <td className="p-4 text-center align-middle">
+                            <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setSelectedProduct(product)
+                                  setShowDetailsModal(true)
+                                }}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-primary hover:bg-primary/20 hover:text-white transition-all border border-white/10 hover:border-primary/30"
+                                title="Ver detalles"
+                              >
+                                <span className="material-symbols-outlined text-sm">visibility</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-danger hover:bg-danger/20 hover:text-white transition-all border border-white/10 hover:border-danger/30"
+                                title="Eliminar"
+                              >
+                                <span className="material-symbols-outlined text-sm">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+            )}
           </div>
-        )}
+
+          {/* Pagination Controls */}
+          {!loading && products.length > 0 && (
+            <div className="p-2.5 border-t border-border-dark bg-white/5 shrink-0 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
+              </button>
+              
+              <span className="text-xs font-medium text-text-muted bg-slate-900/50 px-3 py-1.5 rounded-md border border-white/5">
+                Página <span className="text-text-light font-bold">{currentPage}</span> de <span className="text-text-light font-bold">{totalPages}</span>
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal de Detalles del Producto - Solo para Admin y Supervisor QA */}

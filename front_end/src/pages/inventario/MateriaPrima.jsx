@@ -16,6 +16,8 @@ const MateriaPrima = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
   const [categories, setCategories] = useState([])
   const [selectedMaterial, setSelectedMaterial] = useState(null)
   const [materialCompounds, setMaterialCompounds] = useState([])
@@ -52,6 +54,7 @@ const MateriaPrima = () => {
   useEffect(() => {
     loadMaterials()
     loadCategories()
+    setCurrentPage(1)
   }, [searchTerm, filterTipo])
 
   const loadMaterials = async () => {
@@ -281,143 +284,161 @@ const MateriaPrima = () => {
     }
   }
 
+  // Paginación
+  const totalPages = Math.ceil(materials.length / itemsPerPage)
+  const currentMaterials = materials.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex-1 min-w-[200px]">
+    <div className="w-full h-full flex flex-col min-h-0">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
+        <div className="flex-1 min-w-[200px] flex flex-wrap gap-3">
           <input
             type="text"
             placeholder="Buscar materiales..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="flex-1 min-w-[200px] h-12 px-4 rounded-xl bg-slate-950/50 border border-white/5 text-text-light placeholder:text-text-muted/50 focus:outline-none focus:border-primary/50 transition-all text-sm"
           />
-        </div>
-        <div>
           <select
             value={filterTipo}
             onChange={(e) => setFilterTipo(e.target.value)}
-            className="h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
+            className="h-12 px-4 rounded-xl bg-slate-950/50 border border-white/5 text-text-light focus:outline-none focus:border-primary/50 transition-all text-sm font-medium"
           >
-            <option value="">Todos los tipos</option>
-            <option value="MATERIA_PRIMA">Materia Prima</option>
-            <option value="COMPONENTE">Componente</option>
+            <option value="" className="bg-slate-900">Todos los tipos</option>
+            <option value="MATERIA_PRIMA" className="bg-slate-900">Materia Prima</option>
+            <option value="COMPONENTE" className="bg-slate-900">Componente</option>
           </select>
         </div>
         {!isSupervisorCalidad && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90"
+            className="px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2"
           >
+            <span className="material-symbols-outlined text-lg">add</span>
             Nuevo Material
           </button>
         )}
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg bg-danger/20 border border-danger/50 p-4 flex items-center gap-3">
+        <div className="mb-6 rounded-xl bg-danger/20 border border-danger/50 p-4 flex items-center gap-3 shrink-0">
           <span className="material-symbols-outlined text-danger">error</span>
-          <p className="text-danger text-sm">{error}</p>
+          <p className="text-danger text-sm font-medium">{error}</p>
         </div>
       )}
 
-      {loading && !materials.length ? (
-        <div className="text-center py-12 text-text-muted">Cargando...</div>
-      ) : (
-        <div className="rounded-lg bg-card-dark border border-border-dark overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-dark">
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Código</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Nombre</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Tipo</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Categoría</th>
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Unidad</th>
-                  {isSupervisorCalidad && (
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Cantidad en Stock</th>
-                  )}
-                  <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                  {!isSupervisorCalidad && (
-                    <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {materials.length === 0 ? (
-                  <tr>
-                    <td colSpan={isSupervisorCalidad ? 7 : 8} className="p-8 text-center text-text-muted">
-                      No hay materiales registrados
-                    </td>
+      <div className="flex flex-1 min-h-0 gap-6 overflow-hidden">
+        <div className="rounded-xl bg-card-dark border border-border-dark flex-1 flex flex-col min-h-0 overflow-hidden shadow-xl">
+          <div className="p-4 border-b border-border-dark shrink-0 bg-white/5 flex justify-between items-center">
+            <h2 className="text-text-light font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">science</span>
+              Catálogo de Materia Prima
+            </h2>
+            <span className="text-xs font-medium text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">
+              {materials.length} Registros
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto custom-scroll min-h-0">
+            {loading && !materials.length ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mb-4"></div>
+                <p className="text-text-muted text-sm">Cargando datos...</p>
+              </div>
+            ) : materials.length === 0 ? (
+              <div className="p-12 text-center h-full flex flex-col items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-text-muted/30 mb-4">science</span>
+                <p className="text-text-muted text-sm font-medium">No hay materiales registrados</p>
+              </div>
+            ) : (
+              <table className="w-full text-left">
+                <thead className="sticky top-0 bg-card-dark z-10">
+                  <tr className="border-b border-border-dark shadow-sm">
+                    <th className="p-4 w-[12%] text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Código</th>
+                    <th className="p-4 w-[28%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Nombre</th>
+                    <th className="p-4 w-[12%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Tipo</th>
+                    <th className="p-4 w-[15%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Categoría</th>
+                    <th className="p-4 w-[10%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Unidad</th>
+                    {isSupervisorCalidad && (
+                      <th className="p-4 w-[11%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Cantidad en Stock</th>
+                    )}
+                    <th className="p-4 w-[12%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Estado</th>
+                    {!isSupervisorCalidad && (
+                      <th className="p-4 w-[11%] text-center text-text-muted text-xs font-semibold uppercase align-middle whitespace-nowrap">Acciones</th>
+                    )}
                   </tr>
-                ) : (
-                  materials.map((material) => (
-                    <tr key={material.id} className="border-b border-border-dark hover:bg-border-dark/30">
-                      <td className="p-4 text-text-light font-medium">{material.codigo}</td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-light">{material.nombre}</span>
+                </thead>
+                <tbody className="divide-y divide-border-dark/30">
+                  {currentMaterials.map((material) => (
+                    <tr key={material.id} className="group transition-colors hover:bg-white/5">
+                      <td className="p-4 align-middle text-text-light font-bold text-sm tracking-tight">{material.codigo}</td>
+                      <td className="p-4 text-center align-middle">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-text-light font-medium text-sm">{material.nombre}</span>
                           {!isSupervisorCalidad && compoundsCount[material.id] > 0 && (
-                            <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400 flex items-center gap-1" title={`${compoundsCount[material.id]} compuesto(s) molecular(es)`}>
-                              <span className="material-symbols-outlined text-xs">science</span>
-                              {compoundsCount[material.id]}
+                            <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center gap-1 w-max" title={`${compoundsCount[material.id]} compuesto(s) molecular(es)`}>
+                              <span className="material-symbols-outlined text-[12px] leading-none text-emerald-400">science</span>
+                              {compoundsCount[material.id]} compuesto(s)
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className="px-2 py-1 rounded text-xs bg-primary/20 text-primary">
+                      <td className="p-4 text-center align-middle">
+                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase bg-primary/10 text-primary border border-primary/20">
                           {material.tipo}
                         </span>
                       </td>
-                      <td className="p-4 text-text-muted">{getCategoryName(material.categoriaId)}</td>
-                      <td className="p-4 text-text-muted">{material.unidadMedida}</td>
+                      <td className="p-4 text-center align-middle">
+                        <span className="text-text-muted text-sm">{getCategoryName(material.categoriaId)}</span>
+                      </td>
+                      <td className="p-4 text-center align-middle">
+                        <span className="text-text-muted text-sm font-mono">{material.unidadMedida}</span>
+                      </td>
                       {isSupervisorCalidad && (
-                        <td className="p-4">
-                          <span className="text-text-light text-sm font-medium">
+                        <td className="p-4 text-center align-middle">
+                          <span className="text-text-light font-bold text-sm">
                             {material.cantidadStock !== null && material.cantidadStock !== undefined 
                               ? Math.round(parseFloat(material.cantidadStock))
                               : '0'}
                           </span>
                         </td>
                       )}
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs ${
+                      <td className="p-4 text-center align-middle">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase border ${
                           material.estado === 'ACTIVO' 
-                            ? 'bg-success/20 text-success' 
-                            : 'bg-text-muted/20 text-text-muted'
+                            ? 'bg-success/10 text-success border-success/20' 
+                            : 'bg-white/5 text-text-muted border-white/10'
                         }`}>
                           {material.estado}
                         </span>
                       </td>
                       {!isSupervisorCalidad && (
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="p-4 text-center align-middle">
+                          <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => handleViewCompounds(material)}
-                              className="px-3 py-1 rounded text-sm text-primary hover:bg-primary/10 flex items-center gap-1"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-emerald-400 hover:bg-emerald-400/20 hover:text-emerald-300 transition-all border border-white/10 hover:border-emerald-400/30"
                               title="Ver compuestos moleculares"
                             >
                               <span className="material-symbols-outlined text-sm">science</span>
-                              Compuestos
                             </button>
                             <button
                               onClick={() => handleToggleStatus(material)}
-                              className={`p-1.5 rounded transition-colors ${
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 transition-all border border-white/10 ${
                                 material.estado === 'ACTIVO'
-                                  ? 'text-warning hover:bg-warning/10'
-                                  : 'text-success hover:bg-success/10'
+                                  ? 'text-warning hover:bg-warning/20 hover:text-warning hover:border-warning/30'
+                                  : 'text-success hover:bg-success/20 hover:text-success hover:border-success/30'
                               }`}
                               title={material.estado === 'ACTIVO' ? 'Inactivar material' : 'Activar material'}
                             >
-                              <span className="material-symbols-outlined text-lg">
-                                {material.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off'}
+                              <span className="material-symbols-outlined text-sm">
+                                {material.estado === 'ACTIVO' ? 'power_settings_new' : 'play_arrow'}
                               </span>
                             </button>
                             <button
                               onClick={() => handleDeleteMaterial(material.id)}
-                              className="px-3 py-1 rounded text-sm text-danger hover:bg-danger/10"
-                              title="Eliminar"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-danger hover:bg-danger/20 hover:text-white transition-all border border-white/10 hover:border-danger/30"
+                              title="Eliminar material"
                             >
                               <span className="material-symbols-outlined text-sm">delete</span>
                             </button>
@@ -425,13 +446,38 @@ const MateriaPrima = () => {
                         </td>
                       )}
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
+
+          {/* Pagination Controls */}
+          {!loading && materials.length > 0 && (
+            <div className="p-2.5 border-t border-border-dark bg-white/5 shrink-0 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
+              </button>
+              
+              <span className="text-xs font-medium text-text-muted bg-slate-900/50 px-3 py-1.5 rounded-md border border-white/5">
+                Página <span className="text-text-light font-bold">{currentPage}</span> de <span className="text-text-light font-bold">{totalPages}</span>
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-text-light hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10 hover:border-primary/30 group"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {showCreateModal && !isSupervisorCalidad && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
