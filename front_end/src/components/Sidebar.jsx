@@ -97,6 +97,29 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
               </div>
             </div>
 
+            {/* User Info - debajo del logo */}
+            {user && (
+              <div className="flex-shrink-0 p-3 rounded-lg bg-input-dark border border-border-dark">
+                <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
+                <p className="text-text-muted text-xs truncate">{user.email}</p>
+                {(() => {
+                  const roleStyles = getRoleStyles(user.rol)
+                  return (
+                    <span
+                      className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
+                      style={{
+                        backgroundColor: roleStyles.backgroundColor,
+                        color: roleStyles.textColor,
+                        borderColor: roleStyles.borderColor
+                      }}
+                    >
+                      {getRoleName(user.rol)}
+                    </span>
+                  )
+                })()}
+              </div>
+            )}
+
             {/* Navigation */}
             <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
               {modules.map((module) => {
@@ -139,29 +162,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 )
               })}
             </nav>
-
-            {/* User Info */}
-            {user && (
-              <div className="flex-shrink-0 mt-auto mb-2 p-3 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
-                <p className="text-text-muted text-xs truncate">{user.email}</p>
-                {(() => {
-                  const roleStyles = getRoleStyles(user.rol)
-                  return (
-                    <span
-                      className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
-                      style={{
-                        backgroundColor: roleStyles.backgroundColor,
-                        color: roleStyles.textColor,
-                        borderColor: roleStyles.borderColor
-                      }}
-                    >
-                      {getRoleName(user.rol)}
-                    </span>
-                  )
-                })()}
-              </div>
-            )}
 
             {/* Footer Actions - mismo estilo que modo oscuro (iconos con color y glow) */}
             <div className="flex flex-col gap-2 flex-shrink-0">
@@ -236,6 +236,29 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 </button>
               </div>
 
+              {/* User Info - debajo del logo */}
+              {user && (
+                <div className="flex-shrink-0 p-3 rounded-lg bg-input-dark border border-border-dark">
+                  <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
+                  <p className="text-text-muted text-xs truncate">{user.email}</p>
+                  {(() => {
+                    const roleStyles = getRoleStyles(user.rol)
+                    return (
+                      <span
+                        className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
+                        style={{
+                          backgroundColor: roleStyles.backgroundColor,
+                          color: roleStyles.textColor,
+                          borderColor: roleStyles.borderColor
+                        }}
+                      >
+                        {getRoleName(user.rol)}
+                      </span>
+                    )
+                  })()}
+                </div>
+              )}
+
               <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
                 {modules.map((module) => {
                   const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista) 
@@ -272,29 +295,6 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                   )
                 })}
               </nav>
-
-              {/* User Info */}
-              {user && (
-                <div className="flex-shrink-0 mt-auto mb-2 p-3 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
-                  <p className="text-text-muted text-xs truncate">{user.email}</p>
-                  {(() => {
-                    const roleStyles = getRoleStyles(user.rol)
-                    return (
-                      <span
-                        className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
-                        style={{
-                          backgroundColor: roleStyles.backgroundColor,
-                          color: roleStyles.textColor,
-                          borderColor: roleStyles.borderColor
-                        }}
-                      >
-                        {getRoleName(user.rol)}
-                      </span>
-                    )
-                  })()}
-                </div>
-              )}
 
               <div className="flex flex-col gap-2 flex-shrink-0">
                 <button
