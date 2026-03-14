@@ -153,110 +153,125 @@ const IA = () => {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+
+      {/* HEADER */}
+      <div className="shrink-0 mb-3">
+        <h1 className="text-text-light text-xl font-bold tracking-tight">IA / Simulación</h1>
+        <p className="text-text-muted text-xs mt-0.5">Genera fórmulas experimentales usando inteligencia artificial</p>
+      </div>
+
       {/* Mensaje */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg alert-message ${
-          message.type === 'success' 
-            ? 'alert-success bg-green-500/20 border border-green-500/50 text-green-400' 
-            : 'alert-error bg-red-500/20 border border-red-500/50 text-red-400'
+        <div className={`mb-4 shrink-0 p-3 rounded-xl flex items-center gap-2 ${
+          message.type === 'success'
+            ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+            : 'bg-red-500/10 border border-red-500/30 text-red-400'
         }`}>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined">
-              {message.type === 'success' ? 'check_circle' : 'error'}
-            </span>
-            <p className="text-sm font-medium">{message.text}</p>
-          </div>
+          <span className="material-symbols-outlined text-lg">
+            {message.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <p className="text-sm font-medium">{message.text}</p>
         </div>
       )}
 
-      {/* Formulación Experimental */}
-      <div className="space-y-6">
-          {/* Información de la Fórmula */}
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-            <h2 className="text-text-light text-xl font-semibold mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined">science</span>
-              Formulación Experimental
-            </h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-text-light text-sm font-medium mb-2">
-                  Nombre de la Fórmula
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Proteína Masa Muscular"
-                  className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+      {/* CONTENT — flex-col fills remaining height, no outer scroll */}
+      <div className="flex-1 min-h-0 flex flex-col gap-3">
 
-              <div>
-                <label className="block text-text-light text-sm font-medium mb-2">
-                  Objetivo de la Fórmula
-                </label>
-                <textarea
-                  value={objetivo}
-                  onChange={(e) => setObjetivo(e.target.value)}
-                  rows={3}
-                  placeholder="Ej: Proteína en polvo para ganar masa muscular con alto contenido proteico (≥80%) y buena solubilidad"
-                  className="w-full px-4 py-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-text-light text-sm font-medium mb-2">
-                    Rendimiento (g)
-                  </label>
-                  <input
-                    type="number"
-                    value={rendimiento}
-                    onChange={(e) => setRendimiento(parseFloat(e.target.value) || 100)}
-                    className="w-full h-12 px-4 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-              </div>
-            </div>
+        {/* Formulación Experimental — grows to fill available space */}
+        <div className="rounded-xl bg-card-dark border border-border-dark overflow-hidden flex flex-col flex-1 min-h-0">
+          <div className="px-4 py-2.5 border-b border-border-dark bg-white/5 flex items-center gap-2 shrink-0">
+            <span className="material-symbols-outlined text-info text-base">science</span>
+            <h2 className="text-text-light font-semibold text-sm">Formulación Experimental</h2>
           </div>
+          <div className="flex-1 min-h-0 p-4 flex flex-col gap-3">
+            <div>
+              <label className="block text-text-muted text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                Nombre de la Fórmula
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: Proteína Masa Muscular"
+                className="w-full h-9 px-3 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 text-sm"
+              />
+            </div>
 
+            <div className="flex-1 min-h-0 flex flex-col">
+              <label className="block text-text-muted text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                Objetivo de la Fórmula
+              </label>
+              <textarea
+                value={objetivo}
+                onChange={(e) => setObjetivo(e.target.value)}
+                placeholder="Ej: Proteína en polvo para ganar masa muscular con alto contenido proteico (≥80%) y buena solubilidad"
+                className="flex-1 min-h-0 w-full px-3 py-2.5 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50 text-sm resize-none"
+              />
+            </div>
 
-          {/* Botón Generar */}
-          <button
-            onClick={handleGenerateFormula}
-            disabled={generating || !objetivo.trim()}
-            className="w-full px-6 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {generating ? (
-              <>
-                <span className="material-symbols-outlined animate-spin">sync</span>
-                Analizando inventario y generando fórmula con IA...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined">psychology</span>
-                Generar Fórmula Experimental con IA
-              </>
-            )}
-          </button>
-          
-          {/* Información adicional */}
-          <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-blue-400 text-xl">info</span>
-              <div className="flex-1">
-                <p className="text-text-light text-lg font-medium mb-2">¿Cómo funciona la selección automática?</p>
-                <ul className="text-text-muted text-base space-y-2 list-disc list-inside">
-                  <li>La IA analiza el inventario completo de materias primas</li>
-                  <li>Selecciona automáticamente las más adecuadas para tu objetivo</li>
-                  <li>Sugiere nuevos compuestos de bases de datos externas si son necesarios</li>
-                  <li>Muestra una justificación detallada de cada selección</li>
-                  <li>Puedes revisar y modificar las selecciones en el módulo de Ideas</li>
-                </ul>
-              </div>
+            <div className="w-1/3 shrink-0">
+              <label className="block text-text-muted text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                Rendimiento (g)
+              </label>
+              <input
+                type="number"
+                value={rendimiento}
+                onChange={(e) => setRendimiento(parseFloat(e.target.value) || 100)}
+                className="w-full h-9 px-3 rounded-lg bg-input-dark border-none text-text-light focus:outline-0 focus:ring-2 focus:ring-primary/50 text-sm"
+              />
             </div>
           </div>
         </div>
+
+        {/* Botón Generar */}
+        <button
+          onClick={handleGenerateFormula}
+          disabled={generating || !objetivo.trim()}
+          className="w-full px-6 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 shrink-0"
+        >
+          {generating ? (
+            <>
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              Analizando inventario y generando fórmula con IA...
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-xl">psychology</span>
+              Generar Fórmula Experimental con IA
+            </>
+          )}
+        </button>
+
+        {/* Información adicional */}
+        <div className="rounded-xl bg-card-dark border border-border-dark overflow-hidden shrink-0">
+          <div className="px-4 py-2.5 border-b border-border-dark bg-blue-500/5 flex items-center gap-2">
+            <span className="material-symbols-outlined text-blue-400 text-base">info</span>
+            <h2 className="text-text-light font-semibold text-sm">¿Cómo funciona la selección automática?</h2>
+          </div>
+          <ul className="px-4 py-3 text-text-muted text-xs space-y-1.5">
+            <li className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-400 text-sm shrink-0">check_circle</span>
+              La IA analiza el inventario completo de materias primas
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-400 text-sm shrink-0">check_circle</span>
+              Selecciona automáticamente las más adecuadas para tu objetivo
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-400 text-sm shrink-0">check_circle</span>
+              Sugiere nuevos compuestos de bases de datos externas si son necesarios
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-400 text-sm shrink-0">check_circle</span>
+              Muestra una justificación detallada de cada selección
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-400 text-sm shrink-0">check_circle</span>
+              Puedes revisar y modificar las selecciones en el módulo de Ideas
+            </li>
+          </ul>
+        </div>
+
+      </div>
 
       {/* Modal de Selección de Materias Primas e Inventario */}
       {showMaterialSelector && (
