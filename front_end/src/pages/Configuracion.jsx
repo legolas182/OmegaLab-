@@ -64,8 +64,8 @@ const Configuracion = () => {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div className="w-full h-full flex flex-col">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-text-light text-3xl font-bold tracking-tight">Configuración del Sistema</h1>
           <p className="text-text-muted text-sm mt-1">Administración de usuarios, roles, equipos y validaciones</p>
@@ -73,7 +73,7 @@ const Configuracion = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-border-dark">
+      <div className="mb-6 border-b border-border-dark shrink-0">
         <div className="flex gap-8">
           {['usuarios', 'equipos', 'validaciones'].map((tab) => (
             <button
@@ -91,298 +91,314 @@ const Configuracion = () => {
         </div>
       </div>
 
-      {/* Tab: Usuarios y Roles */}
-      {activeTab === 'usuarios' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-text-light text-xl font-semibold">Gestión de Usuarios y Roles</h2>
-            <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90">
-              Nuevo Usuario
-            </button>
-          </div>
-
-          <div className="rounded-lg bg-card-dark border border-border-dark">
-            <div className="p-4 border-b border-border-dark">
-              <input
-                type="text"
-                placeholder="Buscar por nombre o email..."
-                className="w-full h-10 px-4 rounded-lg bg-input-dark border-none text-text-light placeholder:text-text-muted focus:outline-0 focus:ring-2 focus:ring-primary/50"
-              />
+      <div className="flex-1 overflow-y-auto pr-3 pb-8 mb-12 overflow-x-hidden w-full holographic-scroll">
+        {/* Tab: Usuarios y Roles */}
+        {activeTab === 'usuarios' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-text-light text-xl font-semibold">Gestión de Usuarios y Roles</h2>
+              <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 flex shrink-0 transition-colors">
+                Nuevo Usuario
+              </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border-dark">
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Nombre</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Email</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Rol</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                    <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usuarios.map((usuario) => {
-                    const roleStyles = getRoleStyles(usuario.rol)
-                    return (
-                      <tr key={usuario.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                        <td className="p-4 text-text-light">{usuario.nombre}</td>
-                        <td className="p-4 text-text-muted text-sm">{usuario.email}</td>
-                        <td className="p-4">
-                          <span
-                            className="px-2 py-1 rounded text-xs border"
-                            style={{
-                              backgroundColor: roleStyles.backgroundColor,
-                              color: roleStyles.textColor,
-                              borderColor: roleStyles.borderColor
-                            }}
-                          >
-                            {usuario.rol}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span
-                            className={`px-2 py-1 rounded text-xs ${
-                              usuario.estado === 'Activo'
-                                ? 'bg-success/20 text-success'
-                                : 'bg-danger/20 text-danger'
-                            }`}
-                          >
-                            {usuario.estado}
+
+            <div className="rounded-xl bg-card-dark border border-border-dark shadow-xl overflow-hidden">
+              <div className="p-4 border-b border-border-dark bg-white/5">
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm scale-75">search</span>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o email..."
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-1.5 pl-9 pr-4 text-sm text-text-light focus:outline-none focus:border-primary/50 transition-all placeholder:text-text-muted/50"
+                  />
+                </div>
+              </div>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5">
+                    <tr className="border-b border-border-dark shadow-sm">
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Nombre</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Email</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap text-center">Rol</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap text-center">Estado</th>
+                      <th className="p-4 text-right"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-dark/30">
+                    {usuarios.map((usuario) => {
+                      const roleStyles = getRoleStyles(usuario.rol)
+                      return (
+                        <tr key={usuario.id} className="group cursor-pointer hover:bg-white/5 transition-colors">
+                          <td className="p-4 text-text-light font-semibold text-sm whitespace-nowrap leading-none">{usuario.nombre}</td>
+                          <td className="p-4 text-text-muted text-sm">{usuario.email}</td>
+                          <td className="p-4 text-center">
+                            <span
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase border whitespace-nowrap"
+                              style={{
+                                backgroundColor: roleStyles.backgroundColor,
+                                color: roleStyles.textColor,
+                                borderColor: roleStyles.borderColor
+                              }}
+                            >
+                              {usuario.rol}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase whitespace-nowrap ${
+                                usuario.estado === 'Activo'
+                                  ? 'bg-success/20 text-success'
+                                  : 'bg-danger/20 text-danger'
+                              }`}
+                            >
+                              {usuario.estado}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button className="w-8 h-8 rounded-lg bg-primary/0 group-hover:bg-primary/20 text-primary transition-all flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl">chevron_right</span>
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Trazabilidad de Roles */}
+            <div className="rounded-2xl bg-card-dark border border-border-dark p-6 shadow-xl">
+              <h3 className="text-text-light font-semibold mb-4 text-lg">Trazabilidad de Roles y Formación</h3>
+              <p className="text-text-muted text-sm mb-6 leading-relaxed">
+                Omega Lab registra quién hace qué, con qué permisos y con qué formación mínima.
+                Esto permite demostrar en auditorías que solo personal calificado y autorizado ejecuta
+                actividades críticas de PLM / LIMS.
+              </p>
+              <div className="space-y-4">
+                {[
+                  {
+                    rol: 'ADMINISTRADOR DEL SISTEMA',
+                    actividades: [
+                      'Configuración de módulos y parámetros',
+                      'Alta / baja de usuarios y asignación de roles',
+                      'Gestión de integridad de datos y copias de seguridad'
+                    ],
+                    requiere: 'Formación en sistemas computarizados y cGMP; designación formal como administrador'
+                  },
+                  {
+                    rol: 'SUPERVISOR QA',
+                    actividades: [
+                      'Revisión y aprobación de fórmulas',
+                      'Liberación / rechazo de lotes desde QA',
+                      'Acceso a toda la trazabilidad de cambios y resultados'
+                    ],
+                    requiere: 'Profesional QA con formación en BPM/BPL y manejo de documentación regulatoria'
+                  },
+                  {
+                    rol: 'SUPERVISOR DE CALIDAD',
+                    actividades: [
+                      'Recepción y liberación de materias primas',
+                      'Gestión de lotes y desviaciones',
+                      'Revisión de resultados analíticos de control de calidad'
+                    ],
+                    requiere: 'Jefe / Supervisor de Calidad con formación en control de calidad y trazabilidad'
+                  },
+                  {
+                    rol: 'ANALISTA DE LABORATORIO',
+                    actividades: [
+                      'Ejecución de pruebas analíticas y registro de resultados',
+                      'Documentación de OOS y comentarios técnicos',
+                      'Soporte a desarrollo de formulaciones'
+                    ],
+                    requiere: 'Analista con formación técnica en laboratorio y entrenamiento documentado en el LIMS'
+                  }
+                ].map((rol, idx) => {
+                  const roleStyles = getRoleStyles(rol.rol)
+                  return (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-lg border flex flex-col gap-3 transition-colors hover:bg-white/[0.02]"
+                      style={{
+                        backgroundColor: roleStyles.backgroundColor,
+                        borderColor: roleStyles.borderColor
+                      }}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p className="text-text-light font-bold text-sm">{rol.rol}</p>
+                        <p className="text-text-muted text-xs italic">
+                          <span className="font-semibold text-text-light">Requisito mínimo:</span> {rol.requiere}
+                        </p>
+                      </div>
+                      <div className="w-full h-px bg-white/10" />
+                      <div>
+                        <p className="text-text-muted text-xs mb-2 font-medium">Actividades Autorizadas:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {rol.actividades.map((act, i) => (
+                            <span
+                              key={i}
+                              className="px-3 py-1.5 rounded-md text-xs border font-medium bg-background-dark/20"
+                              style={{
+                                color: roleStyles.textColor,
+                                borderColor: roleStyles.borderColor
+                              }}
+                            >
+                              {act}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Equipos */}
+        {activeTab === 'equipos' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-text-light text-xl font-semibold">Gestión de Equipos</h2>
+              <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 flex shrink-0 transition-colors shadow-lg shadow-primary/20">
+                Nuevo Equipo
+              </button>
+            </div>
+
+            <div className="rounded-xl bg-card-dark border border-border-dark shadow-xl overflow-hidden">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5">
+                    <tr className="border-b border-border-dark shadow-sm">
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">ID Equipo</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Nombre</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Ubicación</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Próxima Calibración</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap text-center">Estado</th>
+                      <th className="p-4 text-right"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-dark/30">
+                    {equipos.map((equipo) => (
+                      <tr key={equipo.id} className="group cursor-pointer hover:bg-white/5 transition-colors">
+                        <td className="p-4 text-text-light font-semibold text-sm whitespace-nowrap leading-none">{equipo.id}</td>
+                        <td className="p-4 text-text-light text-sm whitespace-nowrap">{equipo.nombre}</td>
+                        <td className="p-4 text-text-muted text-sm whitespace-nowrap">{equipo.ubicacion}</td>
+                        <td className="p-4 text-text-muted text-sm whitespace-nowrap">{equipo.calibracion}</td>
+                        <td className="p-4 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase whitespace-nowrap ${
+                            equipo.estado === 'Calibrado' ? 'bg-success/20 text-success' :
+                            equipo.estado === 'Vence Pronto' ? 'bg-warning/20 text-warning' :
+                            'bg-danger/20 text-danger'
+                          }`}>
+                            {equipo.estado}
                           </span>
                         </td>
                         <td className="p-4 text-right">
-                          <button className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30">
-                            Editar Permisos
+                          <button className="w-8 h-8 rounded-lg bg-primary/0 group-hover:bg-primary/20 text-primary transition-all flex items-center justify-center">
+                            <span className="material-symbols-outlined text-xl">chevron_right</span>
                           </button>
                         </td>
                       </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-card-dark border border-border-dark p-6 shadow-xl">
+              <h3 className="text-text-light font-semibold mb-4 text-lg">Vinculación Automática de Equipos</h3>
+              <p className="text-text-muted text-sm leading-relaxed">
+                El sistema vincula automáticamente los resultados analíticos al equipo de medición utilizado,
+                garantizando que la calibración esté vigente y bloqueando el uso en sistemas no calibrados. Esto mitiga de forma proactiva los riesgos regulatorios de falta de calibración documentada (NC Crítica en auditorías).
+              </p>
             </div>
           </div>
+        )}
 
-          {/* Trazabilidad de Roles */}
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-            <h3 className="text-text-light font-semibold mb-4">Trazabilidad de Roles y Formación</h3>
-            <p className="text-text-muted text-sm mb-4">
-              Omega Lab registra quién hace qué, con qué permisos y con qué formación mínima.
-              Esto permite demostrar en auditorías que solo personal calificado y autorizado ejecuta
-              actividades críticas de PLM / LIMS.
-            </p>
-            <div className="space-y-3">
-              {[
-                {
-                  rol: 'ADMINISTRADOR DEL SISTEMA',
-                  actividades: [
-                    'Configuración de módulos y parámetros',
-                    'Alta / baja de usuarios y asignación de roles',
-                    'Gestión de integridad de datos y copias de seguridad'
-                  ],
-                  requiere: 'Formación en sistemas computarizados y cGMP; designación formal como administrador'
-                },
-                {
-                  rol: 'SUPERVISOR QA',
-                  actividades: [
-                    'Revisión y aprobación de fórmulas',
-                    'Liberación / rechazo de lotes desde QA',
-                    'Acceso a toda la trazabilidad de cambios y resultados'
-                  ],
-                  requiere: 'Profesional QA con formación en BPM/BPL y manejo de documentación regulatoria'
-                },
-                {
-                  rol: 'SUPERVISOR DE CALIDAD',
-                  actividades: [
-                    'Recepción y liberación de materias primas',
-                    'Gestión de lotes y desviaciones',
-                    'Revisión de resultados analíticos de control de calidad'
-                  ],
-                  requiere: 'Jefe / Supervisor de Calidad con formación en control de calidad y trazabilidad'
-                },
-                {
-                  rol: 'ANALISTA DE LABORATORIO',
-                  actividades: [
-                    'Ejecución de pruebas analíticas y registro de resultados',
-                    'Documentación de OOS y comentarios técnicos',
-                    'Soporte a desarrollo de formulaciones'
-                  ],
-                  requiere: 'Analista con formación técnica en laboratorio y entrenamiento documentado en el LIMS'
-                }
-              ].map((rol, idx) => {
-                const roleStyles = getRoleStyles(rol.rol)
-                return (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-lg border"
-                    style={{
-                      backgroundColor: roleStyles.backgroundColor,
-                      borderColor: roleStyles.borderColor
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="text-text-light font-medium">{rol.rol}</p>
-                        <p className="text-text-muted text-xs">
-                          Formación / requisito mínimo: {rol.requiere}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-text-muted text-xs mb-1">
-                        Actividades Autorizadas en el Sistema:
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {rol.actividades.map((act, i) => (
-                          <span
-                            key={i}
-                            className="px-2 py-1 rounded text-xs border"
-                            style={{
-                              backgroundColor: roleStyles.backgroundColor,
-                              color: roleStyles.textColor,
-                              borderColor: roleStyles.borderColor
-                            }}
-                          >
-                            {act}
+        {/* Tab: Validaciones */}
+        {activeTab === 'validaciones' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-text-light text-xl font-semibold">Validación de Sistemas Críticos</h2>
+              <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 flex shrink-0 transition-colors shadow-lg shadow-primary/20">
+                Nueva Validación
+              </button>
+            </div>
+
+            <div className="rounded-xl bg-card-dark border border-border-dark shadow-xl overflow-hidden">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5">
+                    <tr className="border-b border-border-dark shadow-sm">
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">ID</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Sistema</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap text-center">Estado</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Última Validación</th>
+                      <th className="p-4 text-text-muted text-xs font-semibold uppercase whitespace-nowrap">Próxima Validación</th>
+                      <th className="p-4 text-right"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-dark/30">
+                    {validaciones.map((val) => (
+                      <tr key={val.id} className="group cursor-pointer hover:bg-white/5 transition-colors">
+                        <td className="p-4 text-text-light font-semibold text-sm whitespace-nowrap leading-none">{val.id}</td>
+                        <td className="p-4 text-text-light whitespace-normal min-w-[200px] text-sm">{val.sistema}</td>
+                        <td className="p-4 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase whitespace-nowrap ${
+                            val.estado === 'Validado' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
+                          }`}>
+                            {val.estado}
                           </span>
-                        ))}
+                        </td>
+                        <td className="p-4 text-text-muted text-sm whitespace-nowrap">{val.fecha}</td>
+                        <td className="p-4 text-text-muted text-sm whitespace-nowrap">{val.proxima}</td>
+                        <td className="p-4 text-right">
+                          <button className="w-8 h-8 rounded-lg bg-primary/0 group-hover:bg-primary/20 text-primary transition-all flex items-center justify-center">
+                            <span className="material-symbols-outlined text-xl">chevron_right</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-gradient-to-br from-warning/10 to-orange-500/5 border border-warning/20 p-6 flex flex-col md:flex-row gap-6 items-start shadow-inner">
+              <div className="bg-warning/20 p-4 rounded-xl shrink-0 border border-warning/30 shadow-lg shadow-warning/10">
+                <span className="material-symbols-outlined text-warning text-3xl block">gpp_maybe</span>
+              </div>
+              <div className="w-full">
+                <h3 className="text-warning font-bold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+                  Validación de Sistemas Computarizados (NC Mayor)
+                </h3>
+                <p className="text-text-muted text-sm mb-4 leading-relaxed">
+                  Conforme a regulaciones internacionales, el sistema garantiza un alto nivel de cumplimiento demostrando trazabilidad en todo el ciclo de vida de los datos:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  {[
+                    { title: 'Conservación', desc: 'Backups automáticos seguros y redundantes.', icon: 'save' },
+                    { title: 'Integridad', desc: 'No repudio y protección contra modificación sin rastro.', icon: 'verified_user' },
+                    { title: 'Fiabilidad', desc: 'Generación precisa desde la fuente original de la medida.', icon: 'precision_manufacturing' },
+                    { title: 'Accesibilidad', desc: 'Formatos legibles para revisiones e inspecciones (Audit Trail).', icon: 'visibility' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex gap-3 bg-card-dark/40 p-3 rounded-lg border border-border-dark">
+                      <span className="material-symbols-outlined text-primary/70">{item.icon}</span>
+                      <div>
+                        <span className="text-text-light font-medium block">{item.title}</span>
+                        <span className="text-text-muted text-xs">{item.desc}</span>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tab: Equipos */}
-      {activeTab === 'equipos' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-text-light text-xl font-semibold">Gestión de Equipos</h2>
-            <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90">
-              Nuevo Equipo
-            </button>
-          </div>
-
-          <div className="rounded-lg bg-card-dark border border-border-dark">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border-dark">
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">ID Equipo</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Nombre</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Ubicación</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Próxima Calibración</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                    <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {equipos.map((equipo) => (
-                    <tr key={equipo.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                      <td className="p-4 text-text-light font-medium">{equipo.id}</td>
-                      <td className="p-4 text-text-light">{equipo.nombre}</td>
-                      <td className="p-4 text-text-muted text-sm">{equipo.ubicacion}</td>
-                      <td className="p-4 text-text-muted text-sm">{equipo.calibracion}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          equipo.estado === 'Calibrado' ? 'bg-success/20 text-success' :
-                          equipo.estado === 'Vence Pronto' ? 'bg-warning/20 text-warning' :
-                          'bg-danger/20 text-danger'
-                        }`}>
-                          {equipo.estado}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30">
-                          Ver Historial
-                        </button>
-                      </td>
-                    </tr>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-            <h3 className="text-text-light font-semibold mb-4">Vinculación Automática de Equipos</h3>
-            <p className="text-text-muted text-sm">
-              El sistema vincula automáticamente los resultados analíticos al equipo de medición utilizado,
-              garantizando que la calibración esté vigente. Esto mitiga los riesgos de falta de calibración (NC Crítica).
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Tab: Validaciones */}
-      {activeTab === 'validaciones' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-text-light text-xl font-semibold">Validación de Sistemas Críticos</h2>
-            <button className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90">
-              Nueva Validación
-            </button>
-          </div>
-
-          <div className="rounded-lg bg-card-dark border border-border-dark">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border-dark">
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">ID</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Sistema</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Estado</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Última Validación</th>
-                    <th className="text-left p-4 text-text-muted text-sm font-semibold">Próxima Validación</th>
-                    <th className="text-right p-4 text-text-muted text-sm font-semibold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {validaciones.map((val) => (
-                    <tr key={val.id} className="border-b border-border-dark hover:bg-border-dark/50">
-                      <td className="p-4 text-text-light font-medium">{val.id}</td>
-                      <td className="p-4 text-text-light">{val.sistema}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          val.estado === 'Validado' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
-                        }`}>
-                          {val.estado}
-                        </span>
-                      </td>
-                      <td className="p-4 text-text-muted text-sm">{val.fecha}</td>
-                      <td className="p-4 text-text-muted text-sm">{val.proxima}</td>
-                      <td className="p-4 text-right">
-                        <button className="px-3 py-1 rounded bg-primary/20 text-primary text-sm hover:bg-primary/30">
-                          Ver Documentación
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-warning/10 border border-warning/30 p-6">
-            <h3 className="text-warning font-semibold mb-2 flex items-center gap-2">
-              <span className="material-symbols-outlined">warning</span>
-              Validación de Sistemas Computarizados (NC Mayor)
-            </h3>
-            <p className="text-text-muted text-sm mb-4">
-              El sistema debe estar diseñado para permitir la validación, demostrando que garantiza:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-text-muted text-sm ml-6">
-              <li>Conservación de los datos</li>
-              <li>Integridad de los datos</li>
-              <li>Fiabilidad de los datos</li>
-              <li>Accesibilidad de los datos</li>
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
