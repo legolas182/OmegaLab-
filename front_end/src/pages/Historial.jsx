@@ -424,55 +424,26 @@ const Historial = () => {
                   </tbody>
                 </table>
               </div>
-              {/* Paginación */}
+              {/* Paginación - órdenes */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-border-dark bg-input-dark/30 flex-shrink-0">
-                  <div className="text-text-muted text-xs">
-                    Mostrando {startIndex + 1} - {Math.min(endIndex, currentData.length)} de {currentData.length}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-sm">chevron_left</span>
-                      Anterior
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                ? 'bg-primary text-white'
-                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
-                                }`}
-                            >
-                              {page}
-                            </button>
-                          )
-                        } else if (page === currentPage - 2 || page === currentPage + 2) {
-                          return <span key={page} className="text-text-muted text-xs">...</span>
-                        }
-                        return null
-                      })}
-                    </div>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      Siguiente
-                      <span className="material-symbols-outlined text-sm">chevron_right</span>
-                    </button>
-                  </div>
+                <div className="flex items-center justify-center gap-3 px-4 py-2 border-t border-border-dark bg-input-dark/30 shrink-0">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-lg">chevron_left</span>
+                  </button>
+                  <span className="text-text-muted text-xs">
+                    Página <span className="text-text-light font-semibold">{currentPage}</span> de <span className="text-text-light font-semibold">{totalPages}</span>
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-lg">chevron_right</span>
+                  </button>
                 </div>
               )}
             </>
@@ -563,57 +534,26 @@ const Historial = () => {
                   </tbody>
                 </table>
               </div>
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-border-dark bg-input-dark/30 flex-shrink-0">
-                  <div className="text-text-muted text-xs">
-                    Mostrando {startIndex + 1} - {Math.min(endIndex, currentData.length)} de {currentData.length}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-sm">chevron_left</span>
-                      Anterior
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                ? 'bg-primary text-white'
-                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
-                                }`}
-                            >
-                              {page}
-                            </button>
-                          )
-                        } else if (page === currentPage - 2 || page === currentPage + 2) {
-                          return <span key={page} className="text-text-muted text-xs">...</span>
-                        }
-                        return null
-                      })}
-                    </div>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      Siguiente
-                      <span className="material-symbols-outlined text-sm">chevron_right</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación - fórmulas */}
+              <div className="flex items-center justify-center gap-3 px-4 py-2 border-t border-border-dark bg-input-dark/30 shrink-0">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">chevron_left</span>
+                </button>
+                <span className="text-text-muted text-xs">
+                  Página <span className="text-text-light font-semibold">{currentPage}</span> de <span className="text-text-light font-semibold">{totalPages || 1}</span>
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || totalPages <= 1}
+                  className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">chevron_right</span>
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -698,57 +638,26 @@ const Historial = () => {
                   </tbody>
                 </table>
               </div>
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-border-dark bg-input-dark/30 flex-shrink-0">
-                  <div className="text-text-muted text-xs">
-                    Mostrando {startIndex + 1} - {Math.min(endIndex, currentData.length)} de {currentData.length}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-sm">chevron_left</span>
-                      Anterior
-                    </button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${currentPage === page
-                                ? 'bg-primary text-white'
-                                : 'bg-input-dark border border-border-dark text-text-light hover:bg-border-dark'
-                                }`}
-                            >
-                              {page}
-                            </button>
-                          )
-                        } else if (page === currentPage - 2 || page === currentPage + 2) {
-                          return <span key={page} className="text-text-muted text-xs">...</span>
-                        }
-                        return null
-                      })}
-                    </div>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-lg bg-input-dark border border-border-dark text-text-light text-xs font-medium hover:bg-border-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      Siguiente
-                      <span className="material-symbols-outlined text-sm">chevron_right</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Paginación - pruebas */}
+              <div className="flex items-center justify-center gap-3 px-4 py-2 border-t border-border-dark bg-input-dark/30 shrink-0">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">chevron_left</span>
+                </button>
+                <span className="text-text-muted text-xs">
+                  Página <span className="text-text-light font-semibold">{currentPage}</span> de <span className="text-text-light font-semibold">{totalPages || 1}</span>
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || totalPages <= 1}
+                  className="p-1 rounded text-text-muted hover:text-text-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">chevron_right</span>
+                </button>
+              </div>
             </>
           )}
         </div>
