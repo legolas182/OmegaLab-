@@ -536,3 +536,12 @@ html[data-theme="dark"] .card-futuristic {
       rgba(56, 189, 248, 0.9),
       rgba(45, 212, 191, 0.9));
 }
+
+/* Utilería para ocultar scrollbar */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

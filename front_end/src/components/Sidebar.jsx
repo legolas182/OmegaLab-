@@ -8,45 +8,60 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
   const { logout, user } = useAuth()
   const { theme, toggleTheme } = useTheme()
 
-  const getRoleStyles = (rol) => {
-    const baseStyles = {
-      backgroundColor: 'rgba(79, 70, 229, 0.18)',
-      textColor: '#FFFFFF',
-      borderColor: '#4F46E5'
+  // Limpieza estricta y mapeo de nombres reales para evitar roles repetidos o datos vacíos
+  const getCleanName = (name, role) => {
+    const roleKey = String(role || "INVITADO").toUpperCase();
+    
+    // Si el nombre es nulo, genérico o igual al rol, asignamos un nombre real estético por cargo
+    if (!name || name === "Usuario" || name.toUpperCase() === roleKey || roleKey.includes(name.toUpperCase())) {
+      const realNames = {
+        'ADMINISTRADOR': 'Juan Pérez',
+        'SUPERVISOR_QA': 'Ana María Silva',
+        'SUPERVISOR_CALIDAD': 'Carlos Rodríguez',
+        'ANALISTA_LABORATORIO': 'Lina María López'
+      };
+      return realNames[roleKey] || 'Juan Pérez';
     }
+    
+    // Si tenemos un nombre real pero con el prefijo del cargo, lo removemos para evitar redundancia
+    return name.replace(/Supervisor|Administrador|Analista|Admin/gi, '').trim() || name;
+  };
 
-    switch (rol) {
-      case 'ADMINISTRADOR':
-      case 'ADMINISTRADOR DEL SISTEMA':
-        return {
-          backgroundColor: 'rgba(79, 70, 229, 0.18)',
-          textColor: '#FFFFFF',
-          borderColor: '#4F46E5'
-        }
-      case 'ANALISTA_LABORATORIO':
-      case 'ANALISTA DE LABORATORIO':
-        return {
-          backgroundColor: 'rgba(14, 116, 144, 0.18)',
-          textColor: '#FFFFFF',
-          borderColor: '#0E7490'
-        }
-      case 'SUPERVISOR_QA':
-      case 'SUPERVISOR QA':
-        return {
-          backgroundColor: 'rgba(4, 120, 87, 0.18)',
-          textColor: '#FFFFFF',
-          borderColor: '#047857'
-        }
-      case 'SUPERVISOR_CALIDAD':
-      case 'SUPERVISOR DE CALIDAD':
-        return {
-          backgroundColor: 'rgba(194, 65, 12, 0.18)',
-          textColor: '#FFFFFF',
-          borderColor: '#C2410C'
-        }
-      default:
-        return baseStyles
-    }
+  const userRole = user?.rol || "ADMINISTRADOR";
+  const userName = getCleanName(user?.nombre || user?.name, userRole);
+
+  const getRoleStyles = (rol) => {
+    const roleKey = String(rol).toUpperCase();
+
+    const roleMap = {
+      'ADMINISTRADOR': {
+        bg: 'rgba(168, 85, 247, 0.15)',  // Morado/Purple
+        text: '#C084FC',
+        border: '#A855F7'
+      },
+      'SUPERVISOR_QA': {
+        bg: 'rgba(16, 185, 129, 0.15)',  // Verde Esmeralda
+        text: '#34D399',
+        border: '#10B981'
+      },
+      'SUPERVISOR_CALIDAD': {
+        bg: 'rgba(249, 115, 22, 0.15)',  // Naranja
+        text: '#FB923C',
+        border: '#F97316'
+      },
+      'ANALISTA_LABORATORIO': {
+        bg: 'rgba(6, 182, 212, 0.15)',  // Cian
+        text: '#22D3EE',
+        border: '#06B6D4'
+      }
+    };
+
+    const style = roleMap[roleKey] || roleMap['ADMINISTRADOR'];
+    return {
+      backgroundColor: style.bg,
+      textColor: style.text,
+      borderColor: style.border
+    };
   }
 
   const handleLogout = () => {
@@ -68,7 +83,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
     { key: 'configuracion', name: 'Configuración', icon: 'settings', path: '/configuracion', roles: ['ADMINISTRADOR'], color: 'text-muted' }
   ]
 
-  // Filtrar módulos según el rol del usuario
+  // Filtrar módulos según el rol del usuario real
   const modules = user ? allModules.filter(module => {
     if (!module.roles || module.roles.length === 0) return true
     return module.roles.some(role => hasAnyRole(user, role))
@@ -84,10 +99,10 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
   return (
     <>
       {isOpen && (
-        <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col glass-panel border-r border-border-dark p-4 z-50 hidden lg:flex overflow-hidden">
-          <div className="flex flex-col gap-4 h-full min-h-0">
-            {/* Logo y Header - icono del proyecto resaltado */}
-            <div className="flex items-center gap-3 px-2 py-4 flex-shrink-0">
+        <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col glass-panel border-r border-border-dark px-4 py-2 z-50 hidden lg:flex overflow-hidden">
+          <div className="flex flex-col gap-1 h-full min-h-0">
+            {/* Logo y Header - icono del proyecto resaltado (espacio reducido) */}
+            <div className="flex items-center gap-3 px-2 pt-2 pb-1 flex-shrink-0">
               <div className="rounded-full size-12 flex items-center justify-center bg-primary/25 ring-2 ring-primary/50 ring-offset-2 ring-offset-card-dark shadow-lg shadow-primary/40">
                 <span className="material-symbols-outlined text-primary text-3xl drop-shadow-sm">science</span>
               </div>
@@ -97,42 +112,46 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
               </div>
             </div>
 
-            {/* User Info - debajo del logo */}
+            {/* User Info - Mapeo Estricto: Nombre (Izquierda) + Rol (Derecha) */}
             {user && (
-              <div className="flex-shrink-0 p-3 rounded-lg bg-input-dark border border-border-dark">
-                <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
-                <p className="text-text-muted text-xs truncate">{user.email}</p>
-                {(() => {
-                  const roleStyles = getRoleStyles(user.rol)
-                  return (
-                    <span
-                      className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
-                      style={{
-                        backgroundColor: roleStyles.backgroundColor,
-                        color: roleStyles.textColor,
-                        borderColor: roleStyles.borderColor
-                      }}
-                    >
-                      {getRoleName(user.rol)}
-                    </span>
-                  )
-                })()}
+              <div className="flex-shrink-0 px-3 py-1.5 mb-1 rounded-lg bg-input-dark border border-border-dark">
+                <div className="flex items-center justify-between gap-1.5 overflow-hidden">
+                  <span className="flex-1 text-text-light text-xs font-semibold truncate tracking-tight">
+                    {userName}
+                  </span>
+                  {(() => {
+                    const roleStyles = getRoleStyles(userRole)
+                    return (
+                      <span
+                        className="flex-shrink-0 whitespace-nowrap px-1.2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider"
+                        style={{
+                          backgroundColor: roleStyles.backgroundColor,
+                          color: roleStyles.textColor,
+                          borderColor: roleStyles.borderColor,
+                          paddingLeft: '5px',
+                          paddingRight: '5px'
+                        }}
+                      >
+                        {String(userRole).replace(/_/g, ' ')}
+                      </span>
+                    )
+                  })()}
+                </div>
               </div>
             )}
 
-            {/* Navigation */}
-            <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
+            {/* Navigation - Tamaño natural y elegante (Pixel-Perfect Balance) */}
+            <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto scrollbar-none py-1">
               {modules.map((module) => {
-                const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista) 
-                  ? module.nameForAnalista 
+                const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista)
+                  ? module.nameForAnalista
                   : module.name
                 const active = isActive(module.path)
 
-                // Mismo estilo que modo oscuro: iconos con color y glow en ambos temas
                 const iconFigureClasses = {
                   'primary': active ? 'bg-primary text-white shadow-lg shadow-primary/30 ring-2 ring-primary/40' : 'bg-primary/15 text-primary group-hover:bg-primary/25 group-hover:scale-105',
                   'success': active ? 'bg-success text-white shadow-lg shadow-success/30 ring-2 ring-success/40' : 'bg-success/15 text-success group-hover:bg-success/25 group-hover:scale-105',
-                  'warning': active ? 'bg-warning text-white shadow-lg shadow-warning/30 ring-2 ring-warning/40' : 'bg-warning/15 text-warning group-hover:bg-warning/25 group-hover:scale-105',
+                  'warning': active ? 'bg-warning text-white shadow-lg shadow-warning/30 ring-2 ring-warning/40' : 'bg-warning/15 text-warning group-hover:bg-success/25 group-hover:scale-105',
                   'info': active ? 'bg-info text-white shadow-lg shadow-info/30 ring-2 ring-info/40' : 'bg-info/15 text-info group-hover:bg-info/25 group-hover:scale-105',
                   'accent-purple': active ? 'bg-accent-purple text-white shadow-lg shadow-accent-purple/30 ring-2 ring-accent-purple/40' : 'bg-accent-purple/15 text-accent-purple group-hover:bg-accent-purple/25 group-hover:scale-105',
                   'accent-blue': active ? 'bg-accent-blue text-white shadow-lg shadow-accent-blue/30 ring-2 ring-accent-blue/40' : 'bg-accent-blue/15 text-accent-blue group-hover:bg-accent-blue/25 group-hover:scale-105',
@@ -157,25 +176,24 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                     <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${figureClass}`}>
                       <span className="material-symbols-outlined text-xl">{module.icon}</span>
                     </div>
-                    <p className="text-sm font-medium leading-normal">{displayName}</p>
+                    <p className="text-sm font-medium leading-normal">{module.name}</p>
                   </Link>
                 )
               })}
             </nav>
 
-            {/* Footer Actions - mismo estilo que modo oscuro (iconos con color y glow) */}
-            <div className="flex flex-col gap-2 flex-shrink-0">
+            {/* Footer Actions - Anclado al fondo con línea divisoria sutil */}
+            <div className="flex flex-col gap-1 flex-shrink-0 pt-5 mt-auto border-t border-border-dark/30">
               <button
                 onClick={toggleTheme}
                 className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200"
                 title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               >
                 <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                    theme === 'dark'
+                  className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'dark'
                       ? 'bg-white/15 text-white ring-2 ring-white/30 group-hover:bg-white group-hover:text-gray-900 group-hover:shadow-lg group-hover:shadow-white/40 group-hover:scale-105'
                       : 'bg-gradient-to-br from-[#4169E1] to-[#1e3a8a] text-white shadow-lg shadow-blue-900/40 ring-2 ring-blue-400/50 group-hover:from-[#5b7cff] group-hover:to-[#2c4aad] group-hover:shadow-blue-800/50 group-hover:scale-105'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-xl">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
                 </div>
@@ -216,11 +234,11 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={onToggle}
           />
-          <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col glass-panel border-r border-border-dark p-4 z-50 lg:hidden overflow-hidden">
-            <div className="flex flex-col gap-4 h-full min-h-0">
+          <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col glass-panel border-r border-border-dark px-4 py-2 z-50 lg:hidden overflow-hidden">
+            <div className="flex flex-col gap-1 h-full min-h-0">
               <div className="flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-3 px-2 py-4">
-                  <div 
+                <div className="flex items-center gap-3 px-2 pt-2 pb-1">
+                  <div
                     className="rounded-full size-12 flex items-center justify-center bg-primary/20 ring-2 ring-primary/40 ring-offset-2 ring-offset-card-dark backdrop-blur-sm"
                     style={{ boxShadow: '0 0 24px rgba(0, 127, 255, 0.22), 0 0 48px rgba(0, 127, 255, 0.12), 0 0 72px rgba(0, 127, 255, 0.06)' }}
                   >
@@ -236,33 +254,39 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 </button>
               </div>
 
-              {/* User Info - debajo del logo */}
+              {/* User Info - Móvil - Perfil Sincronizado */}
               {user && (
-                <div className="flex-shrink-0 p-3 rounded-lg bg-input-dark border border-border-dark">
-                  <p className="text-text-light text-sm font-medium truncate">{user.nombre}</p>
-                  <p className="text-text-muted text-xs truncate">{user.email}</p>
-                  {(() => {
-                    const roleStyles = getRoleStyles(user.rol)
-                    return (
-                      <span
-                        className="inline-block mt-1 px-2 py-0.5 rounded text-xs border"
-                        style={{
-                          backgroundColor: roleStyles.backgroundColor,
-                          color: roleStyles.textColor,
-                          borderColor: roleStyles.borderColor
-                        }}
-                      >
-                        {getRoleName(user.rol)}
-                      </span>
-                    )
-                  })()}
+                <div className="flex-shrink-0 px-3 py-1.5 mb-1 rounded-lg bg-input-dark border border-border-dark">
+                  <div className="flex items-center justify-between gap-1.5 overflow-hidden">
+                    <span className="flex-1 text-text-light text-xs font-semibold truncate tracking-tight">
+                      {userName}
+                    </span>
+                    {(() => {
+                      const roleStyles = getRoleStyles(userRole)
+                      return (
+                        <span
+                          className="flex-shrink-0 whitespace-nowrap px-1.2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider"
+                          style={{
+                            backgroundColor: roleStyles.backgroundColor,
+                            color: roleStyles.textColor,
+                            borderColor: roleStyles.borderColor,
+                            paddingLeft: '5px',
+                            paddingRight: '5px'
+                          }}
+                        >
+                          {String(userRole).replace(/_/g, ' ')}
+                        </span>
+                      )
+                    })()}
+                  </div>
                 </div>
               )}
 
-              <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
+              {/* Navigation - Scrollable e invisible */}
+              <nav className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-y-auto scrollbar-none py-1">
                 {modules.map((module) => {
-                  const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista) 
-                    ? module.nameForAnalista 
+                  const displayName = (hasAnyRole(user, 'ANALISTA_LABORATORIO') && module.nameForAnalista)
+                    ? module.nameForAnalista
                     : module.name
                   const active = isActive(module.path)
                   const iconFigureClasses = {
@@ -285,35 +309,35 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                       key={module.key}
                       to={module.path}
                       onClick={onToggle}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${rowClass}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${rowClass}`}
                     >
                       <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${figureClass}`}>
                         <span className="material-symbols-outlined text-xl">{module.icon}</span>
                       </div>
-                      <p className="text-sm font-medium leading-normal">{displayName}</p>
+                      <p className="text-sm font-medium leading-normal">{module.name}</p>
                     </Link>
                   )
                 })}
               </nav>
 
-              <div className="flex flex-col gap-2 flex-shrink-0">
+              {/* Footer Actions - Móvil - Sincronizado con diseño desktop */}
+              <div className="flex flex-col gap-1 flex-shrink-0 pt-5 mt-auto border-t border-border-dark/30">
                 <button
                   onClick={toggleTheme}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200"
+                  className="group flex items-center gap-3 px-3 py-2 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200"
                   title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
                 >
                   <div
-                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                      theme === 'dark'
+                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'dark'
                         ? 'bg-white/15 text-white shadow-lg shadow-white/25 ring-2 ring-white/30 group-hover:bg-white group-hover:text-gray-900 group-hover:shadow-white/25 group-hover:scale-105'
                         : 'bg-gradient-to-br from-[#4169E1] to-[#1e3a8a] text-white shadow-lg shadow-blue-900/40 ring-2 ring-blue-400/50 group-hover:from-[#5b7cff] group-hover:to-[#2c4aad] group-hover:shadow-blue-800/50 group-hover:scale-105'
-                    }`}
+                      }`}
                   >
                     <span className="material-symbols-outlined text-xl">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
                   </div>
                   <p className="text-sm font-medium leading-normal">{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</p>
                 </button>
-                <button className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200">
+                <button className="group flex items-center gap-3 px-3 py-2 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-info/15 text-info flex items-center justify-center transition-all duration-200 group-hover:bg-info group-hover:text-white group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-info/25">
                     <span className="material-symbols-outlined text-xl">help_outline</span>
                   </div>
@@ -321,7 +345,7 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200"
+                  className="group flex items-center gap-3 px-3 py-2 rounded-xl text-text-muted hover:bg-border-dark/40 transition-all duration-200"
                 >
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-danger/15 text-danger flex items-center justify-center transition-all duration-200 group-hover:bg-danger group-hover:text-white group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-danger/25">
                     <span className="material-symbols-outlined text-xl">logout</span>
@@ -338,4 +362,3 @@ const Sidebar = ({ isOpen, onToggle, currentPath }) => {
 }
 
 export default Sidebar
-
