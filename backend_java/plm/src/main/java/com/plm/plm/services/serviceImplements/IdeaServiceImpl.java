@@ -16,9 +16,7 @@ import com.plm.plm.Reposotory.FormulaRepository;
 import com.plm.plm.Models.OrdenProduccion;
 import com.plm.plm.Models.Formula;
 import java.math.BigDecimal;
-
 import com.plm.plm.dto.IdeaDTO;
-import com.plm.plm.services.FormulaLegacyAdapter;
 import com.plm.plm.services.IdeaService;
 import com.plm.plm.services.ProduccionService;
 import com.plm.plm.services.FormulaService;
@@ -57,9 +55,6 @@ public class IdeaServiceImpl implements IdeaService {
     @Autowired
     private FormulaService formulaService;
 
-    @Autowired
-    private FormulaLegacyAdapter formulaLegacyAdapter;
-
     @Override
     @Transactional
     public IdeaDTO createIdea(IdeaDTO ideaDTO, Integer userId) {
@@ -97,17 +92,7 @@ public class IdeaServiceImpl implements IdeaService {
             }
         }
         
-        idea = ideaRepository.save(idea);
-        return convertToNormalizedDTO(idea);
-    }
-
-    private IdeaDTO convertToNormalizedDTO(Idea idea) {
-        if (idea == null) return null;
-        IdeaDTO dto = idea.getDTO();
-        if (dto.getDetallesIA() != null) {
-            dto.setDetallesIA(formulaLegacyAdapter.normalize(dto.getDetallesIA()).toString());
-        }
-        return dto;
+        return ideaRepository.save(idea).getDTO();
     }
 
     @Override
@@ -115,7 +100,7 @@ public class IdeaServiceImpl implements IdeaService {
     public List<IdeaDTO> getAllIdeas(EstadoIdea estado, Integer categoriaId, String prioridad, String search) {
         List<Idea> ideas = ideaRepository.findByFilters(estado, categoriaId, prioridad, search);
         return ideas.stream()
-                .map(this::convertToNormalizedDTO)
+                .map(Idea::getDTO)
                 .collect(Collectors.toList());
     }
 
@@ -124,7 +109,7 @@ public class IdeaServiceImpl implements IdeaService {
     public IdeaDTO getIdeaById(Integer id) {
         Idea idea = ideaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Idea no encontrada"));
-        return convertToNormalizedDTO(idea);
+        return idea.getDTO();
     }
 
     @Override
@@ -157,8 +142,7 @@ public class IdeaServiceImpl implements IdeaService {
             idea.setObjetivo(ideaDTO.getObjetivo());
         }
 
-        idea = ideaRepository.save(idea);
-        return convertToNormalizedDTO(idea);
+        return ideaRepository.save(idea).getDTO();
     }
 
     @Override
@@ -200,8 +184,7 @@ public class IdeaServiceImpl implements IdeaService {
             idea.setAsignadoA(analista);
         }
 
-        idea = ideaRepository.save(idea);
-        return convertToNormalizedDTO(idea);
+        return ideaRepository.save(idea).getDTO();
     }
 
     @Override
@@ -220,7 +203,7 @@ public class IdeaServiceImpl implements IdeaService {
     @Transactional(readOnly = true)
     public List<IdeaDTO> getIdeasAsignadas(Integer userId) {
         return ideaRepository.findByAsignadoAId(userId).stream()
-                .map(this::convertToNormalizedDTO)
+                .map(Idea::getDTO)
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -228,7 +211,7 @@ public class IdeaServiceImpl implements IdeaService {
     @Transactional(readOnly = true)
     public List<IdeaDTO> getOrdenesProduccionAsignadas(Integer supervisorCalidadId) {
         return ideaRepository.findByAsignadoAIdAndEstado(supervisorCalidadId, EstadoIdea.EN_PRODUCCION).stream()
-                .map(this::convertToNormalizedDTO)
+                .map(Idea::getDTO)
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -302,7 +285,7 @@ public class IdeaServiceImpl implements IdeaService {
             produccionService.generarLote(orden.getId(), userId);
         }
 
-        return convertToNormalizedDTO(idea);
+        return idea.getDTO();
     }
 
     private void validateIdeaData(IdeaDTO ideaDTO) {

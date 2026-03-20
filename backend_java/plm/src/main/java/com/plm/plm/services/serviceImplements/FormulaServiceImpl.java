@@ -8,7 +8,6 @@ import com.plm.plm.Reposotory.*;
 import com.plm.plm.dto.FormulaDTO;
 import com.plm.plm.dto.FormulaIngredientDTO;
 import com.plm.plm.dto.FormulaVersionDTO;
-import com.plm.plm.services.FormulaLegacyAdapter;
 import com.plm.plm.services.FormulaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,9 +43,6 @@ public class FormulaServiceImpl implements FormulaService {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private FormulaLegacyAdapter formulaLegacyAdapter;
 
     @Override
     @Transactional
@@ -278,10 +274,9 @@ public class FormulaServiceImpl implements FormulaService {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode detallesIA;
         try {
-            // Utilizar el Adaptador Tolerant Reader para normalizar el JSON legacy si es necesario
-            detallesIA = formulaLegacyAdapter.normalize(idea.getDetallesIA());
+            detallesIA = objectMapper.readTree(idea.getDetallesIA());
         } catch (Exception e) {
-            throw new BadRequestException("Error al procesar los detalles de la fórmula: " + e.getMessage());
+            throw new BadRequestException("Error al parsear detallesIA: " + e.getMessage());
         }
         
         String nombre = idea.getTitulo();
