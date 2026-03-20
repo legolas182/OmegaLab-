@@ -95,8 +95,8 @@ const Trazabilidad = () => {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div className="w-full h-full flex flex-col overflow-hidden pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-text-light text-3xl font-bold tracking-tight">Trazabilidad de Lote</h1>
           <p className="text-text-muted text-sm mt-1">Vista detallada de la línea de tiempo completa del lote</p>
@@ -121,8 +121,8 @@ const Trazabilidad = () => {
       </div>
 
       {trazabilidad && (
-        <>
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6 mb-6">
+        <div className="flex flex-col flex-1 min-h-0 gap-4">
+          <div className="rounded-lg bg-card-dark border border-border-dark p-4 shrink-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-text-muted text-sm mb-1">ID del Lote</p>
@@ -139,11 +139,11 @@ const Trazabilidad = () => {
             </div>
           </div>
 
-          <div className="rounded-lg bg-card-dark border border-border-dark p-6">
-            <h2 className="text-text-light text-xl font-semibold mb-6">Línea de Tiempo Completa</h2>
+          <div className="rounded-lg bg-card-dark border border-border-dark p-4 flex flex-col flex-1 min-h-0">
+            <h2 className="text-text-light text-xl font-semibold mb-4 shrink-0">Línea de Tiempo Completa</h2>
 
             {trazabilidad.eventos && trazabilidad.eventos.length > 0 ? (
-              <div className="relative">
+              <div className="relative flex-1 overflow-y-auto custom-scroll pr-4">
                 <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border-dark"></div>
 
                 <div className="space-y-8">
@@ -208,8 +208,8 @@ const Trazabilidad = () => {
             )}
           </div>
 
-          <div className="mt-6 rounded-lg bg-card-dark border border-border-dark p-6">
-            <h2 className="text-text-light text-xl font-semibold mb-4">Resumen de Trazabilidad</h2>
+          <div className="rounded-lg bg-card-dark border border-border-dark p-4 shrink-0">
+            <h2 className="text-text-light text-xl font-semibold mb-3">Resumen de Trazabilidad</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-input-dark">
                 <p className="text-text-muted text-xs mb-1">Total de Eventos</p>
@@ -234,11 +234,11 @@ const Trazabilidad = () => {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {!trazabilidad && !loadingLote && (
-        <div className="rounded-lg bg-card-dark border border-border-dark p-8 text-center">
+        <div className="rounded-lg bg-card-dark border border-border-dark p-8 text-center flex-1 flex flex-col items-center justify-center min-h-0">
           <span className="material-symbols-outlined text-4xl text-text-muted mb-2 block">search</span>
           <p className="text-text-muted">Busque un lote para ver su trazabilidad</p>
         </div>
